@@ -31,6 +31,9 @@ namespace ArtiluxEOL
         {
             this.components = new System.ComponentModel.Container();
             this.panelTestResult = new System.Windows.Forms.Panel();
+            this.button4 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
             this.btnStart = new System.Windows.Forms.Button();
             this.cbAdmin = new System.Windows.Forms.CheckBox();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
@@ -47,14 +50,14 @@ namespace ArtiluxEOL
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.label_evse = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.label_oscil = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
+            this.lbl_evse = new System.Windows.Forms.Label();
+            this.lbl_load = new System.Windows.Forms.Label();
+            this.lbl_specrum = new System.Windows.Forms.Label();
+            this.lbl_vald = new System.Windows.Forms.Label();
+            this.lbl_hvgen = new System.Windows.Forms.Label();
+            this.lbl_osc = new System.Windows.Forms.Label();
+            this.lbl_power = new System.Windows.Forms.Label();
+            this.lbl_rfid = new System.Windows.Forms.Label();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.saveWplace = new System.Windows.Forms.Button();
@@ -62,7 +65,9 @@ namespace ArtiluxEOL
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.button1 = new System.Windows.Forms.Button();
+            this.save_ip = new System.Windows.Forms.Button();
+            this.groupBox_Metrel_USB = new System.Windows.Forms.GroupBox();
+            this.label16 = new System.Windows.Forms.Label();
             this.groupBox_Valdiklis = new System.Windows.Forms.GroupBox();
             this.label8 = new System.Windows.Forms.Label();
             this.groupBox_Load = new System.Windows.Forms.GroupBox();
@@ -71,8 +76,6 @@ namespace ArtiluxEOL
             this.label14 = new System.Windows.Forms.Label();
             this.groupBox_HVgen = new System.Windows.Forms.GroupBox();
             this.label15 = new System.Windows.Forms.Label();
-            this.groupBox_Metrel_USB = new System.Windows.Forms.GroupBox();
-            this.label16 = new System.Windows.Forms.Label();
             this.groupBox_Osc_USB = new System.Windows.Forms.GroupBox();
             this.label17 = new System.Windows.Forms.Label();
             this.debug_tab = new System.Windows.Forms.TabPage();
@@ -81,6 +84,13 @@ namespace ArtiluxEOL
             this.serialPort_drd = new System.IO.Ports.SerialPort(this.components);
             this.tmr_1hz = new System.Windows.Forms.Timer(this.components);
             this.tmr_5hz = new System.Windows.Forms.Timer(this.components);
+            this.NetworkDevConn = new System.ComponentModel.BackgroundWorker();
+            this.MainControllerTCP = new System.ComponentModel.BackgroundWorker();
+            this.MainControllerMODBUS = new System.ComponentModel.BackgroundWorker();
+            this.btn_popup = new System.Windows.Forms.Button();
+            this.HVgen = new System.ComponentModel.BackgroundWorker();
+            this.Specroscope = new System.ComponentModel.BackgroundWorker();
+            this.Load = new System.ComponentModel.BackgroundWorker();
             this.panelTestResult.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -89,11 +99,11 @@ namespace ArtiluxEOL
             this.tabPage2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.tabPage3.SuspendLayout();
+            this.groupBox_Metrel_USB.SuspendLayout();
             this.groupBox_Valdiklis.SuspendLayout();
             this.groupBox_Load.SuspendLayout();
             this.groupBox_Spectr.SuspendLayout();
             this.groupBox_HVgen.SuspendLayout();
-            this.groupBox_Metrel_USB.SuspendLayout();
             this.groupBox_Osc_USB.SuspendLayout();
             this.debug_tab.SuspendLayout();
             this.SuspendLayout();
@@ -103,18 +113,54 @@ namespace ArtiluxEOL
             this.panelTestResult.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panelTestResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelTestResult.Controls.Add(this.button4);
+            this.panelTestResult.Controls.Add(this.button3);
+            this.panelTestResult.Controls.Add(this.button2);
             this.panelTestResult.Controls.Add(this.btnStart);
             this.panelTestResult.Controls.Add(this.cbAdmin);
-            this.panelTestResult.Location = new System.Drawing.Point(1, 662);
+            this.panelTestResult.Location = new System.Drawing.Point(1, 784);
             this.panelTestResult.Margin = new System.Windows.Forms.Padding(4);
             this.panelTestResult.Name = "panelTestResult";
-            this.panelTestResult.Size = new System.Drawing.Size(754, 181);
+            this.panelTestResult.Size = new System.Drawing.Size(1113, 198);
             this.panelTestResult.TabIndex = 0;
+            // 
+            // button4
+            // 
+            this.button4.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button4.Location = new System.Drawing.Point(252, 66);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(131, 47);
+            this.button4.TabIndex = 10;
+            this.button4.Text = "Close";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
+            // button3
+            // 
+            this.button3.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button3.Location = new System.Drawing.Point(416, 13);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(131, 47);
+            this.button3.TabIndex = 9;
+            this.button3.Text = "Send";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // button2
+            // 
+            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button2.Location = new System.Drawing.Point(252, 13);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(131, 47);
+            this.button2.TabIndex = 8;
+            this.button2.Text = "Open";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // btnStart
             // 
             this.btnStart.Font = new System.Drawing.Font("Microsoft Sans Serif", 19.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnStart.Location = new System.Drawing.Point(11, 50);
+            this.btnStart.Location = new System.Drawing.Point(11, 10);
             this.btnStart.Margin = new System.Windows.Forms.Padding(4);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(176, 93);
@@ -128,13 +174,14 @@ namespace ArtiluxEOL
             this.cbAdmin.AutoSize = true;
             this.cbAdmin.Checked = true;
             this.cbAdmin.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbAdmin.Location = new System.Drawing.Point(503, 122);
+            this.cbAdmin.Location = new System.Drawing.Point(562, 109);
             this.cbAdmin.Margin = new System.Windows.Forms.Padding(4);
             this.cbAdmin.Name = "cbAdmin";
-            this.cbAdmin.Size = new System.Drawing.Size(188, 21);
+            this.cbAdmin.Size = new System.Drawing.Size(179, 20);
             this.cbAdmin.TabIndex = 2;
             this.cbAdmin.Text = "Aadministratoriaus teises";
             this.cbAdmin.UseVisualStyleBackColor = true;
+            this.cbAdmin.CheckedChanged += new System.EventHandler(this.cbAdmin_CheckedChanged);
             // 
             // tabControl1
             // 
@@ -142,15 +189,19 @@ namespace ArtiluxEOL
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.debug_tab);
+            this.tabControl1.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tabControl1.ItemSize = new System.Drawing.Size(160, 40);
             this.tabControl1.Location = new System.Drawing.Point(1, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(743, 627);
+            this.tabControl1.Size = new System.Drawing.Size(3544, 2725);
+            this.tabControl1.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
             this.tabControl1.TabIndex = 0;
             // 
             // tabPage1
             // 
             this.tabPage1.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.tabPage1.Controls.Add(this.btn_popup);
             this.tabPage1.Controls.Add(this.metrel_skip_btn);
             this.tabPage1.Controls.Add(this.metrel_break_btn);
             this.tabPage1.Controls.Add(this.Met_proceed_btn);
@@ -161,16 +212,16 @@ namespace ArtiluxEOL
             this.tabPage1.Controls.Add(this.panel2);
             this.tabPage1.Controls.Add(this.panel1);
             this.tabPage1.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tabPage1.Location = new System.Drawing.Point(4, 25);
+            this.tabPage1.Location = new System.Drawing.Point(4, 44);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(735, 598);
+            this.tabPage1.Size = new System.Drawing.Size(3536, 2677);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Pagrindinis";
             // 
             // metrel_skip_btn
             // 
-            this.metrel_skip_btn.Location = new System.Drawing.Point(332, 545);
+            this.metrel_skip_btn.Location = new System.Drawing.Point(383, 545);
             this.metrel_skip_btn.Name = "metrel_skip_btn";
             this.metrel_skip_btn.Size = new System.Drawing.Size(131, 47);
             this.metrel_skip_btn.TabIndex = 8;
@@ -180,7 +231,7 @@ namespace ArtiluxEOL
             // 
             // metrel_break_btn
             // 
-            this.metrel_break_btn.Location = new System.Drawing.Point(548, 545);
+            this.metrel_break_btn.Location = new System.Drawing.Point(596, 545);
             this.metrel_break_btn.Name = "metrel_break_btn";
             this.metrel_break_btn.Size = new System.Drawing.Size(131, 47);
             this.metrel_break_btn.TabIndex = 7;
@@ -190,7 +241,7 @@ namespace ArtiluxEOL
             // 
             // Met_proceed_btn
             // 
-            this.Met_proceed_btn.Location = new System.Drawing.Point(548, 486);
+            this.Met_proceed_btn.Location = new System.Drawing.Point(596, 486);
             this.Met_proceed_btn.Name = "Met_proceed_btn";
             this.Met_proceed_btn.Size = new System.Drawing.Size(131, 47);
             this.Met_proceed_btn.TabIndex = 6;
@@ -200,7 +251,7 @@ namespace ArtiluxEOL
             // 
             // metrel_stop_btn
             // 
-            this.metrel_stop_btn.Location = new System.Drawing.Point(428, 486);
+            this.metrel_stop_btn.Location = new System.Drawing.Point(479, 486);
             this.metrel_stop_btn.Name = "metrel_stop_btn";
             this.metrel_stop_btn.Size = new System.Drawing.Size(90, 47);
             this.metrel_stop_btn.TabIndex = 5;
@@ -210,7 +261,7 @@ namespace ArtiluxEOL
             // 
             // metrel_start_btn
             // 
-            this.metrel_start_btn.Location = new System.Drawing.Point(332, 486);
+            this.metrel_start_btn.Location = new System.Drawing.Point(383, 486);
             this.metrel_start_btn.Name = "metrel_start_btn";
             this.metrel_start_btn.Size = new System.Drawing.Size(90, 47);
             this.metrel_start_btn.TabIndex = 4;
@@ -220,7 +271,7 @@ namespace ArtiluxEOL
             // 
             // metrel_auto_btn
             // 
-            this.metrel_auto_btn.Location = new System.Drawing.Point(518, 374);
+            this.metrel_auto_btn.Location = new System.Drawing.Point(566, 374);
             this.metrel_auto_btn.Name = "metrel_auto_btn";
             this.metrel_auto_btn.Size = new System.Drawing.Size(161, 95);
             this.metrel_auto_btn.TabIndex = 3;
@@ -230,7 +281,7 @@ namespace ArtiluxEOL
             // 
             // mtrelTest
             // 
-            this.mtrelTest.Location = new System.Drawing.Point(332, 373);
+            this.mtrelTest.Location = new System.Drawing.Point(383, 373);
             this.mtrelTest.Name = "mtrelTest";
             this.mtrelTest.Size = new System.Drawing.Size(161, 95);
             this.mtrelTest.TabIndex = 2;
@@ -242,7 +293,7 @@ namespace ArtiluxEOL
             // 
             this.panel2.Controls.Add(this.label4);
             this.panel2.Controls.Add(this.label5);
-            this.panel2.Location = new System.Drawing.Point(413, 6);
+            this.panel2.Location = new System.Drawing.Point(458, 6);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(269, 355);
             this.panel2.TabIndex = 1;
@@ -271,100 +322,108 @@ namespace ArtiluxEOL
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.label_evse);
-            this.panel1.Controls.Add(this.label12);
-            this.panel1.Controls.Add(this.label11);
-            this.panel1.Controls.Add(this.label10);
-            this.panel1.Controls.Add(this.label9);
-            this.panel1.Controls.Add(this.label_oscil);
-            this.panel1.Controls.Add(this.label7);
-            this.panel1.Controls.Add(this.label6);
+            this.panel1.Controls.Add(this.lbl_evse);
+            this.panel1.Controls.Add(this.lbl_load);
+            this.panel1.Controls.Add(this.lbl_specrum);
+            this.panel1.Controls.Add(this.lbl_vald);
+            this.panel1.Controls.Add(this.lbl_hvgen);
+            this.panel1.Controls.Add(this.lbl_osc);
+            this.panel1.Controls.Add(this.lbl_power);
+            this.panel1.Controls.Add(this.lbl_rfid);
             this.panel1.Location = new System.Drawing.Point(8, 6);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(308, 586);
+            this.panel1.Size = new System.Drawing.Size(369, 657);
             this.panel1.TabIndex = 0;
             // 
-            // label_evse
+            // lbl_evse
             // 
-            this.label_evse.BackColor = System.Drawing.Color.LightCoral;
-            this.label_evse.Location = new System.Drawing.Point(39, 360);
-            this.label_evse.Name = "label_evse";
-            this.label_evse.Size = new System.Drawing.Size(228, 50);
-            this.label_evse.TabIndex = 9;
-            this.label_evse.Text = "   EVSE Testas";
+            this.lbl_evse.BackColor = System.Drawing.Color.Gainsboro;
+            this.lbl_evse.Location = new System.Drawing.Point(45, 488);
+            this.lbl_evse.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_evse.Name = "lbl_evse";
+            this.lbl_evse.Size = new System.Drawing.Size(228, 69);
+            this.lbl_evse.TabIndex = 9;
+            this.lbl_evse.Text = "   EVSE Testas";
             // 
-            // label12
+            // lbl_load
             // 
-            this.label12.BackColor = System.Drawing.Color.LightCoral;
-            this.label12.Location = new System.Drawing.Point(37, 526);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(230, 32);
-            this.label12.TabIndex = 8;
-            this.label12.Text = "        Apkrova";
+            this.lbl_load.BackColor = System.Drawing.Color.Gainsboro;
+            this.lbl_load.Location = new System.Drawing.Point(43, 249);
+            this.lbl_load.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_load.Name = "lbl_load";
+            this.lbl_load.Size = new System.Drawing.Size(230, 69);
+            this.lbl_load.TabIndex = 8;
+            this.lbl_load.Text = "        Apkrova";
             // 
-            // label11
+            // lbl_specrum
             // 
-            this.label11.BackColor = System.Drawing.Color.LightCoral;
-            this.label11.Location = new System.Drawing.Point(37, 276);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(230, 69);
-            this.label11.TabIndex = 7;
-            this.label11.Text = "         Spektro \r\n    analizatorius";
+            this.lbl_specrum.BackColor = System.Drawing.Color.Gainsboro;
+            this.lbl_specrum.Location = new System.Drawing.Point(43, 170);
+            this.lbl_specrum.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_specrum.Name = "lbl_specrum";
+            this.lbl_specrum.Size = new System.Drawing.Size(230, 69);
+            this.lbl_specrum.TabIndex = 7;
+            this.lbl_specrum.Text = "         Spektro \r\n    analizatorius";
             // 
-            // label10
+            // lbl_vald
             // 
-            this.label10.BackColor = System.Drawing.Color.LightCoral;
-            this.label10.Location = new System.Drawing.Point(37, 480);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(230, 32);
-            this.label10.TabIndex = 6;
-            this.label10.Text = "        Valdiklis      ";
+            this.lbl_vald.BackColor = System.Drawing.Color.Gainsboro;
+            this.lbl_vald.Location = new System.Drawing.Point(43, 12);
+            this.lbl_vald.Name = "lbl_vald";
+            this.lbl_vald.Size = new System.Drawing.Size(230, 69);
+            this.lbl_vald.TabIndex = 6;
+            this.lbl_vald.Text = "        Valdiklis      ";
             // 
-            // label9
+            // lbl_hvgen
             // 
-            this.label9.BackColor = System.Drawing.Color.LightCoral;
-            this.label9.Location = new System.Drawing.Point(37, 12);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(230, 69);
-            this.label9.TabIndex = 5;
-            this.label9.Text = "             HV\r\n    Generatorius  ";
+            this.lbl_hvgen.BackColor = System.Drawing.Color.Gainsboro;
+            this.lbl_hvgen.Location = new System.Drawing.Point(43, 91);
+            this.lbl_hvgen.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_hvgen.Name = "lbl_hvgen";
+            this.lbl_hvgen.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
+            this.lbl_hvgen.Size = new System.Drawing.Size(230, 69);
+            this.lbl_hvgen.TabIndex = 5;
+            this.lbl_hvgen.Text = "             HV\r\n    Generatorius  ";
             // 
-            // label_oscil
+            // lbl_osc
             // 
-            this.label_oscil.BackColor = System.Drawing.Color.LightCoral;
-            this.label_oscil.Location = new System.Drawing.Point(37, 430);
-            this.label_oscil.Name = "label_oscil";
-            this.label_oscil.Size = new System.Drawing.Size(230, 32);
-            this.label_oscil.TabIndex = 4;
-            this.label_oscil.Text = "   Osciloskopas";
+            this.lbl_osc.BackColor = System.Drawing.Color.Gainsboro;
+            this.lbl_osc.Location = new System.Drawing.Point(41, 567);
+            this.lbl_osc.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_osc.Name = "lbl_osc";
+            this.lbl_osc.Size = new System.Drawing.Size(232, 69);
+            this.lbl_osc.TabIndex = 4;
+            this.lbl_osc.Text = "   Osciloskopas";
             // 
-            // label7
+            // lbl_power
             // 
-            this.label7.BackColor = System.Drawing.Color.LightCoral;
-            this.label7.Location = new System.Drawing.Point(37, 192);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(230, 69);
-            this.label7.TabIndex = 3;
-            this.label7.Text = "Testavimo lizdas\r\n  (MAITINIMAS)";
+            this.lbl_power.BackColor = System.Drawing.Color.Gainsboro;
+            this.lbl_power.Location = new System.Drawing.Point(43, 407);
+            this.lbl_power.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_power.Name = "lbl_power";
+            this.lbl_power.Size = new System.Drawing.Size(230, 69);
+            this.lbl_power.TabIndex = 3;
+            this.lbl_power.Text = "Testavimo lizdas\r\n  (MAITINIMAS)";
             // 
-            // label6
+            // lbl_rfid
             // 
-            this.label6.BackColor = System.Drawing.Color.LightCoral;
-            this.label6.Location = new System.Drawing.Point(37, 101);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(230, 69);
-            this.label6.TabIndex = 2;
-            this.label6.Text = "Testavimo lizdas\r\n         (RF-ID)";
+            this.lbl_rfid.BackColor = System.Drawing.Color.Gainsboro;
+            this.lbl_rfid.Location = new System.Drawing.Point(43, 328);
+            this.lbl_rfid.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_rfid.Name = "lbl_rfid";
+            this.lbl_rfid.Size = new System.Drawing.Size(230, 69);
+            this.lbl_rfid.TabIndex = 2;
+            this.lbl_rfid.Text = "Testavimo lizdas\r\n         (RF-ID)";
             // 
             // tabPage2
             // 
             this.tabPage2.BackColor = System.Drawing.Color.WhiteSmoke;
             this.tabPage2.Controls.Add(this.groupBox1);
             this.tabPage2.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tabPage2.Location = new System.Drawing.Point(4, 25);
+            this.tabPage2.Location = new System.Drawing.Point(4, 44);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(735, 598);
+            this.tabPage2.Size = new System.Drawing.Size(3536, 2677);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Nustatymai";
             // 
@@ -397,7 +456,7 @@ namespace ArtiluxEOL
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(20, 54);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(31, 32);
+            this.label1.Size = new System.Drawing.Size(30, 32);
             this.label1.TabIndex = 1;
             this.label1.Text = "1";
             // 
@@ -406,7 +465,7 @@ namespace ArtiluxEOL
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(20, 203);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(31, 32);
+            this.label3.Size = new System.Drawing.Size(30, 32);
             this.label3.TabIndex = 3;
             this.label3.Text = "3";
             // 
@@ -415,124 +474,37 @@ namespace ArtiluxEOL
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(20, 124);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(31, 32);
+            this.label2.Size = new System.Drawing.Size(30, 32);
             this.label2.TabIndex = 2;
             this.label2.Text = "2";
             // 
             // tabPage3
             // 
             this.tabPage3.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.tabPage3.Controls.Add(this.button1);
+            this.tabPage3.Controls.Add(this.save_ip);
+            this.tabPage3.Controls.Add(this.groupBox_Metrel_USB);
             this.tabPage3.Controls.Add(this.groupBox_Valdiklis);
             this.tabPage3.Controls.Add(this.groupBox_Load);
             this.tabPage3.Controls.Add(this.groupBox_Spectr);
             this.tabPage3.Controls.Add(this.groupBox_HVgen);
-            this.tabPage3.Controls.Add(this.groupBox_Metrel_USB);
             this.tabPage3.Controls.Add(this.groupBox_Osc_USB);
-            this.tabPage3.Location = new System.Drawing.Point(4, 25);
+            this.tabPage3.Location = new System.Drawing.Point(4, 44);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(735, 598);
+            this.tabPage3.Size = new System.Drawing.Size(3536, 2677);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Įranga";
             // 
-            // button1
+            // save_ip
             // 
-            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(309, 548);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(146, 44);
-            this.button1.TabIndex = 12;
-            this.button1.Text = "Išsaugoti";
-            this.button1.UseVisualStyleBackColor = true;
-            // 
-            // groupBox_Valdiklis
-            // 
-            this.groupBox_Valdiklis.Controls.Add(this.label8);
-            this.groupBox_Valdiklis.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox_Valdiklis.Location = new System.Drawing.Point(27, 31);
-            this.groupBox_Valdiklis.Name = "groupBox_Valdiklis";
-            this.groupBox_Valdiklis.Size = new System.Drawing.Size(669, 75);
-            this.groupBox_Valdiklis.TabIndex = 11;
-            this.groupBox_Valdiklis.TabStop = false;
-            this.groupBox_Valdiklis.Text = "Valdilklis";
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label8.Location = new System.Drawing.Point(332, 43);
-            this.label8.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(83, 24);
-            this.label8.TabIndex = 0;
-            this.label8.Text = "IP:PORT";
-            // 
-            // groupBox_Load
-            // 
-            this.groupBox_Load.Controls.Add(this.label13);
-            this.groupBox_Load.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox_Load.Location = new System.Drawing.Point(27, 112);
-            this.groupBox_Load.Name = "groupBox_Load";
-            this.groupBox_Load.Size = new System.Drawing.Size(669, 75);
-            this.groupBox_Load.TabIndex = 10;
-            this.groupBox_Load.TabStop = false;
-            this.groupBox_Load.Text = " AC apkrova";
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label13.Location = new System.Drawing.Point(332, 43);
-            this.label13.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(83, 24);
-            this.label13.TabIndex = 2;
-            this.label13.Text = "IP:PORT";
-            // 
-            // groupBox_Spectr
-            // 
-            this.groupBox_Spectr.Controls.Add(this.label14);
-            this.groupBox_Spectr.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox_Spectr.Location = new System.Drawing.Point(27, 193);
-            this.groupBox_Spectr.Name = "groupBox_Spectr";
-            this.groupBox_Spectr.Size = new System.Drawing.Size(669, 75);
-            this.groupBox_Spectr.TabIndex = 9;
-            this.groupBox_Spectr.TabStop = false;
-            this.groupBox_Spectr.Text = "Spektro analizatorius";
-            // 
-            // label14
-            // 
-            this.label14.AutoSize = true;
-            this.label14.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label14.Location = new System.Drawing.Point(332, 43);
-            this.label14.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(83, 24);
-            this.label14.TabIndex = 2;
-            this.label14.Text = "IP:PORT";
-            // 
-            // groupBox_HVgen
-            // 
-            this.groupBox_HVgen.Controls.Add(this.label15);
-            this.groupBox_HVgen.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox_HVgen.Location = new System.Drawing.Point(27, 274);
-            this.groupBox_HVgen.Name = "groupBox_HVgen";
-            this.groupBox_HVgen.Size = new System.Drawing.Size(669, 75);
-            this.groupBox_HVgen.TabIndex = 8;
-            this.groupBox_HVgen.TabStop = false;
-            this.groupBox_HVgen.Text = "HV generatorius";
-            // 
-            // label15
-            // 
-            this.label15.AutoSize = true;
-            this.label15.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label15.Location = new System.Drawing.Point(332, 43);
-            this.label15.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
-            this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(83, 24);
-            this.label15.TabIndex = 2;
-            this.label15.Text = "IP:PORT";
+            this.save_ip.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.save_ip.Location = new System.Drawing.Point(309, 548);
+            this.save_ip.Name = "save_ip";
+            this.save_ip.Size = new System.Drawing.Size(146, 44);
+            this.save_ip.TabIndex = 12;
+            this.save_ip.Text = "Išsaugoti";
+            this.save_ip.UseVisualStyleBackColor = true;
+            this.save_ip.Click += new System.EventHandler(this.save_ip_Click);
             // 
             // groupBox_Metrel_USB
             // 
@@ -540,7 +512,7 @@ namespace ArtiluxEOL
             this.groupBox_Metrel_USB.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox_Metrel_USB.Location = new System.Drawing.Point(27, 355);
             this.groupBox_Metrel_USB.Name = "groupBox_Metrel_USB";
-            this.groupBox_Metrel_USB.Size = new System.Drawing.Size(669, 75);
+            this.groupBox_Metrel_USB.Size = new System.Drawing.Size(758, 75);
             this.groupBox_Metrel_USB.TabIndex = 7;
             this.groupBox_Metrel_USB.TabStop = false;
             this.groupBox_Metrel_USB.Text = "EVSE (Metrel)";
@@ -552,9 +524,97 @@ namespace ArtiluxEOL
             this.label16.Location = new System.Drawing.Point(332, 43);
             this.label16.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
             this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(96, 24);
+            this.label16.Size = new System.Drawing.Size(94, 22);
             this.label16.TabIndex = 2;
             this.label16.Text = "ID_WORD";
+            // 
+            // groupBox_Valdiklis
+            // 
+            this.groupBox_Valdiklis.Controls.Add(this.label8);
+            this.groupBox_Valdiklis.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.groupBox_Valdiklis.Location = new System.Drawing.Point(27, 31);
+            this.groupBox_Valdiklis.Name = "groupBox_Valdiklis";
+            this.groupBox_Valdiklis.Size = new System.Drawing.Size(758, 75);
+            this.groupBox_Valdiklis.TabIndex = 11;
+            this.groupBox_Valdiklis.TabStop = false;
+            this.groupBox_Valdiklis.Text = "Valdiklis";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label8.Location = new System.Drawing.Point(332, 43);
+            this.label8.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(82, 22);
+            this.label8.TabIndex = 0;
+            this.label8.Text = "IP:PORT";
+            // 
+            // groupBox_Load
+            // 
+            this.groupBox_Load.Controls.Add(this.label13);
+            this.groupBox_Load.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.groupBox_Load.Location = new System.Drawing.Point(27, 274);
+            this.groupBox_Load.Name = "groupBox_Load";
+            this.groupBox_Load.Size = new System.Drawing.Size(758, 75);
+            this.groupBox_Load.TabIndex = 10;
+            this.groupBox_Load.TabStop = false;
+            this.groupBox_Load.Text = " AC apkrova";
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label13.Location = new System.Drawing.Point(332, 43);
+            this.label13.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(82, 22);
+            this.label13.TabIndex = 2;
+            this.label13.Text = "IP:PORT";
+            // 
+            // groupBox_Spectr
+            // 
+            this.groupBox_Spectr.Controls.Add(this.label14);
+            this.groupBox_Spectr.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.groupBox_Spectr.Location = new System.Drawing.Point(27, 193);
+            this.groupBox_Spectr.Name = "groupBox_Spectr";
+            this.groupBox_Spectr.Size = new System.Drawing.Size(758, 75);
+            this.groupBox_Spectr.TabIndex = 9;
+            this.groupBox_Spectr.TabStop = false;
+            this.groupBox_Spectr.Text = "Spektro analizatorius";
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label14.Location = new System.Drawing.Point(332, 43);
+            this.label14.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(82, 22);
+            this.label14.TabIndex = 2;
+            this.label14.Text = "IP:PORT";
+            // 
+            // groupBox_HVgen
+            // 
+            this.groupBox_HVgen.Controls.Add(this.label15);
+            this.groupBox_HVgen.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.groupBox_HVgen.Location = new System.Drawing.Point(27, 112);
+            this.groupBox_HVgen.Name = "groupBox_HVgen";
+            this.groupBox_HVgen.Size = new System.Drawing.Size(758, 75);
+            this.groupBox_HVgen.TabIndex = 8;
+            this.groupBox_HVgen.TabStop = false;
+            this.groupBox_HVgen.Text = "HV generatorius";
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label15.Location = new System.Drawing.Point(332, 43);
+            this.label15.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(82, 22);
+            this.label15.TabIndex = 2;
+            this.label15.Text = "IP:PORT";
             // 
             // groupBox_Osc_USB
             // 
@@ -562,7 +622,7 @@ namespace ArtiluxEOL
             this.groupBox_Osc_USB.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox_Osc_USB.Location = new System.Drawing.Point(27, 436);
             this.groupBox_Osc_USB.Name = "groupBox_Osc_USB";
-            this.groupBox_Osc_USB.Size = new System.Drawing.Size(669, 75);
+            this.groupBox_Osc_USB.Size = new System.Drawing.Size(758, 75);
             this.groupBox_Osc_USB.TabIndex = 6;
             this.groupBox_Osc_USB.TabStop = false;
             this.groupBox_Osc_USB.Text = "Osciloskopas";
@@ -574,7 +634,7 @@ namespace ArtiluxEOL
             this.label17.Location = new System.Drawing.Point(332, 43);
             this.label17.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
             this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(96, 24);
+            this.label17.Size = new System.Drawing.Size(94, 22);
             this.label17.TabIndex = 2;
             this.label17.Text = "ID_WORD";
             // 
@@ -582,10 +642,10 @@ namespace ArtiluxEOL
             // 
             this.debug_tab.BackColor = System.Drawing.Color.WhiteSmoke;
             this.debug_tab.Controls.Add(this.list_debug);
-            this.debug_tab.Location = new System.Drawing.Point(4, 25);
+            this.debug_tab.Location = new System.Drawing.Point(4, 44);
             this.debug_tab.Name = "debug_tab";
             this.debug_tab.Padding = new System.Windows.Forms.Padding(3);
-            this.debug_tab.Size = new System.Drawing.Size(735, 598);
+            this.debug_tab.Size = new System.Drawing.Size(3536, 2677);
             this.debug_tab.TabIndex = 3;
             this.debug_tab.Text = "Debug";
             // 
@@ -617,16 +677,27 @@ namespace ArtiluxEOL
             this.tmr_5hz.Interval = 200;
             this.tmr_5hz.Tick += new System.EventHandler(this.tmr_5hz_Tick);
             // 
-            // Form1
+            // btn_popup
+            // 
+            this.btn_popup.Location = new System.Drawing.Point(782, 638);
+            this.btn_popup.Name = "btn_popup";
+            this.btn_popup.Size = new System.Drawing.Size(122, 55);
+            this.btn_popup.TabIndex = 9;
+            this.btn_popup.Text = "popup";
+            this.btn_popup.UseVisualStyleBackColor = true;
+            this.btn_popup.Click += new System.EventHandler(this.btn_popup_Click);
+            // 
+            // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(756, 843);
+            this.ClientSize = new System.Drawing.Size(978, 963);
             this.Controls.Add(this.panelTestResult);
             this.Controls.Add(this.tabControl1);
             this.Margin = new System.Windows.Forms.Padding(4);
-            this.Name = "Form1";
+            this.Name = "Main";
             this.Text = "Monitors Test v03";
+            //this.Load += new System.EventHandler(this.Main_Load);
             this.panelTestResult.ResumeLayout(false);
             this.panelTestResult.PerformLayout();
             this.tabControl1.ResumeLayout(false);
@@ -638,6 +709,8 @@ namespace ArtiluxEOL
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.tabPage3.ResumeLayout(false);
+            this.groupBox_Metrel_USB.ResumeLayout(false);
+            this.groupBox_Metrel_USB.PerformLayout();
             this.groupBox_Valdiklis.ResumeLayout(false);
             this.groupBox_Valdiklis.PerformLayout();
             this.groupBox_Load.ResumeLayout(false);
@@ -646,8 +719,6 @@ namespace ArtiluxEOL
             this.groupBox_Spectr.PerformLayout();
             this.groupBox_HVgen.ResumeLayout(false);
             this.groupBox_HVgen.PerformLayout();
-            this.groupBox_Metrel_USB.ResumeLayout(false);
-            this.groupBox_Metrel_USB.PerformLayout();
             this.groupBox_Osc_USB.ResumeLayout(false);
             this.groupBox_Osc_USB.PerformLayout();
             this.debug_tab.ResumeLayout(false);
@@ -674,19 +745,19 @@ namespace ArtiluxEOL
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.Label label_oscil;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label lbl_load;
+        private System.Windows.Forms.Label lbl_specrum;
+        private System.Windows.Forms.Label lbl_vald;
+        private System.Windows.Forms.Label lbl_hvgen;
+        private System.Windows.Forms.Label lbl_osc;
+        private System.Windows.Forms.Label lbl_power;
+        private System.Windows.Forms.Label lbl_rfid;
         private System.IO.Ports.SerialPort serialPort_drd;
         public System.Windows.Forms.Timer tmr_1hz;
         public System.Windows.Forms.Timer tmr_5hz;
         private System.Windows.Forms.TabPage debug_tab;
         public System.Windows.Forms.ListView list_debug;
-        private System.Windows.Forms.Label label_evse;
+        private System.Windows.Forms.Label lbl_evse;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.GroupBox groupBox_Valdiklis;
         private System.Windows.Forms.GroupBox groupBox_Load;
@@ -694,7 +765,7 @@ namespace ArtiluxEOL
         private System.Windows.Forms.GroupBox groupBox_HVgen;
         private System.Windows.Forms.GroupBox groupBox_Metrel_USB;
         private System.Windows.Forms.GroupBox groupBox_Osc_USB;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button save_ip;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.Label label14;
@@ -708,6 +779,16 @@ namespace ArtiluxEOL
         private System.Windows.Forms.Button metrel_start_btn;
         private System.Windows.Forms.Button metrel_break_btn;
         private System.Windows.Forms.Button metrel_skip_btn;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button button4;
+        private System.ComponentModel.BackgroundWorker NetworkDevConn;
+        private System.ComponentModel.BackgroundWorker MainControllerTCP;
+        private System.ComponentModel.BackgroundWorker MainControllerMODBUS;
+        private System.Windows.Forms.Button btn_popup;
+        private System.ComponentModel.BackgroundWorker HVgen;
+        private System.ComponentModel.BackgroundWorker Specroscope;
+        private System.ComponentModel.BackgroundWorker Load;
     }
 }
 

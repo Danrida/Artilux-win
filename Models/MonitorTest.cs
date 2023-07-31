@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,4 +28,20 @@ namespace MonitorsTest.Models
 
         public bool TestResult { get; set; }
     }
+
+    public class SocketDevList
+    {
+        public Socket client { get; set; }
+        public string Name { get; set; }
+        public string TestMsg { get; set; }
+        public string Ip { get; set; }
+        public int Port_0 { get; set; }
+        public int Port_1 { get; set; }
+        public int SocketCount { get; set; }
+        public int State { get; set; }
+        public bool Enable { get; set; }
+        public bool Connected { get; set; }
+    }
+
+    
 }

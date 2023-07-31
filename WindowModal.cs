@@ -31,10 +31,11 @@ namespace ArtiluxEOL
 
         MonitorTest mtl = new MonitorTest();
 
+        
+
         public WindowModal(MonitorTest mt)
         {
             InitializeComponent();
-            
             mtl = mt;
             this.Text = mtl.MonitorIds;
             lblIds.Text = mt.MonitorIds;
@@ -101,6 +102,7 @@ namespace ArtiluxEOL
             int py = 10;
             DateTime stime = DateTime.Now;
             mtl.testList = Helper.GettestLists();
+
 
             // Get the BackgroundWorker that raised this event.
             BackgroundWorker worker = sender as BackgroundWorker;
