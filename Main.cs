@@ -18,23 +18,33 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using static Ion.Tools.Models.XmlDataExport.Graph;
+using Newtonsoft.Json.Converters;
+using System.Text.RegularExpressions;
+using System.Windows;
+using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Windows.Forms.DataVisualization.Charting;
+using static Ion.Sdk.Idi.Value.Constraint;
 
 namespace ArtiluxEOL
 {
     public partial class Main : Form
     {
+        public static Main Main_main;
+
         static RegistryKey Config_reg;
         static RegistryKey Workplaces_reg;
         static RegistryKey Periphery_reg;
 
+        bool debug_network = false;
+        bool debug_usb = false;
+
         public bool init_done = false;
         //public static Main main_win;
 
-        const int MAIN_CONTROLLER = 0;
-        const int ITECH_HV_TESTER = 1;
-        const int ITECH_LOAD = 2;
-        const int ANALYSER_SIGLENT = 3;
-
+        Label[,] EvseParmsInTable;
 
 
 
@@ -60,6 +70,19 @@ namespace ArtiluxEOL
 
         //Metrel_bb Met_bbox_test = new Metrel_bb();
         SocketClient Socket_ = new SocketClient();
+        NetworkThreads NetworkThreads = new NetworkThreads();
+
+        public void deb(string str)
+        {
+            //get { return list_debug; }
+            //set { Console.WriteLine($"Port0:{str}"); }
+        }
+
+        bool load_param_enable_edit = false;
+
+
+
+
 
         public class portas // BUTINAI CLASS NES NORIM PRIEITI PRIE VARIABLU
         {
@@ -70,7 +93,9 @@ namespace ArtiluxEOL
             public string dev_name;
             public List<string> cmd;
             public string NewLine;
-            
+
+
+
         }
 
         List<portas> SerPorts = new List<portas>();
@@ -81,42 +106,39 @@ namespace ArtiluxEOL
 
         UInt16 WorkplacesCount = 0;
 
-        UInt64[] SavedWorkplaces;
+        //UInt64[] SavedWorkplaces;
 
-        ComboBox[] cBoxWplace = new ComboBox[4];
-        TextBox[] TextBox_dev_info = new TextBox[8];
-        CheckBox[] CheckBox_dev_info = new CheckBox[8];
+        System.Windows.Forms.ComboBox[] cBoxWplace = new System.Windows.Forms.ComboBox[4];
+        System.Windows.Forms.TextBox[] TextBox_dev_info = new System.Windows.Forms.TextBox[13];
+        CheckBox[] CheckBox_dev_info = new CheckBox[13];
+        CheckBox[] CheckBox_lizdai = new CheckBox[3];
 
         public List<MonitorTest> mtlist = new List<MonitorTest>();
-        List<string> ml = new List<string>();//monitor list
+        List<MonitorTest> ml = new List<MonitorTest>();//monitor list
 
+        public List<WorkplaceList> SavedWorkplaces = new List<WorkplaceList>();
         public List<SocketDevList> network_dev = new List<SocketDevList>();
+
+        public DevList devList;
+        
         public Main()
         {
             Config_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Configs");
             Workplaces_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Workplaces");
             Periphery_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Devices");
 
-            SavedWorkplaces = new UInt64[5];
+            //SavedWorkplaces = new UInt64[5];
             //workplace
-            cBoxWplace[0] = new ComboBox { Enabled = false, Font = new Font("Microsoft Sans Serif", 14), Location = new Point(x: 69, y: 40), Size = new Size(200,37), DropDownStyle = ComboBoxStyle.DropDownList, DropDownHeight = 106, DropDownWidth = 200};
-            cBoxWplace[1] = new ComboBox { Enabled = false, Font = new Font("Microsoft Sans Serif", 14), Location = new Point(x: 69, y: 100), Size = new Size(200, 37), DropDownStyle = ComboBoxStyle.DropDownList, DropDownHeight = 106, DropDownWidth = 200 };
-            cBoxWplace[2] = new ComboBox { Enabled = false, Font = new Font("Microsoft Sans Serif", 14), Location = new Point(x: 69, y: 165), Size = new Size(200, 37), DropDownStyle = ComboBoxStyle.DropDownList, DropDownHeight = 106, DropDownWidth = 200 };
-
-            
+            cBoxWplace[0] = new System.Windows.Forms.ComboBox { Enabled = false, Font = new Font("Microsoft Sans Serif", 14), Location = new Point(x: 69, y: 40), Size = new Size(200, 37), DropDownStyle = ComboBoxStyle.DropDownList, DropDownHeight = 106, DropDownWidth = 200 };
+            cBoxWplace[1] = new System.Windows.Forms.ComboBox { Enabled = false, Font = new Font("Microsoft Sans Serif", 14), Location = new Point(x: 69, y: 100), Size = new Size(200, 37), DropDownStyle = ComboBoxStyle.DropDownList, DropDownHeight = 106, DropDownWidth = 200 };
+            cBoxWplace[2] = new System.Windows.Forms.ComboBox { Enabled = false, Font = new Font("Microsoft Sans Serif", 14), Location = new Point(x: 69, y: 165), Size = new Size(200, 37), DropDownStyle = ComboBoxStyle.DropDownList, DropDownHeight = 106, DropDownWidth = 200 };
 
             InitializeComponent();
+            Main_main = this;
 
-            this.groupBox1.Controls.Add(cBoxWplace[0]);
+            this.groupBox1.Controls.Add(cBoxWplace[0]); //Darbo vietos nr prikyrimas
             this.groupBox1.Controls.Add(cBoxWplace[1]);
             this.groupBox1.Controls.Add(cBoxWplace[2]);
-
-            if (Workplaces_reg != null)
-            {
-                regReadWplace();
-            }
-
-            ip_texbox_show();
 
             #region <<< Serial Ports INIT >>>
             // suinitinam serial portus
@@ -148,31 +170,169 @@ namespace ArtiluxEOL
             //tabControl1.SelectTab(3); //pradzioje rodom debug langa
             #endregion
 
+            DbgType.NETWORK = true;
+            DbgType.MAIN = true;
+            debug_network_cbox.Checked = true;
+            debug_main_cbox.Checked = true;
 
-
-            //NetworkDevConn.WorkerSupportsCancellation = true;
-            NetworkDevConn.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkDevConn_DoWork);
-            NetworkDevConn.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(NetworkDevConn_RunWorkerCompleted);
-            NetworkDevConn.RunWorkerAsync();
-            NetworkDevConn.WorkerSupportsCancellation = true;
-            MainControllerTCP.DoWork += new System.ComponentModel.DoWorkEventHandler(MainControllerTCP_DoWork);
-            //MainControllerTCP.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(MainControllerTCP_RunWorkerCompleted);
-            //MainControllerTCP.RunWorkerAsync();
-            //NetworkDevConn.WorkerSupportsCancellation = true;
-            MainControllerMODBUS.DoWork += new System.ComponentModel.DoWorkEventHandler(MainControllerMODBUS_DoWork);
-            //MainControllerMODBUS.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(MainControllerMODBUS_RunWorkerCompleted);
-            //MainControllerMODBUS.RunWorkerAsync();
-
-            HVgen.DoWork += new System.ComponentModel.DoWorkEventHandler(HVgen_DoWork);
-            Specroscope.DoWork += new System.ComponentModel.DoWorkEventHandler(Specroscope_DoWork);
-            Load.DoWork += new System.ComponentModel.DoWorkEventHandler(Load_DoWork);
-
-
-
+            WorkplaceList wplace;
+            wplace = new WorkplaceList { WorplaceMonitorID = 123456789, Enable = true, BacodePort = 1111 };
+            SavedWorkplaces.Add(wplace);
+            wplace = new WorkplaceList { WorplaceMonitorID = 123456789, Enable = true, BacodePort = 1111 };
+            SavedWorkplaces.Add(wplace);
+            wplace = new WorkplaceList { WorplaceMonitorID = 123456789, Enable = true, BacodePort = 1111 };
+            SavedWorkplaces.Add(wplace);
         }
 
-        
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
 
+            get_all_monitors();
+
+            //if (Workplaces_reg != null)
+            //{
+            regReadWplace();
+            //}
+
+            ip_texbox_show();//irenginiu IP adresu nustatymas
+            //serial port init
+
+            load_dev_control();
+
+            //dbg_print(DbgType.MAIN, "NetworkThread", Color.MediumSeaGreen);
+
+            devList.DevEvse = new DevEvse_struc[3];//label pointeris
+            devList.DevEvse[0].voltage = new UInt32[3];//label pointeris
+            devList.DevEvse[0].current = new UInt32[3];//label pointeris
+            devList.DevEvse[1].voltage = new UInt32[3];//label pointeris
+            devList.DevEvse[1].current = new UInt32[3];//label pointeris
+            devList.DevEvse[2].voltage = new UInt32[3];//label pointeris
+            devList.DevEvse[2].current = new UInt32[3];//label pointeris
+        }
+
+        #region Debug list
+        public void dbg_print(bool dbg_type, string str, Color color)
+        {
+            if (!dbg_type)//einam lauk jei dbg isjungtas
+            {
+                return;
+            }
+            ListViewItem lv = null;
+
+            list_debug.Invoke((MethodInvoker)(() => lv = list_debug.Items.Add(str)));
+            // nutrinam visus senesnius nei XXX irasu
+            while (list_debug.Items.Count > 80)
+            {
+                list_debug.Invoke((MethodInvoker)(() => list_debug.Items.RemoveAt(0)));
+            }
+            int nr = (list_debug.Items.Count - 1);
+            lv.UseItemStyleForSubItems = false;
+            lv.ForeColor = color;
+
+            list_debug.Invoke((MethodInvoker)(() => list_debug.Update()));
+        }
+
+        private void debug_main_cbox_CheckedChanged(object sender, EventArgs e)
+        {
+            DbgType.MAIN = debug_main_cbox.Checked;
+        }
+
+        private void debug_cbox_CheckedChanged(object sender, EventArgs e)
+        {
+            DbgType.NETWORK = debug_network_cbox.Checked;
+        }
+
+        private void debug_usb_CheckedChanged(object sender, EventArgs e)
+        {
+            DbgType.USB = debug_usb_cbox.Checked;
+        }
+
+        private void dbg_list_clear_Click(object sender, EventArgs e)
+        {
+            this.list_debug.Items.Clear();
+        }
+
+        #endregion
+
+        #region IP ivedimo laukai, checkboxai...
+
+        public void update_all_device_ctrl_access()
+        {
+            for (int a = 0; a < network_dev.Count; a++)
+            {
+                switch (a)
+                {
+                    case NetDev_Tab.MAIN_CONTROLLER:
+                        break;
+                    case NetDev_Tab.HW_TESTER:
+                        break;
+                    case NetDev_Tab.SIGLENT:
+                        break;
+                    case NetDev_Tab.ITECH_LOAD:
+                        //this.tabPage8.
+                        break;
+                    case NetDev_Tab.BARCODE_1: 
+                        this.groupBoxBarcode1.Enabled = network_dev[a].Connected;
+                        dataGrid_Barcode1.Enabled = network_dev[a].Connected;
+                        break;
+                    case NetDev_Tab.BARCODE_2:
+                        this.groupBoxBarcode2.Enabled = network_dev[a].Connected;
+                        dataGrid_Barcode2.Enabled = network_dev[a].Connected;
+                        break;
+                    case NetDev_Tab.BARCODE_3:
+                        this.groupBoxBarcode3.Enabled = network_dev[a].Connected;
+                        dataGrid_Barcode3.Enabled = network_dev[a].Connected;
+                        break;
+                    case NetDev_Tab.OSCILOSCOPE:
+                        break;
+                }
+                
+            }
+        }
+
+
+        void lizdai_checbox_change()
+        {
+            for (int a = 0; a < CheckBox_lizdai.Length; a++)
+            {
+                bool state;
+                state = CheckBox_lizdai[a].Checked;
+                if (SavedWorkplaces[a].Enable != state)
+                {
+                    network_dev[NetDev_Tab.BARCODE_1 + a].Enable = state;
+                    network_dev[NetDev_Tab.RFID_1 + a].Enable = state;
+                    SavedWorkplaces[a].Enable = state;
+                    regUpdatePeriphery(a);
+                    regUpdateWplace();
+                }
+
+                if (state)
+                {
+                    if (network_dev[NetDev_Tab.BARCODE_1 + a].Connected || network_dev[NetDev_Tab.RFID_1 + a].Connected)
+                    {
+                        device_state_indication(NetDev_Tab.BARCODE_1 + a, Color.SpringGreen);//pazymim raudonai, jei rasim pakeisim i zalia
+                        device_state_indication(NetDev_Tab.RFID_1 + a, Color.SpringGreen);//pazymim raudonai, jei rasim pakeisim i zalia
+                    }
+                    else
+                    {
+                        device_state_indication(NetDev_Tab.BARCODE_1 + a, Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia
+                        device_state_indication(NetDev_Tab.RFID_1 + a, Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia
+                    }
+                }
+                else
+                {
+                    device_state_indication(NetDev_Tab.BARCODE_1 + a, Color.Gainsboro);//pazymim zymim pilkai
+                    device_state_indication(NetDev_Tab.RFID_1 + a, Color.Gainsboro);//pazymim zymim pilkai
+                }
+            }
+            
+        }
+
+        private void Checkboxes_lizdai_handler(object sender, EventArgs e)
+        {
+            lizdai_checbox_change();
+        }
         private void ShowCheckedCheckboxes(object sender, EventArgs e)
         {
             if (init_done)
@@ -181,15 +341,18 @@ namespace ArtiluxEOL
                 for (int a = 0; a < CheckBox_dev_info.Length; a++)
                 {
                     state = CheckBox_dev_info[a].Checked;
-                    if (network_dev[a].Enable != state)
+                    if (a < 4 || a > 9)
                     {
-                        network_dev[a].Enable = state;
-                        regUpdatePeriphery(a);
+                        
+                        if (network_dev[a].Enable != state)
+                        {
+                            network_dev[a].Enable = state;
+                            regUpdatePeriphery(a);
+                        }
                     }
 
                     if (state)
                     {
-                        
                         if (network_dev[a].Connected)
                         {
                             device_state_indication(a, Color.SpringGreen);//pazymim raudonai, jei rasim pakeisim i zalia
@@ -203,260 +366,247 @@ namespace ArtiluxEOL
                     {
                         device_state_indication(a, Color.Gainsboro);//pazymim zymim pilkai 
                     }
-
                 }
-            }  
+            }
         }
 
-        public void ip_texbox_show() {//dev ip ivedino laukeliai ir devaisu enable checbox
-
-
-
+        public void ip_texbox_show()
+        {//dev ip ivedino laukeliai ir devaisu enable checbox
             int cbox_y_location = 30;
             Font textbox_font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 
             SocketDevList dev;
-            dev = new SocketDevList { Name = "Main_controller", TestMsg = "TEST?", client = null, Ip = "192.168.11.85", Port_0 = 5566, Port_1 = 5567, State = 0, Enable = true, Connected = false };
+            dev = new SocketDevList { Name = "MAIN_CONTROLLER", TestMsg = "TEST?", client = null, Ip = "192.168.11.85", Port_0 = 5566, Port_1 = 5567, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
-            dev = new SocketDevList { Name = "HV_Test", TestMsg = "SYSTEM:TIME?", client = null, Ip = "192.168.11.150", Port_0 = 12312, Port_1 = 0, State = 0, Enable = true, Connected = false };
+            dev = new SocketDevList { Name = "HV_TEST", TestMsg = "SYSTEM:TIME?", client = null, Ip = "192.168.11.150", Port_0 = 12312, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
-            dev = new SocketDevList { Name = "Siglent", TestMsg = "TEST?", client = null, Ip = "192.168.11.150", Port_0 = 50252, Port_1 = 0, State = 0, Enable = true, Connected = false };
+            dev = new SocketDevList { Name = "SIGLENT", TestMsg = "TEST?", client = null, Ip = "192.168.11.150", Port_0 = 50252, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
-            dev = new SocketDevList { Name = "Load", TestMsg = "TEST?", client = null, Ip = "192.168.11.150", Port_0 = 11311, Port_1 = 0, State = 0, Enable = true, Connected = false };
+            dev = new SocketDevList { Name = "ITECH", TestMsg = "TEST?", client = null, Ip = "192.168.11.150", Port_0 = 11311, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
-            dev = new SocketDevList { Name = "Rfid", TestMsg = "", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
+            dev = new SocketDevList { Name = "BARCODE_1", TestMsg = "TEST?", client = null, Ip = "192.168.11.150", Port_0 = 11311, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
-            dev = new SocketDevList { Name = "Power", TestMsg = "", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
+            dev = new SocketDevList { Name = "BARCODE_2", TestMsg = "TEST?", client = null, Ip = "192.168.11.150", Port_0 = 11311, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
-            dev = new SocketDevList { Name = "Evse", TestMsg = "BB;", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
+            dev = new SocketDevList { Name = "BARCODE_3", TestMsg = "TEST?", client = null, Ip = "192.168.11.150", Port_0 = 11311, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
-            dev = new SocketDevList { Name = "Oscil", TestMsg = "---", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
+            dev = new SocketDevList { Name = "RFID_1", TestMsg = "", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = true, Connected = false };
+            network_dev.Add(dev);
+            dev = new SocketDevList { Name = "RFID_2", TestMsg = "", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = true, Connected = false };
+            network_dev.Add(dev);
+            dev = new SocketDevList { Name = "RFID_3", TestMsg = "", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = true, Connected = false };
+            network_dev.Add(dev);
+            //dev = new SocketDevList { Name = "Power", TestMsg = "", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
+            //network_dev.Add(dev);
+            dev = new SocketDevList { Name = "EVSE", TestMsg = "BB;", client = null, Ip = "0", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
+            network_dev.Add(dev);
+            dev = new SocketDevList { Name = "OSCIL", TestMsg = "---", client = null, Ip = "0", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
             network_dev.Add(dev);
 
+            EvseParmsInTable = new Label[3, 9];
 
             regReadPeriphery();
 
-
             for (int x = 0; x < network_dev.Count; x++)
             {
-                TextBox_dev_info[x] = new TextBox { Enabled = true, Font = textbox_font, Location = new Point(x: 330, y: 25), Size = new Size(220, 24) };
-                CheckBox_dev_info[x] = new CheckBox {Checked = true, Location = new Point(x: 225, y: cbox_y_location) };
-                CheckBox_dev_info[x].CheckedChanged += new EventHandler(ShowCheckedCheckboxes);
-                //CheckBox_dev_info[x] = new CheckBox {Size = new Size(24, 24), Padding = new Padding(0, 20, 0, 0) };
-
-                CheckBox_dev_info[x].Checked = network_dev[x].Enable;//setinam kurie enable
-                this.panel1.Controls.Add(CheckBox_dev_info[x]);
-                
-                if (CheckBox_dev_info[x].Checked)
+                //////IP ivedimo laukai, barcode ir rfid turim po tris todel reikia keisti ivedimo laukelio pozicija, tam sis case.
+                TextBox_dev_info[x] = new System.Windows.Forms.TextBox { Enabled = true, Font = textbox_font, Location = new Point(x: 100, y: 45), Size = new Size(220, 24) };
+                switch (x)
                 {
-                    device_state_indication(x, Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia 
+                    case 4:
+                    case 7:
+                        TextBox_dev_info[x] = new System.Windows.Forms.TextBox { Enabled = true, Font = textbox_font, Location = new Point(x: 100, y: 45), Size = new Size(220, 24) };
+                        break;
+                    case 5:
+                    case 8:
+                        TextBox_dev_info[x] = new System.Windows.Forms.TextBox { Enabled = true, Font = textbox_font, Location = new Point(x: 100, y: 85), Size = new Size(220, 24) };
+                        break;
+                    case 6:
+                    case 9:
+                        TextBox_dev_info[x] = new System.Windows.Forms.TextBox { Enabled = true, Font = textbox_font, Location = new Point(x: 100, y: 120), Size = new Size(220, 24) };
+                        break;
+                }
+                //////////////////////
+                
+                //kuram devaisu en checbox, bet skipinam barcode ir rfid, juos enablinam su testo vietos chebox, Saved_workplaces variable laikom visa info
+                if (x < 4 || x > 9)
+                {
+                    CheckBox_dev_info[x] = new CheckBox { Checked = true, Location = new Point(x: 225, y: cbox_y_location) };
+                    CheckBox_dev_info[x].CheckedChanged += new EventHandler(ShowCheckedCheckboxes);
+
+                    this.panel1.Controls.Add(CheckBox_dev_info[x]);
+
+                    if (x < 3)
+                    {
+                        CheckBox_lizdai[x] = new CheckBox { Text = "", Checked = true, Location = new Point(x: 90, y: 35) };
+                        CheckBox_lizdai[x].Checked = SavedWorkplaces[x].Enable;
+                        CheckBox_lizdai[x].CheckedChanged += new EventHandler(Checkboxes_lizdai_handler);
+                        switch (x)
+                        {
+                            case 0:
+                                this.Test_lizdas_1.Controls.Add(CheckBox_lizdai[x]);
+                                break;
+                            case 1:
+                                this.Test_lizdas_2.Controls.Add(CheckBox_lizdai[x]);
+                                break;
+                            case 2:
+                                this.Test_lizdas_3.Controls.Add(CheckBox_lizdai[x]);
+                                break;
+                        }
+
+                    }
+
+                    CheckBox_dev_info[x].Checked = network_dev[x].Enable;//setinam kurie enable
+
+                    if (CheckBox_dev_info[x].Checked)
+                    {
+                        device_state_indication(x, Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia 
+                    }
+
+                    cbox_y_location += 64;
+                }
+                else
+                {
+
                 }
 
+
+                // priskiram ip ir porta i laukus
                 if (network_dev[x].Port_1 == 0)
                 {
-                   
+
                     TextBox_dev_info[x].Text = network_dev[x].Ip + ':' + network_dev[x].Port_0;//ip port setings
                 }
                 else
                 {
                     TextBox_dev_info[x].Text = network_dev[x].Ip + ':' + network_dev[x].Port_0 + ':' + network_dev[x].Port_1;//ip port setings
                 }
-                
 
-                
 
-                cbox_y_location += 64;
             }
+
+            lizdai_checbox_change();
 
             this.groupBox_Valdiklis.Controls.Add(TextBox_dev_info[0]);
             this.groupBox_HVgen.Controls.Add(TextBox_dev_info[1]);
             this.groupBox_Spectr.Controls.Add(TextBox_dev_info[2]);
             this.groupBox_Load.Controls.Add(TextBox_dev_info[3]);
-            this.groupBox_Metrel_USB.Controls.Add(TextBox_dev_info[6]);
-            this.groupBox_Osc_USB.Controls.Add(TextBox_dev_info[7]);
+            this.groupBox_Barcode.Controls.Add(TextBox_dev_info[4]);
+            this.groupBox_Barcode.Controls.Add(TextBox_dev_info[5]);
+            this.groupBox_Barcode.Controls.Add(TextBox_dev_info[6]);
+
+            this.groupBox_Rfid.Controls.Add(TextBox_dev_info[7]);
+            this.groupBox_Rfid.Controls.Add(TextBox_dev_info[8]);
+            this.groupBox_Rfid.Controls.Add(TextBox_dev_info[9]);
+            this.groupBox_Metrel_USB.Controls.Add(TextBox_dev_info[10]);
+            this.groupBox_Osc_USB.Controls.Add(TextBox_dev_info[11]);
+
+
+            /*for(int a = 0; a<3; a++)
+            {
+
+            }*/
+
+
+            //NetworkDevConn.WorkerSupportsCancellation = true;
+            NetworkDevConn.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.NetworkDevConn_DoWork);
+            NetworkDevConn.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(NetworkThreads.NetworkDevConn_RunWorkerCompleted);
+            NetworkDevConn.RunWorkerAsync();
+            NetworkDevConn.WorkerSupportsCancellation = true;
+            MainControllerTCP.DoWork += new System.ComponentModel.DoWorkEventHandler(MainControllerTCP_DoWork);
+            //MainControllerTCP.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(MainControllerTCP_RunWorkerCompleted);
+            //MainControllerTCP.RunWorkerAsync();
+            //NetworkDevConn.WorkerSupportsCancellation = true;
+            MainControllerMODBUS.DoWork += new System.ComponentModel.DoWorkEventHandler(MainControllerMODBUS_DoWork);
+            //MainControllerMODBUS.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(MainControllerMODBUS_RunWorkerCompleted);
+            //MainControllerMODBUS.RunWorkerAsync();
+
+            HVgen.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.HVgen_DoWork);
+            Specroscope.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.Specroscope_DoWork);
+            Load.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.Load_DoWork);
+
+            Barcode1.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.Barcode1_DoWork);
+            Barcode2.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.Barcode2_DoWork);
+            Barcode3.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.Barcode3_DoWork);
 
             init_done = true;
         }
 
-        #region <ieskom tinklo devaisu>
-        private void NetworkDevConn_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void save_ip_Click(object sender, EventArgs e)
         {
-            if (e.Cancelled)
-            {
-                // The user canceled the operation.
-                MessageBox.Show("Operation was canceled");
-            }
-            else if (e.Error != null)
-            {
-                // There was an error during the operation.
-                string msg = String.Format("An error occurred: {0}", e.Error.Message);
-                MessageBox.Show(msg);
-            }
-            else
-            {
-                // The operation completed normally.
-                //string msg = String.Format("Result = {0}", e.Result);
-                //MessageBox.Show(msg);
-                show_msg("Network scan complete!", Color.SpringGreen);
-            }
-        }
+            string str;
+            string[] subs;
+            //string[] ip;
+            string ip;
+            bool update = false;
+            int port;
 
-        private void NetworkDevConn_DoWork(object sender, DoWorkEventArgs e)
-        {
-            // Do not access the form's BackgroundWorker reference directly.
-            // Instead, use the reference provided by the sender parameter.
-            BackgroundWorker bw = sender as BackgroundWorker;
-
-            // Extract the argument.
-            //int arg = (int)e.Argument;
-            int arg = 0;
-            // Start the time-consuming operation.
-            e.Result = Connect_network_periphery(bw, arg);
-
-            // If the operation was canceled by the user,
-            // set the DoWorkEventArgs.Cancel property to true.
-            if (bw.CancellationPending)
+            for (int i = 0; i < network_dev.Count; i++)
             {
-                e.Cancel = true;
-            }
-            
+                str = TextBox_dev_info[i].Text.ToString();
+                subs = str.Split(':');//subs[0]=ip,subs[1]=port_0,subs[2]=port_1,
 
-        }
-
-        private object Connect_network_periphery(BackgroundWorker bw, int arg)//backraound task
-        {   
-            int result = 0;
-            int a = 0;
-            int ret = 1;
-            System.Diagnostics.Debug.Print($"Connect_network_periphery:");
-            try
-            {
-                foreach (var dev in network_dev)//einam per dev lista, kurie enable ieskom tinkle, jei toki radom bandom jungtis
+                if ((subs.Length > 1) || i > 5)// turim turet nors viena porta)
                 {
+                    ip = Convert.ToString(subs[0]);
 
-                    if (dev.Enable && a < 4) //tikrinam tik jei enable, nuo 4 jau nebe tinklo devaisai - skip.
+                    if (!String.Equals(network_dev[i].Ip, ip))
                     {
-                        if (Socket_.socket_ping(network_dev[a], 0))//ar turim tinkle musu devaisa
+                        network_dev[i].Ip = ip;
+                        update = true;
+                    }
+
+                    port = Convert.ToInt32(subs[1]);
+
+                    if (port > 0)
+                    {
+                        if (network_dev[i].Port_0 != port)
                         {
-                            ret = Socket_.start_socket(network_dev[a], 0);
-                            network_dev[a].Connected = true;
+                            network_dev[i].Port_0 = port;
+                            update = true;
+                        }
 
-                            if (network_dev[a].Port_1 > 0)// jei devaisas turi antra porta ieskom, jei randam jungiames
-                            {
-                                if (Socket_.socket_ping(network_dev[a], 1))//ar turim tinkle musu devaisa
-                                {
-                                    ret = Socket_.start_socket(network_dev[a], 1);
-                                    network_dev[a].Connected = true;
-                                    device_state_indication(a, Color.SpringGreen);//jei prisijungem indikuojam zaliai
-                                }
-                            }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.Print($"PORT_0 ERROR: = {port}");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Print($"PORT_NOT_FOUND: = {0}");
+                }
 
-                            if (a > 0)
-                            {
-                                device_state_indication(a, Color.SpringGreen);//jei prisijungem indikuojam zaliai
-                                if (a == 1)
-                                {
-                                    HVgen.RunWorkerAsync();
-                                }
-                            }
+                if (subs.Length > 2)// jei turim ivesta 2 porta tikrinam ar ne 0
+                {
+                    port = Convert.ToInt16(subs[2]);
+
+                    if (port > 0)
+                    {
+                        if (network_dev[i].Port_0 != port)
+                        {
+                            network_dev[i].Port_1 = port;
+                            update = true;
                         }
                     }
-                    
-                    a++;
+                    else
+                    {
+                        System.Diagnostics.Debug.Print($"PORT_1 ERROR: = {port}");
+                    }
+                }
+                else
+                {
+                    network_dev[i].Port_1 = 0;
+                }
+
+                if (update)
+                {
+                    update = false;
+                    regUpdatePeriphery(i);
                 }
             }
-            catch (Exception err)
-            {
-                var x = err;
-            }
-
-            return result;
         }
-
-        private void Load_DoWork(object sender, DoWorkEventArgs e)
-        {
-            // Do not access the form's BackgroundWorker reference directly.
-            // Instead, use the reference provided by the sender parameter.
-            BackgroundWorker bw = sender as BackgroundWorker;
-
-            // Extract the argument.
-            //int arg = (int)e.Argument;
-            int arg = 0;
-            // Start the time-consuming operation.
-            e.Result = Load_Socket_Thread(bw, arg);
-
-            // If the operation was canceled by the user,
-            // set the DoWorkEventArgs.Cancel property to true.
-            if (bw.CancellationPending)
-            {
-                e.Cancel = true;
-            }
-        }
-
-        private object Load_Socket_Thread(BackgroundWorker bw, int arg)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void Specroscope_DoWork(object sender, DoWorkEventArgs e)
-        {
-            // Do not access the form's BackgroundWorker reference directly.
-            // Instead, use the reference provided by the sender parameter.
-            BackgroundWorker bw = sender as BackgroundWorker;
-
-            // Extract the argument.
-            //int arg = (int)e.Argument;
-            int arg = 0;
-            // Start the time-consuming operation.
-            e.Result = Specroscope_Socket_Thread(bw, arg);
-
-            // If the operation was canceled by the user,
-            // set the DoWorkEventArgs.Cancel property to true.
-            if (bw.CancellationPending)
-            {
-                e.Cancel = true;
-            }
-        }
-
-        private object Specroscope_Socket_Thread(BackgroundWorker bw, int arg)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void HVgen_DoWork(object sender, DoWorkEventArgs e)
-        {
-            // Do not access the form's BackgroundWorker reference directly.
-            // Instead, use the reference provided by the sender parameter.
-            BackgroundWorker bw = sender as BackgroundWorker;
-
-            // Extract the argument.
-            //int arg = (int)e.Argument;
-            int arg = 0;
-            // Start the time-consuming operation.
-            e.Result = HVgen_Socket_Thread(bw, arg);
-
-            // If the operation was canceled by the user,
-            // set the DoWorkEventArgs.Cancel property to true.
-            if (bw.CancellationPending)
-            {
-                e.Cancel = true;
-            }
-        }
-
-        private object HVgen_Socket_Thread(BackgroundWorker bw, int arg)
-        {
-            int result = 0;
-
-            while (true)
-            {
-                System.Diagnostics.Debug.Print($"HV_GEN_connected!!!:");
-                Thread.Sleep(1000);
-            }
-
-            
-            
-            return result;
-        }
+        #endregion
 
         public void device_state_indication(int dev_nr, Color color)
         {
@@ -476,21 +626,33 @@ namespace ArtiluxEOL
                     lbl_load.BackColor = color;
                     break;
                 case 4:
-                    lbl_rfid.BackColor = color;
+                    lbl_barcode_1.BackColor = color;
                     break;
                 case 5:
-                    lbl_power.BackColor = color;
+                    lbl_barcode_2.BackColor = color;
                     break;
                 case 6:
-                    lbl_evse.BackColor = color;
+                    lbl_barcode_3.BackColor = color;
                     break;
                 case 7:
+                    lbl_rfid_1.BackColor = color;
+                    break;
+                case 8:
+                    lbl_rfid_2.BackColor = color;
+                    break;
+                case 9:
+                    lbl_rfid_3.BackColor = color;
+                    break;
+                case 10:
+                    lbl_evse.BackColor = color;
+                    break;
+                case 11:
                     lbl_osc.BackColor = color;
                     break;
             }
         }
 
-        #endregion
+
 
         #region <MainControllerSocket>
         private void MainControllerMODBUS_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -528,8 +690,8 @@ namespace ArtiluxEOL
             // jai sumazejo portu
             if (portsFoundBefore > PCportai.Length)
             {
-                dbg_print("");
-                dbg_print("-DISCONNECTED " + (portsFoundBefore - PCportai.Length) + "-\n");
+                dbg_print(DbgType.USB, "", Color.DimGray);
+                dbg_print(DbgType.USB, "-DISCONNECTED " + (portsFoundBefore - PCportai.Length) + "-\n", Color.LightCoral);
                 for (int a = 0; a < nr; a++)
                 {
                     //dbg_print("\r\n"+PCportai.Count().ToString());
@@ -544,14 +706,14 @@ namespace ArtiluxEOL
                                 if (SerPorts[a].port.PortName.ToString().Equals(pp))
                                 {
                                     toks_yra = true;
-                                   
+
                                 }
                             }
                             // jai tokio jau nebera, uzdarom
                             if (!toks_yra)
                             {
                                 SerPorts[a].port_active = false;
-                                dbg_print("  close port " + SerPorts[a].port.PortName.ToString());
+                                dbg_print(DbgType.USB, "  close port " + SerPorts[a].port.PortName.ToString(), Color.LightCoral);
                                 if (a == PORT_ALKOTEST)
                                 {
                                     //Alko_serial_close_end();
@@ -572,8 +734,8 @@ namespace ArtiluxEOL
             // atsirado naujas(ji) portas(ai)
             else if (portsFoundBefore < PCportai.Length)
             {
-                dbg_print("");
-                dbg_print("-CONNECTED " + (PCportai.Length - portsFoundBefore) + "-");
+                dbg_print(DbgType.USB, "", Color.DimGray);
+                dbg_print(DbgType.USB, "-CONNECTED " + (PCportai.Length - portsFoundBefore) + "-", Color.SpringGreen);
                 for (int b = 0; b < PCportai.Count(); b++)
                 {
                     bool nenaudojamas = true;
@@ -609,74 +771,74 @@ namespace ArtiluxEOL
                                     // radau atitinkama ID
                                     //if (SerPorts[a].id.Trim().ToUpper().Equals(id))
                                     //{
-                                        //msg += "  radau " + SerPorts[nr].port.PortName + "_id = " + SerPorts[a].id.Trim().ToUpper();
-                                        if (!SerPorts[a].port_active)
+                                    //msg += "  radau " + SerPorts[nr].port.PortName + "_id = " + SerPorts[a].id.Trim().ToUpper();
+                                    if (!SerPorts[a].port_active)
+                                    {
+                                        //SerPorts[a].port.Dispose();
+                                        //SerPorts[nr].port.Dispose();
+
+                                        try
                                         {
-                                            //SerPorts[a].port.Dispose();
-                                            //SerPorts[nr].port.Dispose();
-
-                                            try
-                                            {
 
 
-                                                SerPorts[a].port.Close();
-                                                //  this.BeginInvoke(new EventHandler(delegate { SerPorts[a].port.Close(); }));f
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                Console.WriteLine(ex);
+                                            SerPorts[a].port.Close();
+                                            //  this.BeginInvoke(new EventHandler(delegate { SerPorts[a].port.Close(); }));f
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine(ex);
 
-                                            }
-                                            //SerPorts[nr].port.Dispose();
-                                            try
-                                            {
+                                        }
+                                        //SerPorts[nr].port.Dispose();
+                                        try
+                                        {
 
-                                                SerPorts[nr].port.Close();
-                                                //this.BeginInvoke(new EventHandler(delegate { SerPorts[nr].port.Close(); }));
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                Console.WriteLine(ex);
+                                            SerPorts[nr].port.Close();
+                                            //this.BeginInvoke(new EventHandler(delegate { SerPorts[nr].port.Close(); }));
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine(ex);
 
-                                            }
-                                            //
+                                        }
+                                        //
 
-                                            switch (found_ser_nr)
-                                            {
-                                                case 4:
+                                        switch (found_ser_nr)
+                                        {
+                                            case 4:
                                                 SerPorts[found_ser_nr].dev_name = "METREL";
-                                                    METERL_PORT = found_ser_nr;
-                                                    break;
-                                                case 5:
+                                                METERL_PORT = found_ser_nr;
+                                                break;
+                                            case 5:
                                                 SerPorts[found_ser_nr].dev_name = "OSCIL";
-                                                    OSCIL_PORT = found_ser_nr;
-                                                    break;
-                                            }
-
-                                            SerPorts[found_ser_nr].port.PortName = SerPorts[nr].port.PortName;
-                                            SerPorts[found_ser_nr].port.BaudRate = SerPorts[nr].port.BaudRate;
-                                            //SerPorts[found_ser_nr].port.Open();
-                                            SerPorts[found_ser_nr].port_active = true;
-                                            SerPorts[found_ser_nr].timeout = 10; // sitas butinai nes timeoutins
-                                            SerPorts[nr].port_active = false;
-                                            a = nr; // baigiam tikrinaima
-
-                                            
-
-                                            msg += " ... RADOM " + SerPorts[found_ser_nr].dev_name; 
-                                            priskirtas_sekmingai = true;
+                                                OSCIL_PORT = found_ser_nr;
+                                                break;
                                         }
-                                        else
-                                        {
-                                            msg += " ... ! KLAIDA - jau atidarytas !";
-                                        }
-                                        dbg_print(msg);
+
+                                        SerPorts[found_ser_nr].port.PortName = SerPorts[nr].port.PortName;
+                                        SerPorts[found_ser_nr].port.BaudRate = SerPorts[nr].port.BaudRate;
+                                        //SerPorts[found_ser_nr].port.Open();
+                                        SerPorts[found_ser_nr].port_active = true;
+                                        SerPorts[found_ser_nr].timeout = 10; // sitas butinai nes timeoutins
+                                        SerPorts[nr].port_active = false;
+                                        a = nr; // baigiam tikrinaima
+
+
+
+                                        msg += " ... RADOM " + SerPorts[found_ser_nr].dev_name;
+                                        priskirtas_sekmingai = true;
+                                    }
+                                    else
+                                    {
+                                        msg += " ... ! KLAIDA - jau atidarytas !";
+                                    }
+                                    dbg_print(DbgType.USB, msg, Color.LightCoral);
                                     //}
-                                    
+
                                 }
                                 if (!priskirtas_sekmingai) // jai niekam nepavyko priskirti bet portas grazino ID, informuojam apie tai
                                 {
-                                    dbg_print("  neatpazintas " + SerPorts[nr].port.PortName + " ID ... skip");
+                                    dbg_print(DbgType.USB, "  neatpazintas " + SerPorts[nr].port.PortName + " ID ... skip", Color.LightCoral);
                                     //SerPorts[nr].port.Dispose();
                                     try
                                     {
@@ -695,11 +857,11 @@ namespace ArtiluxEOL
                         }
                     }
                     // jai pasibaige startup seka perjugiam puslapi i pirma svarstykliu
-                   /* if ((startup) && (b == (PCportai.Count() - 1)))
-                    {
-                        tabControl.SelectTab(0); // portai pravaziavo, rodom pirma puslapi
-                        startup = false; //daugiau niekada i cia nebegryztam
-                    }*/
+                    /* if ((startup) && (b == (PCportai.Count() - 1)))
+                     {
+                         tabControl.SelectTab(0); // portai pravaziavo, rodom pirma puslapi
+                         startup = false; //daugiau niekada i cia nebegryztam
+                     }*/
                 }
                 portsFoundBefore = PCportai.Length;
             }
@@ -716,8 +878,8 @@ namespace ArtiluxEOL
                 }
                 else
                 {
-                   /* svarstykles[a].connected = false;
-                    Tara[a].connected = false;*/
+                    /* svarstykles[a].connected = false;
+                     Tara[a].connected = false;*/
                 }
             }
 
@@ -783,7 +945,7 @@ namespace ArtiluxEOL
                     }
                     catch (Exception ex)
                     {
-                        dbg_print("Exception!   :" + ex.StackTrace);
+                        dbg_print(DbgType.USB, "Exc!_USB_SEND  :", Color.LightCoral);
                         Console.WriteLine(ex);
                         SerPorts[nr].port_active = false;
                         //SerPorts[nr].port.Close();
@@ -800,7 +962,7 @@ namespace ArtiluxEOL
                             Console.WriteLine(ex1);
 
                         }
-                        dbg_print("! ERROR port " + SerPorts[nr].port.PortName + " lost");
+                        dbg_print(DbgType.USB, "! ERROR port " + SerPorts[nr].port.PortName + " lost", Color.LightCoral);
                     }
                 }
                 else
@@ -815,7 +977,7 @@ namespace ArtiluxEOL
                 // dbg_print("inactive" + SerPorts[nr].port.PortName + " lost");
             }
         }
-       
+
         private void tmr_5hz_Tick(object sender, EventArgs e)
         {
             //   this.myPen = new System.Drawing.Pen(System.Drawing.Color.Black);
@@ -837,7 +999,7 @@ namespace ArtiluxEOL
                         SerPorts[a].timeout--;
                         if (SerPorts[a].timeout == 0)
                         {
-                            dbg_print("! Port " + SerPorts[a].port.PortName + " timeout");
+                            dbg_print(DbgType.USB, "! Port " + SerPorts[a].port.PortName + " timeout", Color.DimGray);
                             SerPorts[a].port_active = false;
                             //SerPorts[a].port.Dispose();
                             try
@@ -883,7 +1045,7 @@ namespace ArtiluxEOL
 
                     //SerPorts[nr].port.DiscardInBuffer(); // isvalom buferi
                 }
-                catch (Exception) { dbg_print(d + " ...FAIL !"); return false; }
+                catch (Exception) { dbg_print(DbgType.USB, d + " ...FAIL !", Color.LightCoral); return false; }
 
                 //jeigu atidareme isvalome bufferi
                 if (SerPorts[nr].port.IsOpen)
@@ -901,22 +1063,22 @@ namespace ArtiluxEOL
                 {
                     search_dev_nr++;
                     get = send_receive(devices_info[usb_dev_ptr] + "\r\n");
-                    dbg_print(get);
+                    dbg_print(DbgType.USB, get, Color.DimGray);
                     //System.Diagnostics.Debug.Print($"METREL:: = {get}");
                     if (get.Length > 2)
                     {
                         id = get.Substring(2, (get.Length - 2)).ToUpper().Trim();
-                        dbg_print(d + " ...OK, " + " ID=\"" + id + "\"");
+                        dbg_print(DbgType.USB, d + " ...OK, " + " ID=\"" + id + "\"", Color.DimGray);
                         SerPorts[nr].id = id;
                         found_ser_nr = usb_dev_ptr;
                         return true;
                     }
                     else
                     {
-                        
-                        if (usb_dev_ptr == (all_dev_count-1))
+
+                        if (usb_dev_ptr == (all_dev_count - 1))
                         {
-                            dbg_print(d + " ...TIMEOUT !");
+                            dbg_print(DbgType.USB, d + " ...TIMEOUT !", Color.Gold);
                             //SerPorts[nr].port.Close();
                             //SerPorts[nr].port.Dispose();
                             try
@@ -935,7 +1097,7 @@ namespace ArtiluxEOL
                         }
                         else
                         {
-                            dbg_print(d + " ...FIND NEXT !");
+                            dbg_print(DbgType.USB, d + " ...FIND NEXT !", Color.DimGray);
                         }
                     }
                     usb_dev_ptr++;
@@ -944,7 +1106,7 @@ namespace ArtiluxEOL
             }
             else
             {
-                dbg_print(d + " ...jau aktyvus! kas per...UAZDAROM!");
+                dbg_print(DbgType.USB, d + " ...jau aktyvus! kas per...UAZDAROM!", Color.LightCoral);
                 SerPorts[nr].port_active = false;
                 return false;
             }
@@ -986,12 +1148,12 @@ namespace ArtiluxEOL
                             SerPorts[SerPorts.Count - 1].port.Read(uart_data, 0, uart_data.Length);
                             line = System.Text.Encoding.UTF8.GetString(uart_data);
 
-                            dbg_print("getting answer.." + bytesCount.ToString());
-                            dbg_print(line);
+                            dbg_print(DbgType.USB, "getting answer.." + bytesCount.ToString(), Color.DimGray);
+                            dbg_print(DbgType.USB, line, Color.DimGray);
                         }
                         catch (Exception ex)
                         {
-                            dbg_print("! ERROR reading port " + SerPorts[SerPorts.Count - 1].port.PortName);
+                            dbg_print(DbgType.USB, "! ERROR reading port " + SerPorts[SerPorts.Count - 1].port.PortName, Color.LightCoral);
                             Console.WriteLine(ex);
                             return "";
                         }
@@ -1046,7 +1208,7 @@ namespace ArtiluxEOL
 
                 }
                 SerPorts[pnr].port_active = false;
-                dbg_print("! EROOR ! port " + SerPorts[pnr].port.PortName + " disconnected");
+                dbg_print(DbgType.USB, "! EROOR ! port " + SerPorts[pnr].port.PortName + " disconnected", Color.LightCoral);
                 Console.WriteLine(ex);
             }
 
@@ -1148,7 +1310,7 @@ namespace ArtiluxEOL
             }
 
         }
-        
+
 
 
         /*private void serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -1182,7 +1344,7 @@ namespace ArtiluxEOL
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            get_all_monitors();
+            //get_all_monitors();
 
             try
             {
@@ -1191,12 +1353,12 @@ namespace ArtiluxEOL
 
                 int w = 0;
                 int h = 0;
-                foreach (string ids in ml)//pridedam reikiamus atributus ir kiekvinam monitoriuje atverciam TESTAVIMO langa
+                foreach (MonitorTest ids in ml)//pridedam reikiamus atributus ir kiekvinam monitoriuje atverciam TESTAVIMO langa
                 {
                     string labelName = "label" + i;
 
-                    Label label = new Label { Name = labelName, AutoSize=true, Text = ids, Location = new Point(x: 5, y: py) };
-                    ProgressBar progress = new ProgressBar();
+                    Label label = new Label { Name = labelName, AutoSize = true, Text = ids.MonitorIds, Location = new Point(x: 5, y: py) };
+                    System.Windows.Forms.ProgressBar progress = new System.Windows.Forms.ProgressBar();
                     progress.Name = Name = "progres" + i;
                     progress.Style = ProgressBarStyle.Continuous;
                     progress.Location = new Point(x: 150, y: py);
@@ -1207,7 +1369,7 @@ namespace ArtiluxEOL
                     w = Screen.AllScreens[i].WorkingArea.Width;
                     h = Screen.AllScreens[i].WorkingArea.Height;
 
-                    MonitorTest mt = new MonitorTest { Id = i, MonitorIds = ids, Width=w, Height=h, WorkPlaceNr = 0, testList = new List<TestList>() };
+                    MonitorTest mt = new MonitorTest { Id = i, MonitorIds = ids.MonitorIds, Width = w, Height = h, WorkPlaceNr = 0, testList = new List<TestList>() };
                     //System.Diagnostics.Debug.WriteLine("Method1");
                     //System.Diagnostics.Debug.Print($"ID: = {mt.Id}" + $" RES: = {w}");
                     mtlist.Add(mt);
@@ -1220,7 +1382,7 @@ namespace ArtiluxEOL
             }
             catch (Exception err)
             {
-                DialogResult dialog = MessageBox.Show(err.Message, err.InnerException.Message,  MessageBoxButtons.OK);
+                DialogResult dialog = MessageBox.Show(err.Message, err.InnerException.Message, MessageBoxButtons.OK);
                 foreach (MonitorTest mtx in mtlist)
                 {
                     //key.SetValue("Workplace" + mtl.Id, mtl.MonitorIds);
@@ -1239,10 +1401,10 @@ namespace ArtiluxEOL
             string x = ((Form)sender).Text;
             var mt = mtlist.FirstOrDefault(it => it.MonitorIds.Contains(x.Substring(5)));
             if (mt != null)
-            { 
-                  
-           Label lbl_text = this.Controls.Find("label" + mt.Id, true).FirstOrDefault() as Label;
-                    lbl_text.Text = lbl_text.Text +" " + x.Substring(0, 4);
+            {
+
+                Label lbl_text = this.Controls.Find("label" + mt.Id, true).FirstOrDefault() as Label;
+                lbl_text.Text = lbl_text.Text + " " + x.Substring(0, 4);
             }
         }
 
@@ -1272,8 +1434,18 @@ namespace ArtiluxEOL
             for (int a = 0; a < WorkplacesCount; a++)
             {
                 id = a + 1;
-                Workplaces_reg.SetValue("Workplace" + id, cBoxWplace[a].SelectedItem.ToString());
-                //System.Diagnostics.Debug.Print($"WPLACE {id}" + $": = {SavedWorkplaces[a]}");
+                try
+                {
+                    Workplaces_reg.SetValue("Workplace" + id, cBoxWplace[a].SelectedItem.ToString());
+                    Workplaces_reg.SetValue("WP_" + id + "_EN", SavedWorkplaces[id].Enable);
+                    System.Diagnostics.Debug.Print($"WPLACE {id}" + $": = {SavedWorkplaces[a].WorplaceMonitorID}");
+                }
+                catch (Exception e)
+                {
+                    dbg_print(DbgType.MAIN, "Update_work_place_exception, a: " + a, Color.LightCoral);
+                }
+
+
             }
 
             Workplaces_reg.Close();
@@ -1284,20 +1456,41 @@ namespace ArtiluxEOL
             int wp_count = 0;
             int id = 0;
 
+            string monitor_id;
+
             Workplaces_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Workplaces");
 
             if (Workplaces_reg != null)
             {
-                WorkplacesCount = UInt16.Parse(Workplaces_reg.GetValue("NumWorkplaces").ToString());
+                WorkplacesCount = UInt16.Parse(Workplaces_reg.GetValue("NumWorkPlaces").ToString());
                 //int height = int.Parse(key.GetValue("Height").ToString());
                 System.Diagnostics.Debug.Print($"REGISTRY: = {WorkplacesCount}");
 
-                for(int a=0; a< WorkplacesCount; a++)
+                for (int a = 0; a < 3; a++)
                 {
-                    id = a + 1;
-                    SavedWorkplaces[a] = UInt64.Parse(Workplaces_reg.GetValue("Workplace"+id).ToString());
-                    System.Diagnostics.Debug.Print($"WPLACE: = {SavedWorkplaces[a]}");
-                    
+                    try
+                    {
+                        id = a + 1;
+                        monitor_id = Workplaces_reg.GetValue("Workplace" + id).ToString();
+                        if (monitor_id.Equals("NONE"))
+                        {
+                            SavedWorkplaces[a].WorplaceMonitorID = 0;
+                        }
+                        else
+                        {
+                            SavedWorkplaces[a].WorplaceMonitorID = UInt64.Parse(monitor_id);
+                        }
+
+                        SavedWorkplaces[a].Enable = Boolean.Parse(Workplaces_reg.GetValue("WP_" + id + "_EN").ToString());
+                        System.Diagnostics.Debug.Print($"WPLACE: = {SavedWorkplaces[a].WorplaceMonitorID}" + $" en: = {SavedWorkplaces[a].Enable}");
+                        cBoxWplace[a].Text = SavedWorkplaces[a].WorplaceMonitorID.ToString();
+                    }
+                    catch (Exception e)
+                    {
+                        dbg_print(DbgType.MAIN, "Read_work_place_exception", Color.LightCoral);
+                    }
+
+
                 }
 
                 Workplaces_reg.Close();
@@ -1305,19 +1498,38 @@ namespace ArtiluxEOL
             else
             {
                 Workplaces_reg = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Artilux\Workplaces");
-                
-                wp_count = mtlist.Count;
-                System.Diagnostics.Debug.Print($"wp_count: = {wp_count}");
-                Workplaces_reg.SetValue("NumWorkplaces", wp_count);
 
-                 foreach (MonitorTest mtx in mtlist)
-                 {
-                    id = mtx.Id + 1;
-                    Workplaces_reg.SetValue("Workplace" + id, mtx.MonitorIds);
-                 }
+                wp_count = ml.Count;
+                dbg_print(DbgType.MAIN, "wp_count: " + wp_count, Color.Gray);
+                //System.Diagnostics.Debug.Print($"wp_count: = {wp_count}");
+                Workplaces_reg.SetValue("NumWorkPlaces", wp_count);
+                for (int a = 0; a < 3; a++)
+                //foreach (MonitorTest mtx in ml)
+                {
+                    try
+                    {
+                        id = ml[a].Id + 1;
+                        System.Diagnostics.Debug.Print($"wp_id: = {id}");
+                        Workplaces_reg.SetValue("Workplace" + id, ml[a].MonitorIds);
+                        Workplaces_reg.SetValue("WP_" + id + "_EN", SavedWorkplaces[a].Enable);
 
-                System.Diagnostics.Debug.Print($"REG_not_found: = {"create"}");
+                        cBoxWplace[a].Text = ml[a].MonitorIds.ToString();
+                    }
+                    catch (Exception e)
+                    {
+                        dbg_print(DbgType.MAIN, "WPlace create fail", Color.LightCoral);
+                        Workplaces_reg.Close();
+                        return;
+                    }
+
+                }
+                //System.Diagnostics.Debug.Print($"REG_not_found: = {"create"}");
+                dbg_print(DbgType.MAIN, "REG_not_found: Create", Color.Violet);
                 Workplaces_reg.Close();
+
+                //cBoxWplace[0].Text = SavedWorkplaces[0].WorplaceMonitorID.ToString();
+                //cBoxWplace[1].Text = SavedWorkplaces[1].WorplaceMonitorID.ToString();
+                //cBoxWplace[2].Text = SavedWorkplaces[2].WorplaceMonitorID.ToString();
             }
         }
 
@@ -1325,13 +1537,13 @@ namespace ArtiluxEOL
         {
             regReadWplace();
         }
-        
+
         private void cBoxWplace_SelectedIndexChanged(object sender, EventArgs e)
         {
             System.Diagnostics.Debug.Print($"sel1: = {cBoxWplace[0].SelectedItem}");
         }
 
-       
+
         private void saveWplace_Click(object sender, EventArgs e)
         {
             int id = 0;
@@ -1347,14 +1559,14 @@ namespace ArtiluxEOL
             System.Diagnostics.Debug.Print($"sel2: = {cBoxWplace[1].SelectedItem}");
             System.Diagnostics.Debug.Print($"sel3: = {cBoxWplace[2].SelectedItem}");
 
-            for (a = 0; a < WorkplacesCount-1; a++)
+            for (a = 0; a < WorkplacesCount - 1; a++)
             {
 
                 monitor[a] = UInt64.Parse(cBoxWplace[a].SelectedItem.ToString());
 
                 if (WorkplacesCount > 2)
                 {
-                    for (b = a+1; b < WorkplacesCount; b++)
+                    for (b = a + 1; b < WorkplacesCount; b++)
                     {
                         monitor[b] = UInt64.Parse(cBoxWplace[b].SelectedItem.ToString());
 
@@ -1368,7 +1580,7 @@ namespace ArtiluxEOL
                 else
                 {
                     monitor[a + 1] = UInt64.Parse(cBoxWplace[a + 1].SelectedItem.ToString());
-                    if (monitor[a] == monitor[a+1])
+                    if (monitor[a] == monitor[a + 1])
                     {
                         found_same_entry = true;
                         System.Diagnostics.Debug.Print($"Same entry!");
@@ -1391,6 +1603,8 @@ namespace ArtiluxEOL
         }
         #endregion
 
+
+        #region -=Periphery save/load=-
         private void regReadPeriphery()
         {
             int phe_count = 0;
@@ -1407,16 +1621,25 @@ namespace ArtiluxEOL
 
                 for (a = 0; a < phe_count; a++)
                 {
-                    Periphery_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Periphery\Phe_" + a);
+                    try
+                    {
+                        Periphery_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Periphery\Phe_" + a);
 
-                    //network_dev[a].Name = UInt64.Parse(Periphery_reg.GetValue("Name").ToString());
-                    network_dev[a].Name = (Periphery_reg.GetValue("Name").ToString());
-                    network_dev[a].Ip = (Periphery_reg.GetValue("Ip").ToString());
-                    network_dev[a].Port_0 = (int)(Periphery_reg.GetValue("Port0"));
-                    network_dev[a].Port_1 = (int)(Periphery_reg.GetValue("Port1"));
-                    network_dev[a].Enable = Convert.ToBoolean((Periphery_reg.GetValue("Enable"))); 
-                    Workplaces_reg.Close();
+                        //network_dev[a].Name = UInt64.Parse(Periphery_reg.GetValue("Name").ToString());
+                        network_dev[a].Name = (Periphery_reg.GetValue("Name").ToString());
+                        network_dev[a].Ip = (Periphery_reg.GetValue("Ip").ToString());
+                        network_dev[a].Port_0 = (int)(Periphery_reg.GetValue("Port0"));
+                        network_dev[a].Port_1 = (int)(Periphery_reg.GetValue("Port1"));
+                        network_dev[a].Enable = Convert.ToBoolean((Periphery_reg.GetValue("Enable")));
+                        Periphery_reg.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.Print($"read_phe fail: = {a}");
+                    }
+
                 }
+
                 /*System.Diagnostics.Debug.Print($"Name: = {network_dev[0].Name}");
                 System.Diagnostics.Debug.Print($"Ip: = {network_dev[0].Ip}");
                 System.Diagnostics.Debug.Print($"Port: = {network_dev[0].Port_0}");
@@ -1438,14 +1661,14 @@ namespace ArtiluxEOL
                     Periphery_reg.SetValue("Ip", dev.Ip);
                     Periphery_reg.SetValue("Port0", dev.Port_0);
                     Periphery_reg.SetValue("Port1", dev.Port_1);
-                    Periphery_reg.SetValue("Enable", Convert.ToInt32(dev.Enable) );
+                    Periphery_reg.SetValue("Enable", Convert.ToInt32(dev.Enable));
                     Periphery_reg.Close();
                     a++;
                 }
 
                 System.Diagnostics.Debug.Print($"REG_not_found: = {"create"}");
                 Periphery_reg.Close();
-                
+
             }
         }
 
@@ -1455,7 +1678,7 @@ namespace ArtiluxEOL
             int id = 0;
 
             Periphery_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Periphery\Phe_" + phe_nr, true);
-            
+
 
             Periphery_reg.SetValue("Name", network_dev[phe_nr].Name);
             Periphery_reg.SetValue("Ip", network_dev[phe_nr].Ip);
@@ -1464,78 +1687,56 @@ namespace ArtiluxEOL
             Periphery_reg.SetValue("Enable", Convert.ToInt32(network_dev[phe_nr].Enable));
             Periphery_reg.Close();
 
-            System.Diagnostics.Debug.Print($"UPDATE: = {phe_nr} ip: = {network_dev[phe_nr].Ip} port_0: = {network_dev[phe_nr].Port_0} port_1: = {network_dev[phe_nr].Port_1} en: = {network_dev[phe_nr].Enable}" );
+            System.Diagnostics.Debug.Print($"UPDATE: = {phe_nr} ip: = {network_dev[phe_nr].Ip} port_0: = {network_dev[phe_nr].Port_0} port_1: = {network_dev[phe_nr].Port_1} en: = {network_dev[phe_nr].Enable}");
         }
+
+        #endregion
 
         public void get_all_monitors()
         {
-            if (cbAdmin.Checked)
+
+            //set the class name and namespace
+            string NamespacePath = "\\\\.\\ROOT\\WMI";
+            string ClassName = "WmiMonitorID";
+            //Create ManagementClass
+            ManagementClass oClass = new ManagementClass(NamespacePath + ":" + ClassName);
+            int a = 0;
+            //Get all instances of the class and enumerate them
+            foreach (ManagementObject oObject in oClass.GetInstances())
             {
-                //set the class name and namespace
-                string NamespacePath = "\\\\.\\ROOT\\WMI";
-                string ClassName = "WmiMonitorID";
-                //Create ManagementClass
-                ManagementClass oClass = new ManagementClass(NamespacePath + ":" + ClassName);
-                int a = 0;
-                //Get all instances of the class and enumerate them
-                foreach (ManagementObject oObject in oClass.GetInstances())
-                {
-                    //access a property of the Management object
-                    //String MonitorId = oObject["SerialNumberID"].ToString();
-                    UInt16[] idd = new UInt16[24];
-                    dynamic serial_nr = oObject["SerialNumberID"];
-                    string instance = (String)oObject["InstanceName"];
-                    string id = string.Join("", serial_nr);
+                //access a property of the Management object
+                //String MonitorId = oObject["SerialNumberID"].ToString();
+                UInt16[] idd = new UInt16[24];
+                dynamic serial_nr = oObject["SerialNumberID"];
+                string instance = (String)oObject["InstanceName"];
+                string id = string.Join("", serial_nr);
 
-                    System.Diagnostics.Debug.Print($"MONITOR: = {id}");
-                    id = id.Substring(0, 16);
-                    //Console.WriteLine("Active : {0}", oObject["SerialNumberID"].ToString());
-                    ml.Add(id);
-                    cBoxWplace[0].Items.Add(id);
-                    cBoxWplace[1].Items.Add(id);
-                    cBoxWplace[2].Items.Add(id);
+                System.Diagnostics.Debug.Print($"MONITORe: = {id}");
+                dbg_print(DbgType.MAIN, "MONITOR--" + id, Color.MediumPurple);
+                id = id.Substring(0, 16);
+                //Console.WriteLine("Active : {0}", oObject["SerialNumberID"].ToString());
+                MonitorTest mt = new MonitorTest { Id = a, MonitorIds = id };
+                ml.Add(mt);
+                cBoxWplace[0].Items.Add(id);
+                cBoxWplace[1].Items.Add(id);
+                cBoxWplace[2].Items.Add(id);
 
-                    cBoxWplace[a].Enabled = true;
-                    a++;
-                }
-                cBoxWplace[0].Text = SavedWorkplaces[0].ToString();
-                cBoxWplace[1].Text = SavedWorkplaces[1].ToString();
-                cBoxWplace[2].Text = SavedWorkplaces[2].ToString();
-                //System.Diagnostics.Debug.Print($"MONITOR: = {ml}");
+                cBoxWplace[a].Enabled = true;
+                a++;
             }
-            else
+            if (a < 3)
             {
-                foreach (var screen in Screen.AllScreens)
-                {
-                    ml.Add(screen.WorkingArea.ToString());
-                }
+                cBoxWplace[2].Enabled = true;
+                MonitorTest mt = new MonitorTest { Id = 2, MonitorIds = "0" };
+                cBoxWplace[2].Items.Add("0");
+                ml.Add(mt);
             }
 
             panelTestResult.Controls.Clear();
         }
 
-        public void dbg_print(string s)
-        {
-            list_debug.Items.Add(s);
-            // nutrinam visus senesnius nei XXX irasu
-            while (list_debug.Items.Count > 80)
-            {
-                list_debug.Items.RemoveAt(0);
-            }
-            int nr = (list_debug.Items.Count - 1);
-            list_debug.Items[nr].Focused = true;
-            list_debug.Items[nr].Selected = true;
-            if (nr > 0)
-            {
-                list_debug.Items[nr - 1].Focused = false;
-                list_debug.Items[nr - 1].Selected = false;
-            }
-            list_debug.Update();
-        }
 
-        
-
-                #region -=Metrel test btn=-
+        #region -=Metrel test btn=-
 
         private void mtrelTest_Click(object sender, EventArgs e)
         {
@@ -1575,118 +1776,24 @@ namespace ArtiluxEOL
 
         private void button2_Click(object sender, EventArgs e)
         {
-            
-            Socket_.start_socket(network_dev[ITECH_HV_TESTER], 0);
-            //Socket_.socket_ping(network_dev[ITECH_HV_TESTER]);
+
+            Socket_.start_socket(network_dev[DevType.GWINSTEK_HV_TESTER], 0);
+            //Socket_.socket_ping(network_dev[DevType.GWINSTEK_HV_TESTER]);
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            Socket_.send_socket(network_dev[ITECH_HV_TESTER]);
-        }
+            Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], "SYSTEM:TIME?");
 
+            //network_dev[DevType.GWINSTEK_HV_TESTER].NewSendData = true;
+            network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+        }
         private void button4_Click(object sender, EventArgs e)
         {
-            Socket_.close_socket(network_dev[ITECH_HV_TESTER]);
+            Socket_.close_socket(network_dev[DevType.GWINSTEK_HV_TESTER]);
         }
 
-        private void cbAdmin_CheckedChanged(object sender, EventArgs e)
-        {
 
-        }
-
-        private void Main_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void save_ip_Click(object sender, EventArgs e)
-        {
-
-            string str;
-            string[] subs;
-            //string[] ip;
-            string ip;
-            bool update = false;
-            int port;
-
-            for (int i = 0; i < network_dev.Count; i++) {
-
-                str = TextBox_dev_info[i].Text.ToString();
-                subs = str.Split(':');
-
-
-                if ((subs.Length > 1)|| i > 5)// turim turet nora viena porta)
-                {
-                    ip = Convert.ToString(subs[0]);
-
-                    if (!String.Equals(network_dev[i].Ip, ip))
-                    {
-                        network_dev[i].Ip = ip;
-                        update = true;
-                    }
-
-
-                    port = Convert.ToInt16(subs[1]);
-
-                    if (port > 0)
-                    {
-                        if (network_dev[i].Port_0 != port)
-                        {
-                            network_dev[i].Port_0 = port;
-                            update = true;
-                        }
-
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.Print($"PORT_0 ERROR: = {port}");
-                    }
-                }
-                else
-                {
-                    System.Diagnostics.Debug.Print($"PORT_NOT_FOUND: = {0}");
-                }
-
-                
-
-                if (subs.Length > 2)// jei turim ivesta 2 porta tikrinam ar ne 0
-                {
-                    port = Convert.ToInt16(subs[2]);
-
-                    if (port > 0)
-                    {
-                        if (network_dev[i].Port_0 != port)
-                        {
-                            network_dev[i].Port_1 = port;
-                            update = true;
-                        }
-                        
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.Print($"PORT_1 ERROR: = {port}");
-                    }
-                }
-                else
-                {
-                    network_dev[i].Port_1 = 0;
-                }
-
-                if (update)
-                {
-                    update = false;
-                    regUpdatePeriphery(i);
-                }
-                
-            }
-
-        }
 
         public void show_msg(string msg, Color _color)
         {
@@ -1696,8 +1803,531 @@ namespace ArtiluxEOL
 
         private void btn_popup_Click(object sender, EventArgs e)
         {
+
+            dbg_print(DbgType.MAIN, "TEST", Color.MediumPurple);
+
             Popup_msg popup = new Popup_msg("TEST", "asdsd", Color.SpringGreen, 2);
             popup.Show();
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            Socket_.send_socket(network_dev[DevType.MAIN_CONTROLLER], "A");
+        }
+
+        #region GWinstek HV tester
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            System.Diagnostics.Debug.Print($"e.RowIndex: = {e.RowIndex} e.ColumnIndex: = {e.ColumnIndex}");
+
+            network_dev[DevType.GWINSTEK_HV_TESTER].GetSetParamCount = 5;
+            network_dev[DevType.GWINSTEK_HV_TESTER].GetSetParamLeft = 5;
+            network_dev[DevType.GWINSTEK_HV_TESTER].TestType = e.RowIndex;
+
+            switch (e.ColumnIndex)
+            {
+                case 1://TEST
+                    //network_dev[DevType.GWINSTEK_HV_TESTER].GetSetParamCount = 0;
+                    network_dev[DevType.GWINSTEK_HV_TESTER].State = NetDev_State.START_TEST;
+                    network_dev[DevType.GWINSTEK_HV_TESTER].SubState = NetDev_Test.TEST_SELECT;
+                    break;
+
+                case 2://GET
+                    //ITECH_HV_handle_get_params(e.ColumnIndex, e.RowIndex);
+                    //network_dev[DevType.GWINSTEK_HV_TESTER].GetSetParamCount = 5;
+                    DataGridViewRow Row = (DataGridViewRow)dataGrid_HV_test.Rows[e.RowIndex];//
+                    Row.Cells[4].Value = "--";
+                    Row.Cells[5].Value = "--";
+                    Row.Cells[6].Value = "--";
+                    Row.Cells[7].Value = "--";
+                    Row.Cells[8].Value = "--";
+                    network_dev[DevType.GWINSTEK_HV_TESTER].State = NetDev_State.SELECT_TEST;
+                    break;
+                case 3://SET
+                    //network_dev[DevType.GWINSTEK_HV_TESTER].GetSetParamCount = 5;
+                    network_dev[DevType.GWINSTEK_HV_TESTER].State = NetDev_State.SET_PARAM;
+                    break;
+
+            }
+            NetworkThreads.ITECH_HV_handle_get_params();
+        }
+
+        public void gwinstek_handle_test_result()
+        {
+            bool test_pass = false;
+            DataGridViewCellStyle style = new DataGridViewCellStyle();
+
+            network_dev[DevType.GWINSTEK_HV_TESTER].State = NetDev_State.READY;
+            string[] split_result;
+            split_result = network_dev[DevType.GWINSTEK_HV_TESTER].Resp.Split(',');//subs[0]=ip,sub
+
+            //DataGridViewRow Row0 = (DataGridViewRow)dataGridView2.Rows[0].Clone();
+            dataGrid_HV_result.Invoke((MethodInvoker)(() => dataGrid_HV_result.Rows.Insert(0)));
+
+            var dateTime3 = DateTimeOffset.FromUnixTimeSeconds(Socket_.UnixTimeNow()).LocalDateTime;
+            dataGrid_HV_result.Invoke((MethodInvoker)(() => dataGrid_HV_result.Rows[0].Cells[0].Value = dateTime3));
+
+            if (String.Equals("PASS ", split_result[1]))//lyginam stringus, ar uzsetinom parametra
+            {
+                test_pass = true;
+                style.BackColor = Color.SpringGreen;
+                dataGrid_HV_result.Rows[0].Cells[2].Style = style;
+                System.Diagnostics.Debug.Print($"TEST_PASS");
+            }
+            else
+                style.BackColor = Color.LightCoral;
+            {
+                dataGrid_HV_result.Rows[0].Cells[2].Style = style;
+            }
+
+            for (int i = 0; i < split_result.Length; i++)
+            {
+                //Row0.Cells[i].Value = split_result[i];
+                dataGrid_HV_result.Invoke((MethodInvoker)(() => dataGrid_HV_result.Rows[0].Cells[i + 1].Value = split_result[i]));
+                dataGrid_HV_result.Invoke((MethodInvoker)(() => dataGrid_HV_result.AutoResizeColumns()));
+            }
+        }
+        private void dataGrid_HV_test_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            System.Diagnostics.Debug.Print($"CHANGED Row: = {e.RowIndex} Column: = {e.ColumnIndex}");
+        }
+        #endregion
+
+        #region ITECH load set param
+        private void dataGrid_Load_load_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+            System.Diagnostics.Debug.Print($"e.RowIndex: = {e.RowIndex} e.ColumnIndex: = {e.ColumnIndex}");
+
+            network_dev[DevType.ITECH_LOAD].GetSetParamCount = NetworkThreads.Itech_load_param_get_type.Length;
+            network_dev[DevType.ITECH_LOAD].GetSetParamLeft = NetworkThreads.Itech_load_param_get_type.Length;
+            network_dev[DevType.ITECH_LOAD].TestType = e.RowIndex;
+            DataGridViewRow Row_load = (DataGridViewRow)dataGrid_Load_load.Rows[0];//get table row by test type
+
+            //const int state_cell = Row_load.Cells.Count - 1;// paskutinio stulpelio state pozicija
+
+            switch (e.ColumnIndex)
+            {
+                case 7://SET STATE (ON/OFF load)
+                    if (NetworkThreads.load_state == false)
+                    {
+                        network_dev[DevType.ITECH_LOAD].State = NetDev_State.START_TEST;
+                        network_dev[DevType.ITECH_LOAD].SubState = NetDev_Test.TEST_START;
+                        break;
+                    }
+                    else
+                    {
+                        network_dev[DevType.ITECH_LOAD].State = NetDev_State.READY;
+                        break;
+                    }
+
+                    break;
+            }
+
+            NetworkThreads.ITECH_LOAD_handle_get_params();
+        }
+
+
+
+        private void dataGrid_Load_load_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+
+
+            if (load_param_enable_edit)
+            {
+                load_param_enable_edit = false;
+                int load_current_cell = dataGrid_Load_load.Rows[0].Cells.Count - 2;// load current set cell
+                int load_current_value = Convert.ToInt32(dataGrid_Load_load.Rows[0].Cells[load_current_cell].Value);
+
+                if (e.RowIndex == 0 && e.ColumnIndex == (load_current_cell))
+                {
+
+                    System.Diagnostics.Debug.Print($"CHANGED CURRENT: = {load_current_value}");
+                    if (load_current_value > 0 && load_current_value < 40)
+                    {
+                        network_dev[DevType.ITECH_LOAD].GetSetParamCount = 3;
+                        network_dev[DevType.ITECH_LOAD].GetSetParamLeft = 3;
+                        network_dev[DevType.ITECH_LOAD].Cmd = "CURR " + load_current_value;
+                        devList.DevLoad.load_current = load_current_value;
+                        network_dev[DevType.ITECH_LOAD].State = NetDev_State.SET_PARAM;
+                        NetworkThreads.ITECH_LOAD_handle_get_params();
+                    }
+                    else
+                    {
+                        show_msg("Blogi parametrai, galimos vertes 1-40A", Color.LightCoral);
+                    }
+                }
+            }
+        }
+
+        private void dataGrid_Load_load_Enter(object sender, EventArgs e)
+        {
+            load_param_enable_edit = true;
+        }
+        #endregion
+
+
+        #region Device control tab
+        void load_dev_control()//irenginiu valdymo skirtukai ir lenteliu pradines reiksmes
+        {
+            DataGridViewRow Row0 = (DataGridViewRow)dataGrid_HV_test.Rows[0].Clone();
+            //dataGrid_HV_result.Rows.Insert(0);
+            // GWINSTEK 
+            Row0.Cells[1].Value = "ACW";
+            dataGrid_HV_test.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_HV_test.Rows[0].Clone();
+            Row0.Cells[1].Value = "IR";
+            dataGrid_HV_test.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_HV_test.Rows[0].Clone();
+            Row0.Cells[1].Value = "CONT";
+            dataGrid_HV_test.Rows.Add(Row0);
+            // ITECH LOAD 
+            Row0 = (DataGridViewRow)dataGrid_Load_load.Rows[0].Clone();
+            Row0.Cells[0].Value = "A";
+            dataGrid_Load_load.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Load_load.Rows[0].Clone();
+            Row0.Cells[0].Value = "B";
+            dataGrid_Load_load.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Load_load.Rows[0].Clone();
+            Row0.Cells[0].Value = "C";
+            dataGrid_Load_load.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Load_load.Rows[0].Clone();
+            // ITECH LINE
+            Row0 = (DataGridViewRow)dataGrid_Load_Line.Rows[0].Clone();
+            Row0.Cells[0].Value = "A";
+            dataGrid_Load_Line.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Load_Line.Rows[0].Clone();
+            Row0.Cells[0].Value = "B";
+            dataGrid_Load_Line.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Load_Line.Rows[0].Clone();
+            Row0.Cells[0].Value = "C";
+            dataGrid_Load_Line.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Load_Line.Rows[0].Clone();
+
+            //Spectrocope main values
+            Row0 = (DataGridViewRow)dataGrid_Spectrum.Rows[0].Clone();
+            Row0.Cells[0].Value = NetworkThreads.Siglent_param_type[0];
+            dataGrid_Spectrum.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Spectrum.Rows[0].Clone();
+            Row0.Cells[0].Value = NetworkThreads.Siglent_param_type[1];
+            dataGrid_Spectrum.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Spectrum.Rows[0].Clone();
+            Row0.Cells[0].Value = NetworkThreads.Siglent_param_type[2];
+            dataGrid_Spectrum.Rows.Add(Row0);
+            network_dev[DevType.ANALYSER_SIGLENT].GetSetParamLeft = 3;
+            network_dev[DevType.ANALYSER_SIGLENT].GetSetParamCount = 3;
+
+            network_dev[DevType.ANALYSER_SIGLENT].device_param = new String[25];
+
+            //BARCODE_1 EVSE
+            Row0 = (DataGridViewRow)dataGrid_Barcode1.Rows[0].Clone();
+            Row0.Cells[0].Value = "BARCODE";
+            dataGrid_Barcode1.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode1.Rows[0].Clone();
+            Row0.Cells[0].Value = "WIFI SIGNAL";
+            dataGrid_Barcode1.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode1.Rows[0].Clone();
+            Row0.Cells[0].Value = "LTE SIGNAL";
+            dataGrid_Barcode1.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode1.Rows[0].Clone();
+            Row0.Cells[0].Value = "RELAY ON";
+            dataGrid_Barcode1.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode1.Rows[0].Clone();
+            Row0.Cells[0].Value = "RELAY OFF";
+            dataGrid_Barcode1.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode1.Rows[0].Clone();
+            Row0.Cells[0].Value = "METER DATA";
+            dataGrid_Barcode1.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode1.Rows[0].Clone();
+            Row0.Cells[0].Value = "RFID";
+            dataGrid_Barcode1.Rows.Add(Row0);
+            //BARCODE_2 EVSE
+            Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
+            Row0.Cells[0].Value = "BARCODE";
+            dataGrid_Barcode2.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
+            Row0.Cells[0].Value = "WIFI SIGNAL";
+            dataGrid_Barcode2.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
+            Row0.Cells[0].Value = "LTE SIGNAL";
+            dataGrid_Barcode2.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
+            Row0.Cells[0].Value = "RELAY ON";
+            dataGrid_Barcode2.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
+            Row0.Cells[0].Value = "RELAY OFF";
+            dataGrid_Barcode2.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
+            Row0.Cells[0].Value = "METER DATA";
+            dataGrid_Barcode2.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
+            Row0.Cells[0].Value = "RFID";
+            dataGrid_Barcode2.Rows.Add(Row0);
+            //BARCODE_3 EVSE
+            Row0 = (DataGridViewRow)dataGrid_Barcode3.Rows[0].Clone();
+            Row0.Cells[0].Value = "BARCODE";
+            dataGrid_Barcode3.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode3.Rows[0].Clone();
+            Row0.Cells[0].Value = "WIFI SIGNAL";
+            dataGrid_Barcode3.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode3.Rows[0].Clone();
+            Row0.Cells[0].Value = "LTE SIGNAL";
+            dataGrid_Barcode3.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode3.Rows[0].Clone();
+            Row0.Cells[0].Value = "RELAY ON";
+            dataGrid_Barcode3.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode3.Rows[0].Clone();
+            Row0.Cells[0].Value = "RELAY OFF";
+            dataGrid_Barcode3.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode3.Rows[0].Clone();
+            Row0.Cells[0].Value = "METER DATA";
+            dataGrid_Barcode3.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode3.Rows[0].Clone();
+            Row0.Cells[0].Value = "RFID";
+            dataGrid_Barcode3.Rows.Add(Row0);
+
+        }
+        #endregion
+
+        #region Siglent analyser chart
+        private void button7_Click(object sender, EventArgs e)
+        {
+            var net_dev = network_dev[DevType.ANALYSER_SIGLENT];
+
+            chart1.Series.Clear();
+            chart1.Series.Add("spectrum");
+            chart1.Series["spectrum"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chart1.Series["spectrum"].BorderWidth = 1;
+            chart1.ChartAreas[0].AxisX.MajorGrid.Enabled = true;
+            chart1.ChartAreas[0].AxisY.MajorGrid.Enabled = true;
+
+            double start = Convert.ToDouble(net_dev.device_param[Siglent_param.START_X]);
+            double stop = Convert.ToDouble(net_dev.device_param[Siglent_param.STOP_X]);
+            double range;
+
+            if (start > 0)
+            {
+                range = stop / start;
+            }
+            else
+            {
+                range = stop;
+            }
+
+            net_dev.device_param[Siglent_param.X_RANGE] = Convert.ToString(range);
+
+            chart1.ChartAreas[0].AxisX.Minimum = start;
+            chart1.ChartAreas[0].AxisX.Maximum = stop;
+            chart1.ChartAreas[0].AxisX.Title = net_dev.device_param[Siglent_param.X_UNIT];
+            chart1.ChartAreas[0].AxisY.Minimum = -10;
+            chart1.ChartAreas[0].AxisY.Maximum = 0;
+            chart1.ChartAreas[0].AxisY.Interval = 1;
+            //chart1.ChartAreas[0].AxisY.IsReversed = true;
+            this.chart1.Series["spectrum"].Points.AddXY(start, 5);
+
+            net_dev.State = NetDev_State.START_TEST;//prasom grafiko duomenu
+            net_dev.SubState = NetDev_Test.GET_CHART_DATA;
+            NetworkThreads.Sprectroscope_handle_get_params();
+        }
+
+        public string get_siglent_unit(string val)
+        {
+
+            string[] split;
+            int unit = 0;
+            string unit_str = "";
+
+            split = val.Split('E');
+            System.Diagnostics.Debug.Print($"Split: = {split[0][1]}");
+            int.TryParse(split[1], out unit);
+            System.Diagnostics.Debug.Print($"unit: = {unit}");
+            switch (unit)
+            {
+                case 9:
+                    unit_str = "Ghz";
+                    break;
+                case 8:
+                case 7:
+                case 6:
+                    unit_str = "Mhz";
+                    break;
+                case 5:
+                case 4:
+                case 3:
+                    unit_str = "Khz";
+                    break;
+                case 2:
+                case 1:
+                case 0:
+                    unit_str = "Hz";
+                    break;
+            }
+
+            return unit_str;
+        }
+
+        public void update_chart()
+        {
+            string[] split;
+            string str;
+            double y_min = 0;
+            double y_max = 1;
+            double point;
+            var netdev = network_dev[DevType.ANALYSER_SIGLENT];
+
+            netdev.State = NetDev_State.READY;
+            netdev.SubState = NetDev_Test.TEST_NONE;
+
+            double point_x = chart1.Series["spectrum"].Points[0].XValue;
+            var net_dev = network_dev[DevType.ANALYSER_SIGLENT];
+
+            double start = Convert.ToDouble(net_dev.device_param[Siglent_param.START_X]);
+
+            split = netdev.Resp.Split(',');//subs[0]=ip,subs[1]=port_0,subs[2]=port_1,
+            int points_cnt = split.Length;
+
+            Double range = Convert.ToDouble(netdev.device_param[Siglent_param.X_RANGE]);
+            Double interval = range / points_cnt;
+
+            int i = 0;
+            for (i = 0; i < split.Length; i++)
+            {
+                str = split[i];
+                //System.Diagnostics.Debug.Print($"str: = {str} split: = {split[i]}");
+                split[i] = str.Remove(7, 4);
+
+                if (i == 0)
+                {
+                    //chart1.Invoke((MethodInvoker)(() => chart1.Series["spectrum"].Points[0].XValue = start));
+                    //chart1.Invoke((MethodInvoker)(() => chart1.Series["spectrum"].Points[0].SetValueY(split[i])));
+
+                    Invoke
+                    (
+                        new Action
+                        (
+                            () =>
+                            {
+                                chart1.Series["spectrum"].Points[0].XValue = start;
+                                chart1.Series["spectrum"].Points[0].SetValueY(split[i]);
+                            }
+                        )
+                    );
+
+                    y_min = Convert.ToDouble(split[i].Replace('.', ','));
+                    y_max = Convert.ToDouble(split[i].Replace('.', ','));
+                }
+                else
+                {
+                    point_x = chart1.Series["spectrum"].Points[i - 1].XValue;
+                    chart1.Invoke((MethodInvoker)(() => chart1.Series["spectrum"].Points.AddXY(point_x + interval, split[i])));
+                    point = Convert.ToDouble(split[i].Replace('.', ','));
+                    if (point < y_min)
+                    {
+                        y_min = point;
+                    }
+                    if (point > y_max)
+                    {
+                        y_max = point;
+                    }
+                }
+            }
+
+
+            System.Diagnostics.Debug.Print($"points_cnt: = {points_cnt} interval: = {interval} min: = {y_min} max: = {y_max} 0: = {split[0]} 1: = {split[1]}");
+
+            chart1.Invoke((MethodInvoker)(() => chart1.ChartAreas[0].AxisY.Minimum = y_min));
+            chart1.Invoke((MethodInvoker)(() => chart1.ChartAreas[0].AxisY.Maximum = 0));
+        }
+        #endregion
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button5_Click_1(object sender, EventArgs e)
+        {
+            network_dev[DevType.GWINSTEK_HV_TESTER].Cmd = "MEAS?";
+            Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], network_dev[DevType.GWINSTEK_HV_TESTER].Cmd);
+            network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+        }
+
+
+
+        private void btn_stop_Click(object sender, EventArgs e)
+        {
+            network_dev[DevType.GWINSTEK_HV_TESTER].Cmd = "FUNC:TEST OFF";
+            Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], network_dev[DevType.GWINSTEK_HV_TESTER].Cmd);
+            network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+
+            show_msg("TEST STOP", Color.LightSalmon);
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            /*network_dev[DevType.ITECH_LOAD].Cmd = "MEAS?";//test select komandos formavimas
+            Socket_.send_socket(network_dev[DevType.ITECH_LOAD], network_dev[DevType.ITECH_LOAD].Cmd);
+            network_dev[DevType.ITECH_LOAD].SendReceiveState = NetDev_SendState.SEND_BEGIN;*/
+
+            network_dev[DevType.ITECH_LOAD].State = NetDev_State.GET_PARAM_ALL;
+            network_dev[DevType.ITECH_LOAD].GetSetParamLeft = NetworkThreads.Itech_load_param_get_type.Length;
+            NetworkThreads.ITECH_LOAD_handle_get_params();
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            network_dev[DevType.ANALYSER_SIGLENT].Cmd = "FREQ:START?";
+
+            Socket_.send_socket(network_dev[DevType.ANALYSER_SIGLENT], network_dev[DevType.ANALYSER_SIGLENT].Cmd);
+            network_dev[DevType.ANALYSER_SIGLENT].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+            network_dev[DevType.ANALYSER_SIGLENT].Cmd = "FREQ:STOP?";
+
+            Socket_.send_socket(network_dev[DevType.ANALYSER_SIGLENT], network_dev[DevType.ANALYSER_SIGLENT].Cmd);
+            network_dev[DevType.ANALYSER_SIGLENT].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+        }
+
+        private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+            //System.Diagnostics.Debug.Print($"index: = {tabControl2.SelectedIndex}");
+            switch (tabControl2.SelectedIndex)
+            {
+                case NetDev_Tab.MAIN_CONTROLLER:
+                    break;
+                case NetDev_Tab.HW_TESTER:
+                    break;
+                case NetDev_Tab.SIGLENT:
+                    network_dev[DevType.ANALYSER_SIGLENT].State = NetDev_State.GET_PARAM_ALL;
+                    network_dev[DevType.ANALYSER_SIGLENT].GetSetParamLeft = 3;
+                    network_dev[DevType.ANALYSER_SIGLENT].GetSetParamCount = 3;
+                    NetworkThreads.Sprectroscope_handle_get_params();
+                    break;
+                case NetDev_Tab.ITECH_LOAD:
+                    break;
+            }
+        }
+
+        private void dataGrid_Barcode2_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            System.Diagnostics.Debug.Print($"e.RowIndex: = {e.RowIndex} e.ColumnIndex: = {e.ColumnIndex}");
+
+            network_dev[DevType.BARCODE_2].State = e.RowIndex+1;//setinam state pagal paspausyta table btn
+
+            NetworkThreads.Barcode2_handle_get_params();
+        }
+
+        private void dataGrid_Barcode1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+           
+        }
+
+        private void dataGrid_Barcode3_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
         }
     }
 }

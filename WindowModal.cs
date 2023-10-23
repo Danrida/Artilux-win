@@ -16,6 +16,9 @@ namespace ArtiluxEOL
 {
     public partial class WindowModal : Form
     {
+
+        public static WindowModal WindowMod;
+
         static int py = 10;
         Font LargeFont = new Font("Arial", 20);
         Font SymbolFont = new Font("Wingdings", 20);
@@ -31,10 +34,11 @@ namespace ArtiluxEOL
 
         MonitorTest mtl = new MonitorTest();
 
-        
 
+        SocketClient Socket_ = new SocketClient();
         public WindowModal(MonitorTest mt)
         {
+            WindowMod = this;
             InitializeComponent();
             mtl = mt;
             this.Text = mtl.MonitorIds;
@@ -44,6 +48,8 @@ namespace ArtiluxEOL
             lblWorkplace = new Label[3];
             lbl_ptr = new int[5];//label pointeris
             backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(backgroundWorker1_DoWork);
+
+            
         }
 
         private void panel2_Paint(object sender, PaintEventArgs e)
@@ -128,7 +134,7 @@ namespace ArtiluxEOL
                         btnStart.Visible = false;
                         lblWait.Visible = false;
                         panelTestResult.Controls.Add(progress);
-                        lblLong.Text = UnixTimeNow().ToString();
+                        lblLong.Text = Socket_.UnixTimeNow().ToString();
                     };
                     if (InvokeRequired)
                     {
@@ -261,11 +267,7 @@ namespace ArtiluxEOL
         }
 
 
-        public long UnixTimeNow()
-        {
-            var timeSpan = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
-            return (long)timeSpan.TotalSeconds;
-        }
+        
 
 
         private void TestModal_FormClosing(object sender, FormClosingEventArgs e)
