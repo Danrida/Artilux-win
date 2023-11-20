@@ -32,7 +32,7 @@ namespace ArtiluxEOL
 {
     public partial class Main : Form
     {
-        public static Main Main_main;
+        public static Main main;
 
         static RegistryKey Config_reg;
         static RegistryKey Workplaces_reg;
@@ -110,7 +110,7 @@ namespace ArtiluxEOL
 
         System.Windows.Forms.ComboBox[] cBoxWplace = new System.Windows.Forms.ComboBox[4];
         System.Windows.Forms.TextBox[] TextBox_dev_info = new System.Windows.Forms.TextBox[13];
-        CheckBox[] CheckBox_dev_info = new CheckBox[13];
+        CheckBox[] CheckBox_dev_info = new CheckBox[12];
         CheckBox[] CheckBox_lizdai = new CheckBox[3];
 
         public List<MonitorTest> mtlist = new List<MonitorTest>();
@@ -120,7 +120,8 @@ namespace ArtiluxEOL
         public List<SocketDevList> network_dev = new List<SocketDevList>();
 
         public DevList devList;
-        
+        public Test_struc[] Test = new Test_struc[3];
+
         public Main()
         {
             Config_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Configs");
@@ -134,7 +135,7 @@ namespace ArtiluxEOL
             cBoxWplace[2] = new System.Windows.Forms.ComboBox { Enabled = false, Font = new Font("Microsoft Sans Serif", 14), Location = new Point(x: 69, y: 165), Size = new Size(200, 37), DropDownStyle = ComboBoxStyle.DropDownList, DropDownHeight = 106, DropDownWidth = 200 };
 
             InitializeComponent();
-            Main_main = this;
+            main = this;
 
             this.groupBox1.Controls.Add(cBoxWplace[0]); //Darbo vietos nr prikyrimas
             this.groupBox1.Controls.Add(cBoxWplace[1]);
@@ -171,16 +172,26 @@ namespace ArtiluxEOL
             #endregion
 
             DbgType.NETWORK = true;
-            DbgType.MAIN = true;
             debug_network_cbox.Checked = true;
+            DbgType.MAIN = true;
             debug_main_cbox.Checked = true;
+            DbgType.EVSE = true;
+            debug_evse_cbox.Checked = true;
+            DbgType.HV_GEN = false;
+            debug_gwinstek_cbox.Checked = false;
+            DbgType.SPECTRO = false;
+            debug_siglent_cbox.Checked = false;
+            DbgType.LOAD = false;
+            debug_load_cbox.Checked = false;
+            DbgType.PING = true;
+            debug_ping_cbox.Checked = true;
 
             WorkplaceList wplace;
-            wplace = new WorkplaceList { WorplaceMonitorID = 123456789, Enable = true, BacodePort = 1111 };
+            wplace = new WorkplaceList { WorplaceMonitorID = 123456789, Enable = true, BarcodePort = 1111 };
             SavedWorkplaces.Add(wplace);
-            wplace = new WorkplaceList { WorplaceMonitorID = 123456789, Enable = true, BacodePort = 1111 };
+            wplace = new WorkplaceList { WorplaceMonitorID = 123456789, Enable = true, BarcodePort = 1111 };
             SavedWorkplaces.Add(wplace);
-            wplace = new WorkplaceList { WorplaceMonitorID = 123456789, Enable = true, BacodePort = 1111 };
+            wplace = new WorkplaceList { WorplaceMonitorID = 123456789, Enable = true, BarcodePort = 1111 };
             SavedWorkplaces.Add(wplace);
         }
 
@@ -203,12 +214,19 @@ namespace ArtiluxEOL
             //dbg_print(DbgType.MAIN, "NetworkThread", Color.MediumSeaGreen);
 
             devList.DevEvse = new DevEvse_struc[3];//label pointeris
-            devList.DevEvse[0].voltage = new UInt32[3];//label pointeris
-            devList.DevEvse[0].current = new UInt32[3];//label pointeris
-            devList.DevEvse[1].voltage = new UInt32[3];//label pointeris
-            devList.DevEvse[1].current = new UInt32[3];//label pointeris
-            devList.DevEvse[2].voltage = new UInt32[3];//label pointeris
-            devList.DevEvse[2].current = new UInt32[3];//label pointeris
+
+            for (int a = 0; a < 3; a++)//initinam structuras
+            {
+                Test[a].test_type = new TestType_struc[9];
+                Test[a].evse_barcode = "-";
+                for (int x = 0; x < 9; x++)
+                {
+                    Test[a].test_type[x].name = "a";
+                }
+                devList.DevEvse[a].barcode = "- - *** - -";
+                devList.DevEvse[a].voltage = new UInt32[3];
+                devList.DevEvse[a].current = new UInt32[3];
+            }
         }
 
         #region Debug list
@@ -248,6 +266,31 @@ namespace ArtiluxEOL
             DbgType.USB = debug_usb_cbox.Checked;
         }
 
+        private void debug_evse_cbox_CheckedChanged(object sender, EventArgs e)
+        {
+            DbgType.EVSE = debug_evse_cbox.Checked;
+        }
+
+        private void debug_gwinstek_cbox_CheckedChanged(object sender, EventArgs e)
+        {
+            DbgType.HV_GEN = debug_gwinstek_cbox.Checked;
+        }
+
+        private void debug_siglent_cbox_CheckedChanged(object sender, EventArgs e)
+        {
+            DbgType.SPECTRO = debug_siglent_cbox.Checked;
+        }
+
+        private void debug_load_cbox_CheckedChanged(object sender, EventArgs e)
+        {
+            DbgType.LOAD = debug_load_cbox.Checked;
+        }
+
+        private void debug_ping_cbox_CheckedChanged(object sender, EventArgs e)
+        {
+            DbgType.PING = debug_ping_cbox.Checked;
+        }
+
         private void dbg_list_clear_Click(object sender, EventArgs e)
         {
             this.list_debug.Items.Clear();
@@ -268,8 +311,10 @@ namespace ArtiluxEOL
                     case NetDev_Tab.HW_TESTER:
                         break;
                     case NetDev_Tab.SIGLENT:
+                        //groupBox_Spectr.Enabled = network_dev[a].Connected;
                         break;
                     case NetDev_Tab.ITECH_LOAD:
+                        //groupBox_Load.Enabled = network_dev[a].Connected;
                         //this.tabPage8.
                         break;
                     case NetDev_Tab.BARCODE_1: 
@@ -292,7 +337,7 @@ namespace ArtiluxEOL
         }
 
 
-        void lizdai_checbox_change()
+        void lizdai_checbox_change()//EVSE test lizdai, indijuojam busena
         {
             for (int a = 0; a < CheckBox_lizdai.Length; a++)
             {
@@ -333,38 +378,40 @@ namespace ArtiluxEOL
         {
             lizdai_checbox_change();
         }
-        private void ShowCheckedCheckboxes(object sender, EventArgs e)
+        private void ShowCheckedCheckboxes(object sender, EventArgs e)//indijuojam irangos busena
         {
+            bool state = false;
             if (init_done)
             {
-                bool state;
+                
                 for (int a = 0; a < CheckBox_dev_info.Length; a++)
                 {
-                    state = CheckBox_dev_info[a].Checked;
                     if (a < 4 || a > 9)
                     {
-                        
+                        state = CheckBox_dev_info[a].Checked;
+
                         if (network_dev[a].Enable != state)
                         {
                             network_dev[a].Enable = state;
                             regUpdatePeriphery(a);
                         }
-                    }
 
-                    if (state)
-                    {
-                        if (network_dev[a].Connected)
+
+                        if (state)
                         {
-                            device_state_indication(a, Color.SpringGreen);//pazymim raudonai, jei rasim pakeisim i zalia
+                            if (network_dev[a].Connected)
+                            {
+                                device_state_indication(a, Color.SpringGreen);//pazymim raudonai, jei rasim pakeisim i zalia
+                            }
+                            else
+                            {
+                                device_state_indication(a, Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia
+                            }
                         }
                         else
                         {
-                            device_state_indication(a, Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia
+                            device_state_indication(a, Color.Gainsboro);//pazymim zymim pilkai 
                         }
-                    }
-                    else
-                    {
-                        device_state_indication(a, Color.Gainsboro);//pazymim zymim pilkai 
                     }
                 }
             }
@@ -398,7 +445,7 @@ namespace ArtiluxEOL
             network_dev.Add(dev);
             //dev = new SocketDevList { Name = "Power", TestMsg = "", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
             //network_dev.Add(dev);
-            dev = new SocketDevList { Name = "EVSE", TestMsg = "BB;", client = null, Ip = "0", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
+            dev = new SocketDevList { Name = "METREL", TestMsg = "BB;", client = null, Ip = "0", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
             network_dev.Add(dev);
             dev = new SocketDevList { Name = "OSCIL", TestMsg = "---", client = null, Ip = "0", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
             network_dev.Add(dev);
@@ -501,23 +548,18 @@ namespace ArtiluxEOL
             this.groupBox_Metrel_USB.Controls.Add(TextBox_dev_info[10]);
             this.groupBox_Osc_USB.Controls.Add(TextBox_dev_info[11]);
 
+            groupBoxBarcode2.Controls.Add(evse2_params);
 
-            /*for(int a = 0; a<3; a++)
-            {
-
-            }*/
-
-
-            //NetworkDevConn.WorkerSupportsCancellation = true;
+              //NetworkDevConn.WorkerSupportsCancellation = true;
             NetworkDevConn.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.NetworkDevConn_DoWork);
             NetworkDevConn.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(NetworkThreads.NetworkDevConn_RunWorkerCompleted);
             NetworkDevConn.RunWorkerAsync();
             NetworkDevConn.WorkerSupportsCancellation = true;
-            MainControllerTCP.DoWork += new System.ComponentModel.DoWorkEventHandler(MainControllerTCP_DoWork);
+            MainControllerTCP.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.MainControllerTCP_DoWork);
             //MainControllerTCP.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(MainControllerTCP_RunWorkerCompleted);
             //MainControllerTCP.RunWorkerAsync();
             //NetworkDevConn.WorkerSupportsCancellation = true;
-            MainControllerMODBUS.DoWork += new System.ComponentModel.DoWorkEventHandler(MainControllerMODBUS_DoWork);
+            //MainControllerMODBUS.DoWork += new System.ComponentModel.DoWorkEventHandler(MainControllerMODBUS_DoWork);
             //MainControllerMODBUS.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(MainControllerMODBUS_RunWorkerCompleted);
             //MainControllerMODBUS.RunWorkerAsync();
 
@@ -652,29 +694,6 @@ namespace ArtiluxEOL
             }
         }
 
-
-
-        #region <MainControllerSocket>
-        private void MainControllerMODBUS_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void MainControllerMODBUS_DoWork(object sender, DoWorkEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void MainControllerTCP_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void MainControllerTCP_DoWork(object sender, DoWorkEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
 
         #region ---SERIAL PORTS ROUTINES---
 
@@ -1382,7 +1401,7 @@ namespace ArtiluxEOL
             }
             catch (Exception err)
             {
-                DialogResult dialog = MessageBox.Show(err.Message, err.InnerException.Message, MessageBoxButtons.OK);
+                //DialogResult dialog = MessageBox.Show(err.Message, err.InnerException.Message, MessageBoxButtons.OK);
                 foreach (MonitorTest mtx in mtlist)
                 {
                     //key.SetValue("Workplace" + mtl.Id, mtl.MonitorIds);
@@ -1849,7 +1868,7 @@ namespace ArtiluxEOL
                     break;
 
             }
-            NetworkThreads.ITECH_HV_handle_get_params();
+            NetworkThreads.GW_HV_handle_get_params();
         }
 
         public void gwinstek_handle_test_result()
@@ -2043,6 +2062,12 @@ namespace ArtiluxEOL
             dataGrid_Barcode1.Rows.Add(Row0);
             //BARCODE_2 EVSE
             Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
+            Row0.Cells[0].Value = "GET DATE";
+            dataGrid_Barcode2.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
+            Row0.Cells[0].Value = "SET DATE";
+            dataGrid_Barcode2.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
             Row0.Cells[0].Value = "BARCODE";
             dataGrid_Barcode2.Rows.Add(Row0);
             Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
@@ -2194,7 +2219,7 @@ namespace ArtiluxEOL
             {
                 str = split[i];
                 //System.Diagnostics.Debug.Print($"str: = {str} split: = {split[i]}");
-                split[i] = str.Remove(7, 4);
+                split[i] = str.Remove(7, 4);//triminam gala 3.20000000000E+09
 
                 if (i == 0)
                 {
@@ -2233,7 +2258,7 @@ namespace ArtiluxEOL
             }
 
 
-            System.Diagnostics.Debug.Print($"points_cnt: = {points_cnt} interval: = {interval} min: = {y_min} max: = {y_max} 0: = {split[0]} 1: = {split[1]}");
+            //System.Diagnostics.Debug.Print($"points_cnt: = {points_cnt} interval: = {interval} min: = {y_min} max: = {y_max} 0: = {split[0]} 1: = {split[1]}");
 
             chart1.Invoke((MethodInvoker)(() => chart1.ChartAreas[0].AxisY.Minimum = y_min));
             chart1.Invoke((MethodInvoker)(() => chart1.ChartAreas[0].AxisY.Maximum = 0));
@@ -2315,9 +2340,10 @@ namespace ArtiluxEOL
         {
             System.Diagnostics.Debug.Print($"e.RowIndex: = {e.RowIndex} e.ColumnIndex: = {e.ColumnIndex}");
 
-            network_dev[DevType.BARCODE_2].State = e.RowIndex+1;//setinam state pagal paspausyta table btn
+            network_dev[DevType.BARCODE_2].SubState = e.RowIndex+1;//setinam state pagal paspausyta table btn
 
             NetworkThreads.Barcode2_handle_get_params();
+            evse2_params.Text = "---";
         }
 
         private void dataGrid_Barcode1_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -2329,5 +2355,7 @@ namespace ArtiluxEOL
         {
 
         }
+
+        
     }
 }

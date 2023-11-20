@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static Ion.Sdk.Ici.Channel.BlackBox.Message;
+using static Ion.Sdk.Idi.Value.Constraint;
 
 namespace ArtiluxEOL
 {
@@ -36,7 +37,7 @@ namespace ArtiluxEOL
             InitializeComponent();
         }
 
-        
+
 
         public SocketClient(Form callingForm)
         {
@@ -44,14 +45,14 @@ namespace ArtiluxEOL
 
             //mainForm = callingForm as Main;
             InitializeComponent();
-            
+
         }
 
-        
+
 
         public long UnixTimeNow()
         {
-            
+
             var timeSpan = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
             return (long)timeSpan.TotalSeconds;
         }
@@ -67,7 +68,7 @@ namespace ArtiluxEOL
                 Array.Reverse(bytes);
             }
 
-           
+
 
             return BitConverter.ToUInt32(bytes, 0);
         }
@@ -93,34 +94,40 @@ namespace ArtiluxEOL
 
             private static SocketDevList net_dev;
 
-            
+
+
             public static void tt()
             {
                 //mainForm.dbg_print("s");
-                
+
             }
 
             public static bool ping(SocketDevList dev, int port)
             {
                 TcpClient client;
-                
-                
+
+
                 try
                 {
-                    switch (port)
+                    /*switch (port)
                     {
                         case 0:
                             Console.WriteLine($"Port0:{dev.Port_0}");
                             client = new TcpClient(dev.Ip, dev.Port_0);
                             client.Close();
                             break;
-                        
+
                         case 1:
                             Console.WriteLine($"Port1:{dev.Port_1}");
                             client = new TcpClient(dev.Ip, dev.Port_1);
                             client.Close();
                             break;
-                    }
+                    }*/
+                    //isPortAvailable();
+                    var isPortOpen = IsPortOpen(dev.Ip, dev.Port_0);
+                    Console.WriteLine(isPortOpen ? "{0} : open" : "{0} : close", port);
+
+
                     return true;
                 }
                 catch (Exception e)
@@ -131,6 +138,73 @@ namespace ArtiluxEOL
                 }
 
             }
+
+            private static bool IsPortOpen(string ipAddress, int port)
+            {
+                var tcpClient = new TcpClient();
+                try
+                {
+                    var result = tcpClient.BeginConnect(ipAddress, port, null, null);
+                    var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(1));
+                    tcpClient.EndConnect(result);
+                    tcpClient.Close();
+                    return success;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            public static int GetAvailablePort(string ip, int p)
+            {
+                IPAddress ipAddress = IPAddress.Parse(ip);
+
+                TcpListener l = new TcpListener(ipAddress, 0);
+                l.Start();
+                int port = ((IPEndPoint)l.LocalEndpoint).Port;
+                l.Stop();
+                Console.WriteLine($"Available port found: {port}");
+                return port;
+            }
+
+            static bool isPortAvailable()
+            {
+                var availablePorts = new List<int>();
+                var properties = IPGlobalProperties.GetIPGlobalProperties();
+
+                // Active connections
+                /*var connections = properties.GetActiveTcpConnections();
+                availablePorts.AddRange(connections);
+
+                // Active tcp listners
+                var endPointsTcp = properties.GetActiveTcpListeners();
+                availablePorts.AddRange(endPointsTcp);
+
+                // Active udp listeners
+                var endPointsUdp = properties.GetActiveUdpListeners();
+                availablePorts.AddRange(endPointsUdp);
+
+                foreach (int p in availablePorts)
+                {
+                    if (p == myPort) return false;
+                }*/
+
+                IPEndPoint[] endPoints = properties.GetActiveTcpListeners();
+                foreach (IPEndPoint e in endPoints)
+                {
+
+                    int port = 0;
+                    //tmpClnt.player_ip = e.Address.ToString();
+                    port = e.Port;
+                    //tmpClnt.computer_name = Dns.GetHostEntry(e.Address).HostName;
+                    //res.Add(tmpClnt);
+                    System.Diagnostics.Debug.Print($"port: {port}");
+
+                }
+                return true;
+            }
+
             public static int StartClient(SocketDevList dev, int port)
             {
                 bool connected = false;
@@ -142,7 +216,7 @@ namespace ArtiluxEOL
                     //string ip_adr = "192.168.11.150";
                     //var ip_a = ConvertFromIpAddressToInteger(ip_adr);
 
-                    
+
                     Console.WriteLine($"dev.Ip:{dev.Ip.ToString()}");
                     //mainForm.dbg_print("dev.Ip:");
 
@@ -155,7 +229,7 @@ namespace ArtiluxEOL
                     switch (port)
                     {
                         case 0:
-                          var result = dev.client.BeginConnect(remoteEndPoint, new AsyncCallback(ConnectionCallback), dev.client);
+                            var result = dev.client.BeginConnect(remoteEndPoint, new AsyncCallback(ConnectionCallback), dev.client);
                             //connnectCompleted.WaitOne(2000, true);
                             success = result.AsyncWaitHandle.WaitOne(1000, true);
                             connected = result.IsCompleted;
@@ -180,25 +254,25 @@ namespace ArtiluxEOL
                     if (success)
                     {
                         //socket.EndConnect(result);
-                        Main.Main_main.dbg_print(DbgType.NETWORK, "SOCKET_OPENED",Color.MediumSeaGreen);
+                        Main.main.dbg_print(DbgType.NETWORK, "SOCKET_OPENED", Color.MediumSeaGreen);
                         Console.WriteLine($"SOCKET_OPENED:{0}");
                         return 0;
                     }
                     else
                     {
                         dev.client.Close();
-                        Main.Main_main.dbg_print(DbgType.NETWORK, "SOCKET_TIMEOUT", Color.Gold);
+                        Main.main.dbg_print(DbgType.NETWORK, "SOCKET_TIMEOUT", Color.Gold);
                         Console.WriteLine($"SOCKET_TIMEOUT:{0}");
                         return 1;
                     }
 
                     //Socket state = (Socket)asyncResult.AsyncState;
-                    
+
                     return 1;
                 }
                 catch (Exception e)
                 {
-                    Main.Main_main.dbg_print(DbgType.NETWORK, "ERR_CON", Color.LightCoral);
+                    Main.main.dbg_print(DbgType.NETWORK, "ERR_CON", Color.LightCoral);
                     Console.WriteLine($"ERR_CON:{e.ToString()}");
                     return 1;
                 }
@@ -208,17 +282,17 @@ namespace ArtiluxEOL
             {
                 try
                 {
-                    
+
                     //Console.WriteLine($"END_CONN:{ar.AsyncState}");
                     Socket client = (Socket)ar.AsyncState;
                     client.EndConnect(ar);
-                    Main.Main_main.dbg_print(DbgType.NETWORK, "Socket connection:" + client.RemoteEndPoint.ToString(), Color.DimGray);
+                    Main.main.dbg_print(DbgType.NETWORK, "Socket connection:" + client.RemoteEndPoint.ToString(), Color.DimGray);
                     Console.WriteLine($"Socket connection:{client.RemoteEndPoint.ToString()}");
                     connnectCompleted.Set();
                 }
                 catch (Exception e)
                 {
-                    //Main.Main_main.dbg_print(DbgType.NETWORK, "ERR_CON_callback", Color.LightCoral);
+                    //Main.main.dbg_print(DbgType.NETWORK, "ERR_CON_callback", Color.LightCoral);
                     Console.WriteLine($"ERR_CON_callback:{0}");
                     Console.WriteLine(e.ToString());
                 }
@@ -230,14 +304,14 @@ namespace ArtiluxEOL
 
                 try
                 {
-                    Main.Main_main.dbg_print(DbgType.NETWORK, "Send_to:" + dev.Name, Color.DimGray);
-                    Console.WriteLine($"Send_to:{dev.Name}");
+                    //Main.main.dbg_print(DbgType.NETWORK, "Send_to:" + dev.Name, Color.DimGray);
+                    //Console.WriteLine($"Send_to:{dev.Name}");
                     byte[] byteData = Encoding.ASCII.GetBytes(data);
                     dev.client.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), dev.client);
                 }
                 catch (Exception e)
                 {
-                    Main.Main_main.dbg_print(DbgType.NETWORK, "ERR_SEND", Color.LightCoral);
+                    Main.main.dbg_print(DbgType.NETWORK, "ERR_SEND", Color.LightCoral);
                     Console.WriteLine(e.ToString());
                 }
             }
@@ -248,32 +322,39 @@ namespace ArtiluxEOL
                 {
                     Socket client = (Socket)ar.AsyncState;
                     int byteSent = client.EndSend(ar);
-                    Main.Main_main.dbg_print(DbgType.NETWORK, "TX:" + byteSent, Color.DimGray);
-                    Console.WriteLine($"Sent:{byteSent}");
+                    Main.main.dbg_print(DbgType.NETWORK, "TX:" + byteSent + " -> " + net_dev.Name, Color.DimGray);
+                    //Console.WriteLine($"Sent:{byteSent}");
                     if (net_dev.State == NetDev_State.GET_PARAM_ALL && net_dev.GetSetParamLeft == net_dev.GetSetParamCount) //pirma komanda be ack 
                     {
-                        //Console.WriteLine($"ACK-RX");
+                        Console.WriteLine($"ACK-RX");
                         net_dev.SendReceiveState = NetDev_SendState.RECEIVE_OK;
                     }
                     else
                     {
+                        if (net_dev.SendReceiveState == NetDev_SendState.RECEIVE_OK)
+                        {
+                            //Console.WriteLine($"SKIP_SEND_OK_CALB");
+                            Main.main.dbg_print(DbgType.NETWORK, "SKIP_SEND_OK_CALB", Color.Violet);
+                            sendCompleted.Set();
+                            return;
+                        }
                         //Console.WriteLine($"ACK-TX");
-                        if(net_dev.State == NetDev_State.GET_PARAM_ALL)
+                        if (net_dev.State == NetDev_State.GET_PARAM_ALL)
                         {
                             net_dev.SendReceiveState = NetDev_SendState.RECEIVE_WAIT;
                         }
                         else
                         {
                             net_dev.SendReceiveState = NetDev_SendState.SEND_OK;
-                        }           
+                        }
                     }
-                    
+
                     sendCompleted.Set();
-                    
+
                 }
                 catch (Exception e)
                 {
-                    Main.Main_main.dbg_print(DbgType.NETWORK, "SEND_FAILED", Color.LightCoral);
+                    Main.main.dbg_print(DbgType.NETWORK, "SEND_FAILED", Color.LightCoral);
                     //Console.WriteLine($"SEND_FAILED!");
                     Console.WriteLine(e.ToString());
                 }
@@ -281,6 +362,7 @@ namespace ArtiluxEOL
 
             public static async Task ReceiveAsync(SocketDevList dev)
             {
+
 
                 net_dev = dev;
                 try
@@ -294,10 +376,10 @@ namespace ArtiluxEOL
                     socketReceiveArgs.Completed += SocketReceiveArgs_Completed;
                     socketReceiveArgs.UserToken = net_dev.Port_0;
 
-                      var bytes = dev.client.ReceiveAsync(socketReceiveArgs);
+                    var bytes = dev.client.ReceiveAsync(socketReceiveArgs);
 
                     net_dev.ReceiveRunning = true;
-                   
+
 
                     //string response = Encoding.UTF8.GetString(socketReceiveArgs.Buffer, 0, 256);
                     //Console.WriteLine($"Transferred:{socketReceiveArgs.BytesTransferred}");
@@ -305,7 +387,7 @@ namespace ArtiluxEOL
                 }
                 catch (Exception e)
                 {
-                    Main.Main_main.dbg_print(DbgType.NETWORK, "RECEIVE_FAIL", Color.LightCoral);
+                    Main.main.dbg_print(DbgType.NETWORK, "RECEIVE_FAIL", Color.LightCoral);
                     Console.WriteLine(e.ToString());
                     net_dev.SendReceiveState = NetDev_SendState.RECEIVE_FAIL;
                 }
@@ -313,23 +395,43 @@ namespace ArtiluxEOL
 
             private static void SocketReceiveArgs_Completed(object sender, SocketAsyncEventArgs e)
             {
-                //throw new NotImplementedException();
-                int len = e.BytesTransferred;
-                response = Encoding.UTF8.GetString(e.Buffer, 0, len);
+                int line_end = 0;
+                try
+                {
+                    //throw new NotImplementedException();
+                    int len = e.BytesTransferred;
+                    response = Encoding.UTF8.GetString(e.Buffer, 0, len);
+
+
+                    //Console.WriteLine($"Transferred:{e.BytesTransferred} resp_end0:{Convert.ToInt16(response[len - 1])} resp_end1:{Convert.ToInt16(response[len-2])}" );
+                    Main.main.dbg_print(DbgType.NETWORK, "RX:" + len + " <- " + net_dev.Name, Color.DimGray);
+                    //Console.WriteLine($"Received:{e.BytesTransferred} IP: {e.UserToken}");
+                    //Console.WriteLine($"response:{response}");
+
+                    line_end = Convert.ToInt16(response[len - 1]);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"RX_FAULT:{net_dev.Name}");
+                }
+
                 
 
-                //Console.WriteLine($"Transferred:{e.BytesTransferred} resp_end0:{Convert.ToInt16(response[len - 1])} resp_end1:{Convert.ToInt16(response[len-2])}" );
-                Main.Main_main.dbg_print(DbgType.NETWORK, "Transferred:" + len, Color.DimGray);
-                Console.WriteLine($"Transferred:{e.BytesTransferred} IP: {e.UserToken}");
-                //Console.WriteLine($"response:{response}");
 
-                int line_end = Convert.ToInt16(response[len - 1]);
+                foreach (var dev in Main.main.network_dev)//ieskom per visus porto, tam devaisui pakisim rx data
+                {
+                    if (dev.Port_0 == Convert.ToInt16(e.UserToken))
+                    {
+                        net_dev = dev;
+                        //Console.WriteLine($"Found port:{dev.Port_0} line-end:{line_end}");
+                    }
+                }
 
-                //Main.Main_main.network_dev[0].Resp
+                //Main.main.network_dev[0].Resp
 
                 if (line_end == 10)//ar turim gale enter
                 {
-                    if(net_dev.RespPktCount == 0)//jei turim visus duomenis pirmu siuntimu tai neapendinam
+                    if (net_dev.RespPktCount == 0)//jei turim visus duomenis pirmu siuntimu tai neapendinam
                     {
                         net_dev.Resp = response;
                     }
@@ -360,7 +462,7 @@ namespace ArtiluxEOL
             public static void send_receive(SocketDevList dev, string cmd)
             {
                 dev.NewResp = false;
-                Console.WriteLine($"cmd.Length:{cmd.Length} state:{dev.State}");
+                //Console.WriteLine($"cmd.Length:{cmd.Length} state:{dev.State}");
                 if (cmd.Length > 2)
                 {
                     dev.SendReceiveState = NetDev_SendState.SEND_WAIT;
@@ -374,7 +476,7 @@ namespace ArtiluxEOL
                 {
                     var result = ReceiveAsync(dev);
                 }
-                
+
                 //receiveCompleted.WaitOne();
                 //Console.WriteLine($"Resp:{response}");
 
@@ -385,7 +487,7 @@ namespace ArtiluxEOL
             public static void start_receive(SocketDevList dev)
             {
                 dev.NewResp = false;
-                
+
                 if (!dev.ReceiveRunning)// receiv nepaleistas, tai paleidziam
                 {
                     var result = ReceiveAsync(dev);
@@ -396,42 +498,42 @@ namespace ArtiluxEOL
 
             public static void socket_close(SocketDevList dev)
             {
-               
+
                 dev.client.Shutdown(SocketShutdown.Both);
                 //client.Close();
             }
 
             private static void ReceiveCallBack(IAsyncResult ar)
-        {
-            try
             {
-               ObjectState state = (ObjectState)ar.AsyncState;
-                var client = state.socket;
-                int byteRead = client.EndReceive(ar);
+                try
+                {
+                    ObjectState state = (ObjectState)ar.AsyncState;
+                    var client = state.socket;
+                    int byteRead = client.EndReceive(ar);
                     Console.WriteLine($"read_byte:{byteRead}");
                     if (byteRead > 0)
                     {
-                    state.sb.Append(Encoding.ASCII.GetString(state.Buffer,0, byteRead));
-                    client.BeginReceive(state.Buffer, 0, ObjectState.BufferSize, 0, new AsyncCallback(ReceiveCallBack), state);
+                        state.sb.Append(Encoding.ASCII.GetString(state.Buffer, 0, byteRead));
+                        client.BeginReceive(state.Buffer, 0, ObjectState.BufferSize, 0, new AsyncCallback(ReceiveCallBack), state);
                     }
                     if (byteRead < 3)
                     {
                         Console.WriteLine($"state.sb:{state.sb.Length}");
                         if (state.sb.Length > 1)
                         {
-                        response = state.sb.ToString();
-                        Console.WriteLine($"Resp_calb:{response}");
+                            response = state.sb.ToString();
+                            Console.WriteLine($"Resp_calb:{response}");
                         }
                         receiveCompleted.Set();
                         //client.Close();
                     }
 
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-        }
         }
 
 
@@ -443,7 +545,7 @@ namespace ArtiluxEOL
         {
             //mainForm.dbg_print("sss");
             //main_tst.dbg_print("kljsakidjfi");
-            
+
             return AssyncSocketClient.StartClient(dev, port);
         }
 
@@ -515,7 +617,7 @@ namespace ArtiluxEOL
                 IPAddress ipAddress = IPAddress.Parse("192.168.11.150");
                 IPEndPoint remoteEndPoint = new IPEndPoint(ipAddress, 12312);
                 //socket.ConnectAsync(remoteEndPoint);
-               // await socket.ConnectAsync(remoteEndPoint);
+                // await socket.ConnectAsync(remoteEndPoint);
 
             }
             catch (Exception e)

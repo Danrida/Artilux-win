@@ -44,23 +44,19 @@ namespace ArtiluxEOL
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
-            this.panelTestResult = new System.Windows.Forms.Panel();
-            this.btnStart = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button4 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
-            this.cbAdmin = new System.Windows.Forms.CheckBox();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.Test_lizdas_3 = new System.Windows.Forms.GroupBox();
+            this.lbl_evse3 = new System.Windows.Forms.Label();
             this.lbl_barcode_3 = new System.Windows.Forms.Label();
             this.lbl_rfid_3 = new System.Windows.Forms.Label();
             this.Test_lizdas_2 = new System.Windows.Forms.GroupBox();
+            this.lbl_evse2 = new System.Windows.Forms.Label();
             this.lbl_barcode_2 = new System.Windows.Forms.Label();
             this.lbl_rfid_2 = new System.Windows.Forms.Label();
             this.Test_lizdas_1 = new System.Windows.Forms.GroupBox();
+            this.lbl_evse1 = new System.Windows.Forms.Label();
             this.lbl_barcode_1 = new System.Windows.Forms.Label();
             this.lbl_rfid_1 = new System.Windows.Forms.Label();
             this.btn_popup = new System.Windows.Forms.Button();
@@ -176,6 +172,11 @@ namespace ArtiluxEOL
             this.Column20 = new System.Windows.Forms.DataGridViewButtonColumn();
             this.Column21 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.debug_tab = new System.Windows.Forms.TabPage();
+            this.debug_ping_cbox = new System.Windows.Forms.CheckBox();
+            this.debug_load_cbox = new System.Windows.Forms.CheckBox();
+            this.debug_siglent_cbox = new System.Windows.Forms.CheckBox();
+            this.debug_gwinstek_cbox = new System.Windows.Forms.CheckBox();
+            this.debug_evse_cbox = new System.Windows.Forms.CheckBox();
             this.debug_main_cbox = new System.Windows.Forms.CheckBox();
             this.dbg_list_clear = new System.Windows.Forms.Button();
             this.debug_usb_cbox = new System.Windows.Forms.CheckBox();
@@ -195,10 +196,9 @@ namespace ArtiluxEOL
             this.Barcode1 = new System.ComponentModel.BackgroundWorker();
             this.Barcode2 = new System.ComponentModel.BackgroundWorker();
             this.Barcode3 = new System.ComponentModel.BackgroundWorker();
-            this.lbl_evse1 = new System.Windows.Forms.Label();
-            this.lbl_evse2 = new System.Windows.Forms.Label();
-            this.lbl_evse3 = new System.Windows.Forms.Label();
-            this.panelTestResult.SuspendLayout();
+            this.cbAdmin = new System.Windows.Forms.CheckBox();
+            this.panelTestResult = new System.Windows.Forms.Panel();
+            this.btnStart = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.Test_lizdas_3.SuspendLayout();
@@ -236,93 +236,8 @@ namespace ArtiluxEOL
             this.groupBoxBarcode1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGrid_Barcode1)).BeginInit();
             this.debug_tab.SuspendLayout();
+            this.panelTestResult.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // panelTestResult
-            // 
-            this.panelTestResult.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.panelTestResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelTestResult.Controls.Add(this.btnStart);
-            this.panelTestResult.Controls.Add(this.button1);
-            this.panelTestResult.Controls.Add(this.button4);
-            this.panelTestResult.Controls.Add(this.button3);
-            this.panelTestResult.Controls.Add(this.button2);
-            this.panelTestResult.Controls.Add(this.cbAdmin);
-            this.panelTestResult.Location = new System.Drawing.Point(9, 852);
-            this.panelTestResult.Margin = new System.Windows.Forms.Padding(4);
-            this.panelTestResult.Name = "panelTestResult";
-            this.panelTestResult.Size = new System.Drawing.Size(1625, 250);
-            this.panelTestResult.TabIndex = 0;
-            // 
-            // btnStart
-            // 
-            this.btnStart.Font = new System.Drawing.Font("Microsoft Sans Serif", 19.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnStart.Location = new System.Drawing.Point(11, 10);
-            this.btnStart.Margin = new System.Windows.Forms.Padding(4);
-            this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(176, 93);
-            this.btnStart.TabIndex = 1;
-            this.btnStart.Text = "Pradėti";
-            this.btnStart.UseVisualStyleBackColor = true;
-            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
-            // 
-            // button1
-            // 
-            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(558, 13);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(131, 47);
-            this.button1.TabIndex = 11;
-            this.button1.Text = "Send/main";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click_1);
-            // 
-            // button4
-            // 
-            this.button4.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button4.Location = new System.Drawing.Point(252, 66);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(131, 47);
-            this.button4.TabIndex = 10;
-            this.button4.Text = "Close";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
-            // 
-            // button3
-            // 
-            this.button3.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button3.Location = new System.Drawing.Point(416, 13);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(131, 47);
-            this.button3.TabIndex = 9;
-            this.button3.Text = "Send";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
-            // 
-            // button2
-            // 
-            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button2.Location = new System.Drawing.Point(252, 13);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(131, 47);
-            this.button2.TabIndex = 8;
-            this.button2.Text = "Open";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
-            // 
-            // cbAdmin
-            // 
-            this.cbAdmin.AutoSize = true;
-            this.cbAdmin.Checked = true;
-            this.cbAdmin.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbAdmin.Location = new System.Drawing.Point(562, 109);
-            this.cbAdmin.Margin = new System.Windows.Forms.Padding(4);
-            this.cbAdmin.Name = "cbAdmin";
-            this.cbAdmin.Size = new System.Drawing.Size(179, 20);
-            this.cbAdmin.TabIndex = 2;
-            this.cbAdmin.Text = "Aadministratoriaus teises";
-            this.cbAdmin.UseVisualStyleBackColor = true;
             // 
             // tabControl1
             // 
@@ -375,6 +290,16 @@ namespace ArtiluxEOL
             this.Test_lizdas_3.TabStop = false;
             this.Test_lizdas_3.Text = "3";
             // 
+            // lbl_evse3
+            // 
+            this.lbl_evse3.BackColor = System.Drawing.Color.Gainsboro;
+            this.lbl_evse3.Location = new System.Drawing.Point(6, 92);
+            this.lbl_evse3.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_evse3.Name = "lbl_evse3";
+            this.lbl_evse3.Size = new System.Drawing.Size(237, 37);
+            this.lbl_evse3.TabIndex = 13;
+            this.lbl_evse3.Text = "           EVSE";
+            // 
             // lbl_barcode_3
             // 
             this.lbl_barcode_3.BackColor = System.Drawing.Color.Gainsboro;
@@ -393,7 +318,7 @@ namespace ArtiluxEOL
             this.lbl_rfid_3.Name = "lbl_rfid_3";
             this.lbl_rfid_3.Size = new System.Drawing.Size(237, 36);
             this.lbl_rfid_3.TabIndex = 11;
-            this.lbl_rfid_3.Text = "            RF-ID";
+            this.lbl_rfid_3.Text = "           RF-ID";
             // 
             // Test_lizdas_2
             // 
@@ -406,6 +331,16 @@ namespace ArtiluxEOL
             this.Test_lizdas_2.TabIndex = 11;
             this.Test_lizdas_2.TabStop = false;
             this.Test_lizdas_2.Text = "2";
+            // 
+            // lbl_evse2
+            // 
+            this.lbl_evse2.BackColor = System.Drawing.Color.Gainsboro;
+            this.lbl_evse2.Location = new System.Drawing.Point(6, 92);
+            this.lbl_evse2.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_evse2.Name = "lbl_evse2";
+            this.lbl_evse2.Size = new System.Drawing.Size(237, 37);
+            this.lbl_evse2.TabIndex = 13;
+            this.lbl_evse2.Text = "           EVSE";
             // 
             // lbl_barcode_2
             // 
@@ -425,7 +360,7 @@ namespace ArtiluxEOL
             this.lbl_rfid_2.Name = "lbl_rfid_2";
             this.lbl_rfid_2.Size = new System.Drawing.Size(237, 36);
             this.lbl_rfid_2.TabIndex = 11;
-            this.lbl_rfid_2.Text = "            RF-ID";
+            this.lbl_rfid_2.Text = "           RF-ID";
             // 
             // Test_lizdas_1
             // 
@@ -438,6 +373,16 @@ namespace ArtiluxEOL
             this.Test_lizdas_1.TabIndex = 10;
             this.Test_lizdas_1.TabStop = false;
             this.Test_lizdas_1.Text = "1";
+            // 
+            // lbl_evse1
+            // 
+            this.lbl_evse1.BackColor = System.Drawing.Color.Gainsboro;
+            this.lbl_evse1.Location = new System.Drawing.Point(6, 92);
+            this.lbl_evse1.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_evse1.Name = "lbl_evse1";
+            this.lbl_evse1.Size = new System.Drawing.Size(237, 37);
+            this.lbl_evse1.TabIndex = 12;
+            this.lbl_evse1.Text = "           EVSE";
             // 
             // lbl_barcode_1
             // 
@@ -457,11 +402,11 @@ namespace ArtiluxEOL
             this.lbl_rfid_1.Name = "lbl_rfid_1";
             this.lbl_rfid_1.Size = new System.Drawing.Size(237, 36);
             this.lbl_rfid_1.TabIndex = 11;
-            this.lbl_rfid_1.Text = "            RF-ID";
+            this.lbl_rfid_1.Text = "           RF-ID";
             // 
             // btn_popup
             // 
-            this.btn_popup.Location = new System.Drawing.Point(1023, 705);
+            this.btn_popup.Location = new System.Drawing.Point(1167, 705);
             this.btn_popup.Name = "btn_popup";
             this.btn_popup.Size = new System.Drawing.Size(122, 55);
             this.btn_popup.TabIndex = 9;
@@ -478,6 +423,7 @@ namespace ArtiluxEOL
             this.metrel_skip_btn.TabIndex = 8;
             this.metrel_skip_btn.Text = "Skip";
             this.metrel_skip_btn.UseVisualStyleBackColor = true;
+            this.metrel_skip_btn.Visible = false;
             this.metrel_skip_btn.Click += new System.EventHandler(this.metrel_skip_btn_Click);
             // 
             // metrel_break_btn
@@ -489,6 +435,7 @@ namespace ArtiluxEOL
             this.metrel_break_btn.TabIndex = 7;
             this.metrel_break_btn.Text = "Break";
             this.metrel_break_btn.UseVisualStyleBackColor = true;
+            this.metrel_break_btn.Visible = false;
             this.metrel_break_btn.Click += new System.EventHandler(this.metrel_break_btn_Click);
             // 
             // Met_proceed_btn
@@ -500,6 +447,7 @@ namespace ArtiluxEOL
             this.Met_proceed_btn.TabIndex = 6;
             this.Met_proceed_btn.Text = "Proceed";
             this.Met_proceed_btn.UseVisualStyleBackColor = true;
+            this.Met_proceed_btn.Visible = false;
             this.Met_proceed_btn.Click += new System.EventHandler(this.Met_proceed_btn_Click);
             // 
             // metrel_stop_btn
@@ -511,6 +459,7 @@ namespace ArtiluxEOL
             this.metrel_stop_btn.TabIndex = 5;
             this.metrel_stop_btn.Text = "Stop";
             this.metrel_stop_btn.UseVisualStyleBackColor = true;
+            this.metrel_stop_btn.Visible = false;
             this.metrel_stop_btn.Click += new System.EventHandler(this.metrel_stop_btn_Click);
             // 
             // metrel_start_btn
@@ -522,6 +471,7 @@ namespace ArtiluxEOL
             this.metrel_start_btn.TabIndex = 4;
             this.metrel_start_btn.Text = "Start";
             this.metrel_start_btn.UseVisualStyleBackColor = true;
+            this.metrel_start_btn.Visible = false;
             this.metrel_start_btn.Click += new System.EventHandler(this.metrel_start_btn_Click);
             // 
             // metrel_auto_btn
@@ -533,6 +483,7 @@ namespace ArtiluxEOL
             this.metrel_auto_btn.TabIndex = 3;
             this.metrel_auto_btn.Text = "Metrel\r\nAUTO";
             this.metrel_auto_btn.UseVisualStyleBackColor = true;
+            this.metrel_auto_btn.Visible = false;
             this.metrel_auto_btn.Click += new System.EventHandler(this.metrel_auto_btn_Click);
             // 
             // mtrelTest
@@ -544,6 +495,7 @@ namespace ArtiluxEOL
             this.mtrelTest.TabIndex = 2;
             this.mtrelTest.Text = "Metrel\r\nSingle";
             this.mtrelTest.UseVisualStyleBackColor = true;
+            this.mtrelTest.Visible = false;
             this.mtrelTest.Click += new System.EventHandler(this.mtrelTest_Click);
             // 
             // panel2
@@ -999,7 +951,7 @@ namespace ArtiluxEOL
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage5.Size = new System.Drawing.Size(1292, 654);
             this.tabPage5.TabIndex = 0;
-            this.tabPage5.Text = "CONTROL";
+            this.tabPage5.Text = "  CONTROL_BOARD  ";
             this.tabPage5.UseVisualStyleBackColor = true;
             // 
             // tabPage7
@@ -1012,7 +964,7 @@ namespace ArtiluxEOL
             this.tabPage7.Name = "tabPage7";
             this.tabPage7.Size = new System.Drawing.Size(1292, 654);
             this.tabPage7.TabIndex = 2;
-            this.tabPage7.Text = "HV_GEN";
+            this.tabPage7.Text = "  HV_GEN  ";
             this.tabPage7.UseVisualStyleBackColor = true;
             // 
             // btn_stop
@@ -1233,7 +1185,7 @@ namespace ArtiluxEOL
             this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage6.Size = new System.Drawing.Size(1292, 654);
             this.tabPage6.TabIndex = 1;
-            this.tabPage6.Text = "SPECTRUM";
+            this.tabPage6.Text = "  SPECTRUM  ";
             this.tabPage6.UseVisualStyleBackColor = true;
             // 
             // dataGrid_Spectrum
@@ -1314,7 +1266,7 @@ namespace ArtiluxEOL
             this.tabPage8.Name = "tabPage8";
             this.tabPage8.Size = new System.Drawing.Size(1292, 654);
             this.tabPage8.TabIndex = 3;
-            this.tabPage8.Text = "Load";
+            this.tabPage8.Text = "  Load  ";
             this.tabPage8.UseVisualStyleBackColor = true;
             // 
             // button6
@@ -1528,7 +1480,7 @@ namespace ArtiluxEOL
             this.tabPage9.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage9.Size = new System.Drawing.Size(1292, 654);
             this.tabPage9.TabIndex = 4;
-            this.tabPage9.Text = "EVSE";
+            this.tabPage9.Text = "  EVSE  ";
             this.tabPage9.UseVisualStyleBackColor = true;
             // 
             // groupBoxBarcode3
@@ -1605,9 +1557,9 @@ namespace ArtiluxEOL
             this.evse2_params.AutoSize = true;
             this.evse2_params.Location = new System.Drawing.Point(22, 466);
             this.evse2_params.Name = "evse2_params";
-            this.evse2_params.Size = new System.Drawing.Size(92, 29);
+            this.evse2_params.Size = new System.Drawing.Size(37, 29);
             this.evse2_params.TabIndex = 2;
-            this.evse2_params.Text = "label22";
+            this.evse2_params.Text = "---";
             // 
             // label20
             // 
@@ -1713,6 +1665,11 @@ namespace ArtiluxEOL
             // debug_tab
             // 
             this.debug_tab.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.debug_tab.Controls.Add(this.debug_ping_cbox);
+            this.debug_tab.Controls.Add(this.debug_load_cbox);
+            this.debug_tab.Controls.Add(this.debug_siglent_cbox);
+            this.debug_tab.Controls.Add(this.debug_gwinstek_cbox);
+            this.debug_tab.Controls.Add(this.debug_evse_cbox);
             this.debug_tab.Controls.Add(this.debug_main_cbox);
             this.debug_tab.Controls.Add(this.dbg_list_clear);
             this.debug_tab.Controls.Add(this.debug_usb_cbox);
@@ -1724,6 +1681,61 @@ namespace ArtiluxEOL
             this.debug_tab.Size = new System.Drawing.Size(1314, 766);
             this.debug_tab.TabIndex = 3;
             this.debug_tab.Text = "Debug";
+            // 
+            // debug_ping_cbox
+            // 
+            this.debug_ping_cbox.AutoSize = true;
+            this.debug_ping_cbox.Location = new System.Drawing.Point(945, 403);
+            this.debug_ping_cbox.Name = "debug_ping_cbox";
+            this.debug_ping_cbox.Size = new System.Drawing.Size(93, 33);
+            this.debug_ping_cbox.TabIndex = 9;
+            this.debug_ping_cbox.Text = "PING";
+            this.debug_ping_cbox.UseVisualStyleBackColor = true;
+            this.debug_ping_cbox.CheckedChanged += new System.EventHandler(this.debug_ping_cbox_CheckedChanged);
+            // 
+            // debug_load_cbox
+            // 
+            this.debug_load_cbox.AutoSize = true;
+            this.debug_load_cbox.Location = new System.Drawing.Point(945, 306);
+            this.debug_load_cbox.Name = "debug_load_cbox";
+            this.debug_load_cbox.Size = new System.Drawing.Size(222, 33);
+            this.debug_load_cbox.TabIndex = 8;
+            this.debug_load_cbox.Text = "EVSE/BARCODE";
+            this.debug_load_cbox.UseVisualStyleBackColor = true;
+            this.debug_load_cbox.CheckedChanged += new System.EventHandler(this.debug_load_cbox_CheckedChanged);
+            // 
+            // debug_siglent_cbox
+            // 
+            this.debug_siglent_cbox.AutoSize = true;
+            this.debug_siglent_cbox.Location = new System.Drawing.Point(945, 250);
+            this.debug_siglent_cbox.Name = "debug_siglent_cbox";
+            this.debug_siglent_cbox.Size = new System.Drawing.Size(262, 33);
+            this.debug_siglent_cbox.TabIndex = 7;
+            this.debug_siglent_cbox.Text = "SPECTRO/SIGLENT";
+            this.debug_siglent_cbox.UseVisualStyleBackColor = true;
+            this.debug_siglent_cbox.CheckedChanged += new System.EventHandler(this.debug_siglent_cbox_CheckedChanged);
+            // 
+            // debug_gwinstek_cbox
+            // 
+            this.debug_gwinstek_cbox.AutoSize = true;
+            this.debug_gwinstek_cbox.Location = new System.Drawing.Point(945, 201);
+            this.debug_gwinstek_cbox.Name = "debug_gwinstek_cbox";
+            this.debug_gwinstek_cbox.Size = new System.Drawing.Size(202, 33);
+            this.debug_gwinstek_cbox.TabIndex = 6;
+            this.debug_gwinstek_cbox.Text = "HV/GWINSTEK";
+            this.debug_gwinstek_cbox.UseVisualStyleBackColor = true;
+            this.debug_gwinstek_cbox.CheckedChanged += new System.EventHandler(this.debug_gwinstek_cbox_CheckedChanged);
+            // 
+            // debug_evse_cbox
+            // 
+            this.debug_evse_cbox.AutoSize = true;
+            this.debug_evse_cbox.Location = new System.Drawing.Point(945, 151);
+            this.debug_evse_cbox.Name = "debug_evse_cbox";
+            this.debug_evse_cbox.Size = new System.Drawing.Size(222, 33);
+            this.debug_evse_cbox.TabIndex = 5;
+            this.debug_evse_cbox.Text = "EVSE/BARCODE";
+            this.debug_evse_cbox.UseVisualStyleBackColor = true;
+            this.debug_evse_cbox.CheckedChanged += new System.EventHandler(this.debug_evse_cbox_CheckedChanged);
             // 
             // debug_main_cbox
             // 
@@ -1738,7 +1750,7 @@ namespace ArtiluxEOL
             // 
             // dbg_list_clear
             // 
-            this.dbg_list_clear.Location = new System.Drawing.Point(945, 251);
+            this.dbg_list_clear.Location = new System.Drawing.Point(945, 462);
             this.dbg_list_clear.Name = "dbg_list_clear";
             this.dbg_list_clear.Size = new System.Drawing.Size(200, 40);
             this.dbg_list_clear.TabIndex = 3;
@@ -1803,48 +1815,54 @@ namespace ArtiluxEOL
             this.tmr_5hz.Interval = 200;
             this.tmr_5hz.Tick += new System.EventHandler(this.tmr_5hz_Tick);
             // 
-            // lbl_evse1
+            // cbAdmin
             // 
-            this.lbl_evse1.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_evse1.Location = new System.Drawing.Point(6, 92);
-            this.lbl_evse1.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
-            this.lbl_evse1.Name = "lbl_evse1";
-            this.lbl_evse1.Size = new System.Drawing.Size(237, 37);
-            this.lbl_evse1.TabIndex = 12;
-            this.lbl_evse1.Text = "            EVSE";
+            this.cbAdmin.AutoSize = true;
+            this.cbAdmin.Checked = true;
+            this.cbAdmin.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbAdmin.Location = new System.Drawing.Point(58, 94);
+            this.cbAdmin.Margin = new System.Windows.Forms.Padding(4);
+            this.cbAdmin.Name = "cbAdmin";
+            this.cbAdmin.Size = new System.Drawing.Size(179, 20);
+            this.cbAdmin.TabIndex = 2;
+            this.cbAdmin.Text = "Aadministratoriaus teises";
+            this.cbAdmin.UseVisualStyleBackColor = true;
             // 
-            // lbl_evse2
+            // panelTestResult
             // 
-            this.lbl_evse2.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_evse2.Location = new System.Drawing.Point(6, 92);
-            this.lbl_evse2.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
-            this.lbl_evse2.Name = "lbl_evse2";
-            this.lbl_evse2.Size = new System.Drawing.Size(237, 37);
-            this.lbl_evse2.TabIndex = 13;
-            this.lbl_evse2.Text = "            EVSE";
+            this.panelTestResult.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panelTestResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelTestResult.Controls.Add(this.cbAdmin);
+            this.panelTestResult.Location = new System.Drawing.Point(940, 833);
+            this.panelTestResult.Margin = new System.Windows.Forms.Padding(4);
+            this.panelTestResult.Name = "panelTestResult";
+            this.panelTestResult.Size = new System.Drawing.Size(381, 191);
+            this.panelTestResult.TabIndex = 0;
             // 
-            // lbl_evse3
+            // btnStart
             // 
-            this.lbl_evse3.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_evse3.Location = new System.Drawing.Point(6, 92);
-            this.lbl_evse3.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
-            this.lbl_evse3.Name = "lbl_evse3";
-            this.lbl_evse3.Size = new System.Drawing.Size(237, 37);
-            this.lbl_evse3.TabIndex = 13;
-            this.lbl_evse3.Text = "            EVSE";
+            this.btnStart.Font = new System.Drawing.Font("Microsoft Sans Serif", 19.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnStart.Location = new System.Drawing.Point(17, 884);
+            this.btnStart.Margin = new System.Windows.Forms.Padding(4);
+            this.btnStart.Name = "btnStart";
+            this.btnStart.Size = new System.Drawing.Size(176, 93);
+            this.btnStart.TabIndex = 2;
+            this.btnStart.Text = "Pradėti";
+            this.btnStart.UseVisualStyleBackColor = true;
+            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1095, 820);
+            this.ClientSize = new System.Drawing.Size(1334, 1025);
+            this.Controls.Add(this.btnStart);
             this.Controls.Add(this.panelTestResult);
             this.Controls.Add(this.tabControl1);
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Main";
             this.Text = "Monitors Test v03";
-            this.panelTestResult.ResumeLayout(false);
-            this.panelTestResult.PerformLayout();
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.Test_lizdas_3.ResumeLayout(false);
@@ -1897,16 +1915,14 @@ namespace ArtiluxEOL
             ((System.ComponentModel.ISupportInitialize)(this.dataGrid_Barcode1)).EndInit();
             this.debug_tab.ResumeLayout(false);
             this.debug_tab.PerformLayout();
+            this.panelTestResult.ResumeLayout(false);
+            this.panelTestResult.PerformLayout();
             this.ResumeLayout(false);
 
         }
 
         #endregion
-
-        private System.Windows.Forms.Panel panelTestResult;
-        private System.Windows.Forms.Button btnStart;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
-        private System.Windows.Forms.CheckBox cbAdmin;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
@@ -1952,16 +1968,12 @@ namespace ArtiluxEOL
         private System.Windows.Forms.Button metrel_start_btn;
         private System.Windows.Forms.Button metrel_break_btn;
         private System.Windows.Forms.Button metrel_skip_btn;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.Button button4;
         private System.ComponentModel.BackgroundWorker NetworkDevConn;
-        private System.ComponentModel.BackgroundWorker MainControllerTCP;
+        public System.ComponentModel.BackgroundWorker MainControllerTCP;
         private System.ComponentModel.BackgroundWorker MainControllerMODBUS;
         private System.Windows.Forms.Button btn_popup;
         public System.ComponentModel.BackgroundWorker HVgen;
         public System.ComponentModel.BackgroundWorker Specroscope;
-        private System.Windows.Forms.Button button1;
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.TabControl tabControl2;
         private System.Windows.Forms.TabPage tabPage5;
@@ -2054,9 +2066,17 @@ namespace ArtiluxEOL
         public System.ComponentModel.BackgroundWorker Barcode2;
         public System.ComponentModel.BackgroundWorker Barcode3;
         public Label evse2_params;
-        private Label lbl_evse3;
-        private Label lbl_evse2;
-        private Label lbl_evse1;
+        public Label lbl_evse3;
+        public Label lbl_evse2;
+        public Label lbl_evse1;
+        private CheckBox debug_evse_cbox;
+        private CheckBox cbAdmin;
+        private Panel panelTestResult;
+        private System.Windows.Forms.Button btnStart;
+        private CheckBox debug_ping_cbox;
+        private CheckBox debug_load_cbox;
+        private CheckBox debug_siglent_cbox;
+        private CheckBox debug_gwinstek_cbox;
     }
 }
 

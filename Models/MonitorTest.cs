@@ -33,7 +33,7 @@ namespace MonitorsTest.Models
     {
         public UInt64 WorplaceMonitorID { get; set; }
         public bool Enable { get; set; }
-        public int BacodePort { get; set; }
+        public int BarcodePort { get; set; }
     }
 
         public class SocketDevList
@@ -64,6 +64,8 @@ namespace MonitorsTest.Models
         public long TimeStamp { get; set; }
         public bool NewSendData { get; set; }
         public int SendReceiveState { get; set; }
+        public int CmdRetransmitCnt { get; set; }
+        public int PingPktTmrCnt { get; set; }
         public int GetSetParamCount { get; set; }
 
         public int GetSetParamLeft { get; set; }
@@ -71,6 +73,87 @@ namespace MonitorsTest.Models
         public int TestType { get; set; }
 
         public string[] device_param { get; set; }
+    }
+
+
+    public static class TestType
+    {
+        public const int HV_ATSPARUMAS = 0;
+        public const int HV_PRAMUSIMAS = 1;
+        public const int EVSE_APKROVA = 2;
+        public const int EVSE_KOMUNIKACIJA = 3;
+        public const int EVSE_UZRAKTAS = 4;
+        public const int RCD = 5;
+        public const int RFID = 6;
+        public const int WIFI = 7;
+        public const int GSM = 8;
+        
+    }
+
+    public static class SubstateTestState
+    {
+        public const int NONE = 0;
+        public const int CONNECT_TO_TESTER = 1;
+        public const int GET_TEST_PARAMS = 2;
+        public const int SET_TEST_PARAMS = 3;
+        public const int TESTING = 4;
+        public const int TEST_DONE = 5;
+    }
+
+        public static class EvseTestState
+    {
+        public const int NONE = 0;
+        //public const int TEST_STARTING = 1;
+        public const int TEST_SELECT = 2;
+        public const int TEST_STARTING = 3;
+        public const int TEST_IN_PROGRESS = 4;
+        public const int TEST_FINISHED = 5;
+        public const int ALL_TESTS_FINISHED = 6;
+
+
+        public const int ERR = 115;
+    }
+
+    public static class CurrentTestState
+    {
+        public const int NONE = 0;
+        public const int USING = 1;
+        public const int PREPARE = 2;
+        public const int CONNECT_TO_TESTER = 3;
+        public const int GET_TEST_PARAMS = 4;
+        public const int SET_TEST_PARAMS = 5;
+        public const int TESTING = 6;
+      
+        public const int BUSY = 7;
+        public const int HANDLE_RESULT = 8;
+        public const int DONE = 9;
+
+
+        public const int ERR = 115;
+    }
+
+    public struct TestType_struc
+    {
+        public string name;
+        public int y_position;
+        public int time_in_sec;
+        public int state;
+        public bool result;
+        
+    }
+
+    public struct Test_struc
+    {
+        public string evse_barcode;
+        public int nr;
+        public int evse_state;
+        public int tests_remaining;
+        public int time_total;
+        public int all_tests_state;
+        //public string test_time;
+        public int result;
+        public TestType_struc[] test_type;
+
     }
 
     public struct DevLoad_struc
@@ -94,10 +177,14 @@ namespace MonitorsTest.Models
     public struct DevEvse_struc
     {
         public string barcode;
+        public string serial_no;
+        public string rfid;
+        public UInt32 rfid_length;
         public UInt32 wifi_rssi;
         public string lte_imei;
         public string lte_imsi;
-        public UInt32 lte_rssi;
+        public Int32 lte_rssi_raw;
+        public Int32 lte_rssi;
         public UInt32[] voltage;
         public UInt32[] current;
         public UInt32 power;
@@ -115,15 +202,27 @@ namespace MonitorsTest.Models
 
     public static class Evse_State
     {
-        public const int READY = 0;
-        public const int BARCODE = 1;
-        public const int WIFI_SIGNAL = 2;
-        public const int LTE_SIGNAL = 3;
-        public const int RELAY_ON = 4;
-        public const int RELAY_OFF = 5;
-        public const int GET_METER = 6;
-        public const int GET_RFID = 7;
-        public const int ERR = 15;
+        public const int EVSE_NOT_CONNECTED = 0;
+        public const int EVSE_WAIT_CONNECT = 14;
+        public const int EVSE_CONNECTED = 15;
+        
+        public const int ERR = 115;
+    }
+
+    public static class Evse_Sub_State
+    {
+        public const int NONE = 0;
+        public const int GET_DATE = 1;
+        public const int SET_DATE = 2;
+        public const int BARCODE = 3;
+        public const int WIFI_SIGNAL = 4;
+        public const int LTE_SIGNAL = 5;
+        public const int RELAY_ON = 6;
+        public const int RELAY_OFF = 7;
+        public const int GET_METER = 8;
+        public const int GET_RFID = 9;
+       
+        public const int ERR = 115;
     }
 
     public static class NetDev_State
@@ -216,6 +315,11 @@ namespace MonitorsTest.Models
         public static bool MAIN { get; set; }
         public static bool NETWORK { get; set; }
         public static bool USB { get; set; }
+        public static bool EVSE { get; set; }
+        public static bool HV_GEN { get; set; }
+        public static bool SPECTRO { get; set; }
+        public static bool LOAD { get; set; }
+        public static bool PING { get; set; }
     }
 
     public class DevType

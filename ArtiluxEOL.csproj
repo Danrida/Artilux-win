@@ -157,6 +157,12 @@
     <Compile Include="NetworkThreads.Designer.cs">
       <DependentUpon>NetworkThreads.cs</DependentUpon>
     </Compile>
+    <Compile Include="Tests.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Tests.Designer.cs">
+      <DependentUpon>Tests.cs</DependentUpon>
+    </Compile>
     <Compile Include="Utils.cs">
       <SubType>Form</SubType>
     </Compile>
