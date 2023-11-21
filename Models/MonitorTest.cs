@@ -64,6 +64,7 @@ namespace MonitorsTest.Models
         public long TimeStamp { get; set; }
         public bool NewSendData { get; set; }
         public int SendReceiveState { get; set; }
+        public int CommandId { get; set; }
         public int CmdRetransmitCnt { get; set; }
         public int PingPktTmrCnt { get; set; }
         public int GetSetParamCount { get; set; }
@@ -235,6 +236,50 @@ namespace MonitorsTest.Models
         public const int GET_PARAM = 5;
         public const int SELECT_TEST = 6;
         public const int ERR = 15;
+    }
+
+    public static class MainBoard_State
+    {
+        public const int READY = 0;
+        public const int RL_SET = 1;
+        public const int RL_GET = 2;
+        public const int LS_SET = 3;
+        public const int LS_GET = 4;
+        public const int CHECK_LAST = 5;
+        public const int EV_SET = 6;
+    }
+
+    public static class EV_Mode_State
+    {
+        public const int READY = 0;
+        public const int EV_CONNECTED = 1;
+        public const int EV_CHARGING = 2;
+        public const int EV_FAULT = 3;
+    }
+
+    public static class RL_Name
+    {
+        public const int RL_MAIN = 0;
+        public const int RL_11 = 1;
+        public const int RL_12 = 2;
+        public const int RL_13 = 3;
+        public const int RL_14 = 4;
+        public const int LS = 5;
+        public const int LS_EN = 6;
+        public const int LOAD = 7;
+        public const int SOURCE = 8;
+        public const int RL_51 = 9;
+        public const int RL_52 = 10;
+        public const int RL_53 = 11;
+        public const int RL_54 = 12;
+        public const int RL_55 = 13;
+        public const int RL_56 = 14;
+        public const int RL_61 = 15;
+        public const int RL_62 = 16;
+        public const int RL_63 = 17;
+        public const int RL_64 = 18;
+        public const int RL_65 = 19;
+        public const int RL_66 = 20;
     }
 
     public static class NetDev_SendState

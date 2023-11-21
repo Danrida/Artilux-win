@@ -317,7 +317,7 @@ namespace ArtiluxEOL
                         //groupBox_Load.Enabled = network_dev[a].Connected;
                         //this.tabPage8.
                         break;
-                    case NetDev_Tab.BARCODE_1: 
+                    case NetDev_Tab.BARCODE_1:
                         this.groupBoxBarcode1.Enabled = network_dev[a].Connected;
                         dataGrid_Barcode1.Enabled = network_dev[a].Connected;
                         break;
@@ -332,7 +332,7 @@ namespace ArtiluxEOL
                     case NetDev_Tab.OSCILOSCOPE:
                         break;
                 }
-                
+
             }
         }
 
@@ -371,7 +371,7 @@ namespace ArtiluxEOL
                     device_state_indication(NetDev_Tab.RFID_1 + a, Color.Gainsboro);//pazymim zymim pilkai
                 }
             }
-            
+
         }
 
         private void Checkboxes_lizdai_handler(object sender, EventArgs e)
@@ -383,7 +383,7 @@ namespace ArtiluxEOL
             bool state = false;
             if (init_done)
             {
-                
+
                 for (int a = 0; a < CheckBox_dev_info.Length; a++)
                 {
                     if (a < 4 || a > 9)
@@ -474,7 +474,7 @@ namespace ArtiluxEOL
                         break;
                 }
                 //////////////////////
-                
+
                 //kuram devaisu en checbox, bet skipinam barcode ir rfid, juos enablinam su testo vietos chebox, Saved_workplaces variable laikom visa info
                 if (x < 4 || x > 9)
                 {
@@ -550,7 +550,7 @@ namespace ArtiluxEOL
 
             groupBoxBarcode2.Controls.Add(evse2_params);
 
-              //NetworkDevConn.WorkerSupportsCancellation = true;
+            //NetworkDevConn.WorkerSupportsCancellation = true;
             NetworkDevConn.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.NetworkDevConn_DoWork);
             NetworkDevConn.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(NetworkThreads.NetworkDevConn_RunWorkerCompleted);
             NetworkDevConn.RunWorkerAsync();
@@ -1989,9 +1989,24 @@ namespace ArtiluxEOL
         #region Device control tab
         void load_dev_control()//irenginiu valdymo skirtukai ir lenteliu pradines reiksmes
         {
-            DataGridViewRow Row0 = (DataGridViewRow)dataGrid_HV_test.Rows[0].Clone();
+            DataGridViewRow Row0 = (DataGridViewRow)data_grid_main_board.Rows[0].Clone();
             //dataGrid_HV_result.Rows.Insert(0);
+
+            //MAIN BOARD
+            Row0.Cells[0].Value = "Relay 11";
+            data_grid_main_board.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)data_grid_main_board.Rows[0].Clone();
+            Row0.Cells[0].Value = "Relay 12";
+            data_grid_main_board.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)data_grid_main_board.Rows[0].Clone();
+            Row0.Cells[0].Value = "Relay 13";
+            data_grid_main_board.Rows.Add(Row0);
+            Row0 = (DataGridViewRow)data_grid_main_board.Rows[0].Clone();
+            Row0.Cells[0].Value = "Relay 14";
+            data_grid_main_board.Rows.Add(Row0);
+
             // GWINSTEK 
+            Row0 = (DataGridViewRow)dataGrid_HV_test.Rows[0].Clone();
             Row0.Cells[1].Value = "ACW";
             dataGrid_HV_test.Rows.Add(Row0);
             Row0 = (DataGridViewRow)dataGrid_HV_test.Rows[0].Clone();
@@ -2340,7 +2355,7 @@ namespace ArtiluxEOL
         {
             System.Diagnostics.Debug.Print($"e.RowIndex: = {e.RowIndex} e.ColumnIndex: = {e.ColumnIndex}");
 
-            network_dev[DevType.BARCODE_2].SubState = e.RowIndex+1;//setinam state pagal paspausyta table btn
+            network_dev[DevType.BARCODE_2].SubState = e.RowIndex + 1;//setinam state pagal paspausyta table btn
 
             NetworkThreads.Barcode2_handle_get_params();
             evse2_params.Text = "---";
@@ -2348,7 +2363,7 @@ namespace ArtiluxEOL
 
         private void dataGrid_Barcode1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-           
+
         }
 
         private void dataGrid_Barcode3_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -2356,6 +2371,67 @@ namespace ArtiluxEOL
 
         }
 
-        
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Socket_.send_socket(network_dev[DevType.MAIN_CONTROLLER], "123:RL:MAIN:0");
+            network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+        }
+
+        private void dataGrid_main_board_click(object sender, DataGridViewCellEventArgs e)
+        {
+
+            var net_dev = Main.main.network_dev[DevType.MAIN_CONTROLLER];
+            int set_state = 0;
+
+            System.Diagnostics.Debug.Print($"e.RowIndex: = {e.RowIndex} e.ColumnIndex: = {e.ColumnIndex}");
+
+            switch (e.ColumnIndex)
+            {
+                case 2:
+                    set_state = 1;
+                    break;
+
+                case 3:
+                    set_state = 0;
+                    break;
+            }
+
+            switch (e.RowIndex)
+            {
+                case 0:
+                    net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_MAIN] + set_state;
+                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RL_SET;
+                    network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                    break;
+
+                case 1:
+                    net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_11] + set_state;
+                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RL_SET;
+                    network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                    break;
+
+                case 2:
+                    net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_12] + set_state;
+                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RL_SET;
+                    network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                    break;
+
+                case 3:
+                    net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_13] + set_state;
+                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RL_SET;
+                    network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                    break;
+
+                case 4:
+                    net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_14] + set_state;
+                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RL_SET;
+                    network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                    break;
+
+            }
+
+            NetworkThreads.MAIN_Ctrl_handle();
+
+        }
     }
 }

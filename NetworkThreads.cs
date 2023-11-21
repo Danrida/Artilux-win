@@ -27,6 +27,8 @@ namespace ArtiluxEOL
 
         public string[] Itech_hv_test_type = new string[] { "ACW", "IR", "CONT" };
 
+        public string[] Main_board_rl_command = new string[] { ":RL:11:", ":RL:12:", ":RL:13:", ":RL:14:", ":LS:", ":LS_EN:", ":LOAD:", ":SOURCE:", ":RL:51:", ":RL:52:", ":RL:53:", ":RL:54:", ":RL:55:", ":RL:56:", ":RL:61:", ":RL:62:", ":RL:63:", ":RL:64:", ":RL:65:", ":RL:66:"};
+
         string[,] Itech_hv_test_list = new string[,]
         {
             {"VOLT", "CHIS", "CLOS","REF", "TTIM"},
@@ -246,7 +248,7 @@ namespace ArtiluxEOL
             long timestamp_now = 0;
             int ptr = 0;
 
-            var net_dev = Main.main.network_dev[DevType.GWINSTEK_HV_TESTER];
+            var net_dev = Main.main.network_dev[DevType.MAIN_CONTROLLER];
             var main_func = Main.main;
 
             while (!connection_closed)
@@ -261,7 +263,15 @@ namespace ArtiluxEOL
                         break;
                     case NetDev_SendState.SEND_OK:
                         net_dev.SendReceiveState = NetDev_SendState.IDLE;
-                        
+
+                        if (net_dev.CommandId < 254)
+                        {
+                            net_dev.CommandId++;
+                        }
+                        else
+                        {
+                            net_dev.CommandId = 0;
+                        }
                         break;
                     case NetDev_SendState.SEND_FAIL:
                         net_dev.SendReceiveState = NetDev_SendState.IDLE;
@@ -276,13 +286,14 @@ namespace ArtiluxEOL
                         net_dev.ReceiveRunning = false;
                         net_dev.SendReceiveState = NetDev_SendState.IDLE;
                         System.Diagnostics.Debug.Print($"MAIN_newCMD:{net_dev.Resp}");
-
-                        
+                        MAIN_Ctrl_handle();
                         break;
                     case NetDev_SendState.RECEIVE_FAIL:
                         System.Diagnostics.Debug.Print($"RECEIVE_FAIL:{0}");
                         break;
                 }
+                //MAIN_Ctrl_handle();
+                // System.Diagnostics.Debug.Print($"MAIN");
                 Thread.Sleep(100);
             }
             return result;
@@ -291,12 +302,89 @@ namespace ArtiluxEOL
         public void MAIN_Ctrl_handle()
         {
             var net_dev = Main.main.network_dev[DevType.MAIN_CONTROLLER];
+            int last_cmd_length = 0;
+            string tmp_cmd;
             
             DataGridViewRow Row;
+            string[] split;
+
+            System.Diagnostics.Debug.Print($"MAIN state:{net_dev.State}");
 
             switch (net_dev.State)
             {
-                case NetDev_State.READY:
+                case MainBoard_State.READY:
+
+                    break;
+
+                case MainBoard_State.RL_SET:
+
+                    if (net_dev.NewResp)
+                    {
+                        //23:OK.
+                        net_dev.NewResp = false;
+
+                        split = net_dev.Resp.Split(':');
+
+                        System.Diagnostics.Debug.Print($"Split:{split[1]}");
+
+                        if (split[0] == "OK") {
+                            net_dev.State = MainBoard_State.CHECK_LAST;
+                            MAIN_Ctrl_handle();
+                        }
+                    }
+                    else
+                    {
+                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                        net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                    }
+                    break;
+
+                case MainBoard_State.RL_GET:
+
+                    break;
+
+                case MainBoard_State.LS_SET:
+
+                    break;
+
+                case MainBoard_State.LS_GET:
+
+                    break;
+
+                case MainBoard_State.CHECK_LAST:
+                    if (net_dev.NewResp)
+                    {
+                        //23:OK.
+                        net_dev.NewResp = false;
+                        split = net_dev.Resp.Split(':');
+
+                        if (split[0] == "ON")
+                        {
+                            net_dev.State = MainBoard_State.READY;
+                            System.Diagnostics.Debug.Print($"RL check ON");
+                        }
+                        else if (split[0] == "OFF")
+                        {
+                            net_dev.State = MainBoard_State.READY;
+                            System.Diagnostics.Debug.Print($"RL check OFF");
+                        }
+                        else
+                        {
+                            net_dev.State = MainBoard_State.READY;
+                            System.Diagnostics.Debug.Print($"RL check err");
+                        }
+                    }
+                    else
+                    {
+                        split = net_dev.Cmd.Split(':');
+                        net_dev.Cmd = net_dev.CommandId + ":" + split[1] + ":" + split[2] + ":?";
+                        System.Diagnostics.Debug.Print($"RL check: = {net_dev.Cmd}");
+                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                        net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                    }
+                    break;
+
+                case MainBoard_State.EV_SET:
 
                     break;
             }
