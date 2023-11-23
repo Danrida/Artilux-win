@@ -104,11 +104,13 @@ namespace ArtiluxEOL
             int panel_position_y = ((screen_height / 2) - (panel_height / 2));
 
             Point panel3_pos = new Point(x: panel_position_x, y: panel_position_y);
-            this.Location = Screen.AllScreens[mtl.Id].WorkingArea.Location;
+            //this.Location = Screen.AllScreens[mtl.Id].WorkingArea.Location;
+            this.Location = mtl.Location;
 
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.panel3.Location = panel3_pos;
             redraw_tests_lables();
+            //Thread.Sleep(2000);
         }
 
         private void btnStart_Click(object sender, EventArgs e)
@@ -151,22 +153,27 @@ namespace ArtiluxEOL
                         test_nr = 0;
                         foreach (var test_t in test[mtl.Id].test_type)
                         {
-                            if (test_t.state == CurrentTestState.NONE)
+                            if (test_t.state == CurrentTestState.NONE)//radom neatlikta ir neuzimta testa
                             {
                                 switch (test_nr)//neleidziam vienu metu irangos naudoti kitam evse
                                 {
                                     case TestType.HV_PRAMUSIMAS:
                                     case TestType.HV_ATSPARUMAS:
-                                        for (int a = 0; a < 3; a++)
+                                        //pazymim visiem test lizdams, kad naudojam sita testa,
+                                        //kai kita test vieta ieskos koki testa atlikineti ras,
+                                        //kad uzimta ir ieskos kito
+                                        for (int a = 0; a < 3; a++) 
                                         {
                                             test[a].test_type[TestType.HV_PRAMUSIMAS].state = CurrentTestState.USING;
                                             test[a].test_type[TestType.HV_ATSPARUMAS].state = CurrentTestState.USING;
                                         }
                                         break;
                                     case TestType.EVSE_APKROVA:
+                                    case TestType.RCD:
                                         for (int a = 0; a < 3; a++)
                                         {
                                             test[a].test_type[TestType.EVSE_APKROVA].state = CurrentTestState.USING;
+                                            test[a].test_type[TestType.RCD].state = CurrentTestState.USING;
                                         }
                                         break;
                                     case TestType.WIFI:
@@ -400,6 +407,7 @@ namespace ArtiluxEOL
                 lbl_result_point = new Point(x: 20, y: py + 5);
                 lblWait.Location = lbl_result_point;
                 lblWait.Font = SymbolFont;
+                lblIds = new Label { Name = "MonitorID", Text = mtl.MonitorIds };
 
                 test[mtl.Id].test_type[i - 1].y_position = py;
 
@@ -409,6 +417,7 @@ namespace ArtiluxEOL
                     panelTestResult.Controls.Add(label[mtl.Id, ptr]);
                     panel_wplace.Controls.Add(lblWorkplace[mtl.Id]);
                     //panelTestResult.Controls.Add(lblWait);
+                    //panelTestResult.Controls.Add(lblIds);
 
                 };
                 if (InvokeRequired)

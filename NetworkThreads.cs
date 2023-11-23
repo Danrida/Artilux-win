@@ -262,7 +262,7 @@ namespace ArtiluxEOL
                     case NetDev_SendState.SEND_WAIT:
                         break;
                     case NetDev_SendState.SEND_OK:
-                        net_dev.SendReceiveState = NetDev_SendState.IDLE;
+                        net_dev.SendReceiveState = NetDev_SendState.RECEIVE_WAIT;
 
                         if (net_dev.CommandId < 254)
                         {
@@ -277,10 +277,10 @@ namespace ArtiluxEOL
                         net_dev.SendReceiveState = NetDev_SendState.IDLE;
                         System.Diagnostics.Debug.Print($"SEND_FAIL:{0}");
                         break;
-                    /* case NetDev_SendState.RECEIVE_WAIT:
-                         timestamp_now = Socket_.UnixTimeNow();
-                         System.Diagnostics.Debug.Print($"RECEIVE_WAIT:{timestamp_now}");
-                         break;*/
+                     case NetDev_SendState.RECEIVE_WAIT:
+                         //timestamp_now = Socket_.UnixTimeNow();
+                         //System.Diagnostics.Debug.Print($"RECEIVE_WAIT:{timestamp_now}");
+                         break;
                     case NetDev_SendState.RECEIVE_OK:
                         net_dev.NewResp = true;
                         net_dev.ReceiveRunning = false;
@@ -312,11 +312,11 @@ namespace ArtiluxEOL
 
             switch (net_dev.State)
             {
-                case MainBoard_State.READY:
+                case MainBoard_State.NONE:
 
                     break;
 
-                case MainBoard_State.RL_SET:
+                case MainBoard_State.RELAY_SET:
 
                     if (net_dev.NewResp)
                     {
@@ -334,20 +334,24 @@ namespace ArtiluxEOL
                     }
                     else
                     {
-                        Socket_.send_socket(net_dev, net_dev.Cmd);
-                        net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                        if (net_dev.SendReceiveState == NetDev_SendState.IDLE)
+                        {
+                            Socket_.send_socket(net_dev, net_dev.Cmd);
+                            net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                        }
                     }
                     break;
 
-                case MainBoard_State.RL_GET:
+                case MainBoard_State.RELAY_GET:
 
                     break;
 
-                case MainBoard_State.LS_SET:
-
+                case MainBoard_State.LOAD_SOURCE_SET:
+                    net_dev.State = MainBoard_State.NONE;
+                    System.Diagnostics.Debug.Print($"LOAD_SOURCE: = {Main.main.main_power_relay_index}");
                     break;
 
-                case MainBoard_State.LS_GET:
+                case MainBoard_State.LOAD_SOURCE_GET:
 
                     break;
 
@@ -360,32 +364,35 @@ namespace ArtiluxEOL
 
                         if (split[0] == "ON")
                         {
-                            net_dev.State = MainBoard_State.READY;
+                            net_dev.State = MainBoard_State.NONE;
                             System.Diagnostics.Debug.Print($"RL check ON");
                         }
                         else if (split[0] == "OFF")
                         {
-                            net_dev.State = MainBoard_State.READY;
+                            net_dev.State = MainBoard_State.NONE;
                             System.Diagnostics.Debug.Print($"RL check OFF");
                         }
                         else
                         {
-                            net_dev.State = MainBoard_State.READY;
+                            net_dev.State = MainBoard_State.NONE;
                             System.Diagnostics.Debug.Print($"RL check err");
                         }
                     }
                     else
                     {
-                        split = net_dev.Cmd.Split(':');
-                        net_dev.Cmd = net_dev.CommandId + ":" + split[1] + ":" + split[2] + ":?";
-                        System.Diagnostics.Debug.Print($"RL check: = {net_dev.Cmd}");
-                        Socket_.send_socket(net_dev, net_dev.Cmd);
-                        net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                        if (net_dev.SendReceiveState == NetDev_SendState.IDLE)
+                        {
+                            split = net_dev.Cmd.Split(':');
+                            net_dev.Cmd = net_dev.CommandId + ":" + split[1] + ":" + split[2] + ":?";
+                            System.Diagnostics.Debug.Print($"RL check: = {net_dev.Cmd}");
+                            Socket_.send_socket(net_dev, net_dev.Cmd);
+                            net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                        }    
                     }
                     break;
 
-                case MainBoard_State.EV_SET:
-
+                case MainBoard_State.EV_MODE_SET:
+                    System.Diagnostics.Debug.Print($"EV_MODE: = {net_dev.SubState}");
                     break;
             }
         }

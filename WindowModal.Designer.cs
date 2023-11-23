@@ -33,25 +33,25 @@ namespace ArtiluxEOL
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.fileSystemWatcher1 = new System.IO.FileSystemWatcher();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.panel_wplace = new System.Windows.Forms.Panel();
+            this.lblIds = new System.Windows.Forms.Label();
+            this.disp_evse_nr = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
             this.btnStart = new System.Windows.Forms.Button();
             this.lblResult = new System.Windows.Forms.Label();
             this.lblLong = new System.Windows.Forms.Label();
             this.panelTestResult = new System.Windows.Forms.Panel();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.lblIds = new System.Windows.Forms.Label();
-            this.panel_wplace = new System.Windows.Forms.Panel();
             this.panel4 = new System.Windows.Forms.Panel();
-            this.disp_evse_nr = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).BeginInit();
             this.panel3.SuspendLayout();
-            this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // fileSystemWatcher1
@@ -69,6 +69,95 @@ namespace ArtiluxEOL
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(1165, 823);
             this.panel3.TabIndex = 6;
+            // 
+            // panel2
+            // 
+            this.panel2.Controls.Add(this.panel_wplace);
+            this.panel2.Controls.Add(this.lblIds);
+            this.panel2.Controls.Add(this.disp_evse_nr);
+            this.panel2.Controls.Add(this.label1);
+            this.panel2.Controls.Add(this.label4);
+            this.panel2.Controls.Add(this.label3);
+            this.panel2.Controls.Add(this.label2);
+            this.panel2.Location = new System.Drawing.Point(863, 19);
+            this.panel2.Name = "panel2";
+            this.panel2.Padding = new System.Windows.Forms.Padding(4, 10, 0, 0);
+            this.panel2.Size = new System.Drawing.Size(295, 565);
+            this.panel2.TabIndex = 10;
+            this.panel2.Paint += new System.Windows.Forms.PaintEventHandler(this.panel2_Paint);
+            // 
+            // panel_wplace
+            // 
+            this.panel_wplace.Location = new System.Drawing.Point(66, 13);
+            this.panel_wplace.Name = "panel_wplace";
+            this.panel_wplace.Size = new System.Drawing.Size(110, 100);
+            this.panel_wplace.TabIndex = 12;
+            // 
+            // lblIds
+            // 
+            this.lblIds.AutoSize = true;
+            this.lblIds.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.lblIds.Location = new System.Drawing.Point(11, 195);
+            this.lblIds.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblIds.Name = "lblIds";
+            this.lblIds.Size = new System.Drawing.Size(73, 24);
+            this.lblIds.TabIndex = 11;
+            this.lblIds.Text = "monitor";
+            // 
+            // disp_evse_nr
+            // 
+            this.disp_evse_nr.AutoSize = true;
+            this.disp_evse_nr.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.disp_evse_nr.ForeColor = System.Drawing.Color.DimGray;
+            this.disp_evse_nr.Location = new System.Drawing.Point(7, 147);
+            this.disp_evse_nr.Name = "disp_evse_nr";
+            this.disp_evse_nr.Size = new System.Drawing.Size(117, 35);
+            this.disp_evse_nr.TabIndex = 7;
+            this.disp_evse_nr.Text = "EVSE SN:";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.label1.Location = new System.Drawing.Point(14, 333);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(174, 35);
+            this.label1.TabIndex = 6;
+            this.label1.Text = "INFORMACIJA";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.ForeColor = System.Drawing.Color.MediumSeaGreen;
+            this.label4.Location = new System.Drawing.Point(63, 512);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(155, 35);
+            this.label4.TabIndex = 2;
+            this.label4.Text = "PASIRUOŠĘS";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.label3.Location = new System.Drawing.Point(43, 467);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(187, 35);
+            this.label3.TabIndex = 1;
+            this.label3.Text = "Įrangos būsena";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.label2.Location = new System.Drawing.Point(9, 287);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(266, 35);
+            this.label2.TabIndex = 0;
+            this.label2.Text = "Papildoma informacija";
             // 
             // panel1
             // 
@@ -127,85 +216,6 @@ namespace ArtiluxEOL
             this.panelTestResult.Size = new System.Drawing.Size(635, 538);
             this.panelTestResult.TabIndex = 7;
             // 
-            // panel2
-            // 
-            this.panel2.Controls.Add(this.panel_wplace);
-            this.panel2.Controls.Add(this.lblIds);
-            this.panel2.Controls.Add(this.disp_evse_nr);
-            this.panel2.Controls.Add(this.label1);
-            this.panel2.Controls.Add(this.label4);
-            this.panel2.Controls.Add(this.label3);
-            this.panel2.Controls.Add(this.label2);
-            this.panel2.Location = new System.Drawing.Point(863, 19);
-            this.panel2.Name = "panel2";
-            this.panel2.Padding = new System.Windows.Forms.Padding(4, 10, 0, 0);
-            this.panel2.Size = new System.Drawing.Size(295, 565);
-            this.panel2.TabIndex = 10;
-            this.panel2.Paint += new System.Windows.Forms.PaintEventHandler(this.panel2_Paint);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label1.Location = new System.Drawing.Point(14, 333);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(174, 35);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "INFORMACIJA";
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.ForeColor = System.Drawing.Color.MediumSeaGreen;
-            this.label4.Location = new System.Drawing.Point(63, 512);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(155, 35);
-            this.label4.TabIndex = 2;
-            this.label4.Text = "PASIRUOŠĘS";
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label3.Location = new System.Drawing.Point(43, 467);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(187, 35);
-            this.label3.TabIndex = 1;
-            this.label3.Text = "Įrangos būsena";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label2.Location = new System.Drawing.Point(9, 287);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(266, 35);
-            this.label2.TabIndex = 0;
-            this.label2.Text = "Papildoma informacija";
-            // 
-            // lblIds
-            // 
-            this.lblIds.AutoSize = true;
-            this.lblIds.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblIds.Location = new System.Drawing.Point(11, 195);
-            this.lblIds.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lblIds.Name = "lblIds";
-            this.lblIds.Size = new System.Drawing.Size(91, 30);
-            this.lblIds.TabIndex = 11;
-            this.lblIds.Text = "monitor";
-            this.lblIds.Visible = false;
-            // 
-            // panel_wplace
-            // 
-            this.panel_wplace.Location = new System.Drawing.Point(66, 13);
-            this.panel_wplace.Name = "panel_wplace";
-            this.panel_wplace.Size = new System.Drawing.Size(110, 100);
-            this.panel_wplace.TabIndex = 12;
-            // 
             // panel4
             // 
             this.panel4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -213,17 +223,6 @@ namespace ArtiluxEOL
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(1153, 576);
             this.panel4.TabIndex = 13;
-            // 
-            // disp_evse_nr
-            // 
-            this.disp_evse_nr.AutoSize = true;
-            this.disp_evse_nr.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.disp_evse_nr.ForeColor = System.Drawing.Color.DimGray;
-            this.disp_evse_nr.Location = new System.Drawing.Point(7, 147);
-            this.disp_evse_nr.Name = "disp_evse_nr";
-            this.disp_evse_nr.Size = new System.Drawing.Size(117, 35);
-            this.disp_evse_nr.TabIndex = 7;
-            this.disp_evse_nr.Text = "EVSE SN:";
             // 
             // timer1
             // 
@@ -244,10 +243,10 @@ namespace ArtiluxEOL
             this.Load += new System.EventHandler(this.TestModal_Load);
             ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).EndInit();
             this.panel3.ResumeLayout(false);
-            this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.ResumeLayout(false);
 
         }

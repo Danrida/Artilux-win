@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -16,6 +17,7 @@ namespace MonitorsTest.Models
         public int Height { get; set; }
 
         public int WorkPlaceNr { get; set; }
+        public Point Location { get; set; }
         public List<TestList> testList { get; set; }
     }
 
@@ -240,18 +242,18 @@ namespace MonitorsTest.Models
 
     public static class MainBoard_State
     {
-        public const int READY = 0;
-        public const int RL_SET = 1;
-        public const int RL_GET = 2;
-        public const int LS_SET = 3;
-        public const int LS_GET = 4;
+        public const int NONE = 0;
+        public const int RELAY_SET = 1;
+        public const int RELAY_GET = 2;
+        public const int LOAD_SOURCE_SET = 3;
+        public const int LOAD_SOURCE_GET = 4;
         public const int CHECK_LAST = 5;
-        public const int EV_SET = 6;
+        public const int EV_MODE_SET = 6;
     }
 
     public static class EV_Mode_State
     {
-        public const int READY = 0;
+        public const int EV_READY = 0;
         public const int EV_CONNECTED = 1;
         public const int EV_CHARGING = 2;
         public const int EV_FAULT = 3;

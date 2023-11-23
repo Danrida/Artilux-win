@@ -46,8 +46,19 @@ namespace ArtiluxEOL
 
         Label[,] EvseParmsInTable;
 
+        ///////PWR rele ir evse mode control
+        public RadioButton[] pwr_select_radio_btn = new RadioButton[3];
+        int power_relay_before = 5;
+        public int main_power_relay_index = 0;
 
+        public RadioButton[] ev_mode_select_radio_btn = new RadioButton[3];
+        int evse_mode_before = 5;
+        public int evse_mode_index = 0;
 
+        public CheckBox[] evse_fault_checkbox = new CheckBox[3];
+        public bool[] evse_fault = new bool[3];
+        public bool[] evse_fault_before = new bool[3];
+        ////////
         #region <<< KINTAMIEJI SERIAL PORT >>>
 
         public static int portsFoundBefore = 0;
@@ -200,21 +211,44 @@ namespace ArtiluxEOL
             base.OnHandleCreated(e);
 
             get_all_monitors();
-
             //if (Workplaces_reg != null)
             //{
             regReadWplace();
             //}
-
             ip_texbox_show();//irenginiu IP adresu nustatymas
             //serial port init
-
             load_dev_control();
-
-            //dbg_print(DbgType.MAIN, "NetworkThread", Color.MediumSeaGreen);
 
             devList.DevEvse = new DevEvse_struc[3];//label pointeris
 
+
+            /*  PWR relay, EVSE mode, EVSE fault  */
+            int x_point = 70;
+            int x_point_chbox = 500;
+            string[] name = { "EVSE 1", "EVSE 2", "EVSE 3"};
+            string[] name_ev_state = { "NONE", "PLUGGED", "CHARGING" };
+            string[] name_ev_fault = { "DIODE CH", "PE OPEN", "PE-CP CH" };
+            int y = 0;
+
+            for (int j = 0; j < 3; j++)
+            {   
+                pwr_select_radio_btn[j] = new RadioButton { Name = "radioButton_" + j, Text = name[j], Location = new Point(x: x_point, y: 40) };
+                pwr_select_radio_btn[j].CheckedChanged += new EventHandler(CheckRelayRadioBtn);
+                this.groupBox_main_relay.Controls.Add(pwr_select_radio_btn[j]);
+
+                ev_mode_select_radio_btn[j] = new RadioButton { Name = "radBtn_ev_" + j, Text = name_ev_state[j], Location = new Point(x: x_point, y: 40), AutoSize = true };
+                ev_mode_select_radio_btn[j].CheckedChanged += new EventHandler(CheckEvseRadioBtn);
+                this.groupBox_evse_state.Controls.Add(ev_mode_select_radio_btn[j]);
+
+                evse_fault_checkbox[j] = new CheckBox { Name = "chbox_ev_fault_" + j, Text = name_ev_fault[j], Location = new Point(x: x_point_chbox, y: 40), AutoSize = true };
+                evse_fault_checkbox[j].CheckedChanged += new EventHandler(ev_fault_checbox_change);
+                this.groupBox_evse_state.Controls.Add(evse_fault_checkbox[j]);
+
+                x_point = x_point + 130;
+                x_point_chbox = x_point_chbox + 130;
+            }
+            //////////////////////////
+            
             for (int a = 0; a < 3; a++)//initinam structuras
             {
                 Test[a].test_type = new TestType_struc[9];
@@ -346,9 +380,11 @@ namespace ArtiluxEOL
                 if (SavedWorkplaces[a].Enable != state)
                 {
                     network_dev[NetDev_Tab.BARCODE_1 + a].Enable = state;
+                    regUpdatePeriphery(NetDev_Tab.BARCODE_1 + a);
                     network_dev[NetDev_Tab.RFID_1 + a].Enable = state;
+                    regUpdatePeriphery(NetDev_Tab.RFID_1 + a);
+                    
                     SavedWorkplaces[a].Enable = state;
-                    regUpdatePeriphery(a);
                     regUpdateWplace();
                 }
 
@@ -373,11 +409,98 @@ namespace ArtiluxEOL
             }
 
         }
+        /*  EVSE FAULT TEST SELECT RADIO BTN HANDLER */
+        void ev_fault_checbox_change(object sender, EventArgs e)//EVSE test lizdai, indijuojam busena
+        {
+            var net_dev = network_dev[NetDev_Tab.MAIN_CONTROLLER];
+            for (int a = 0; a < evse_fault_checkbox.Length; a++)
+            {
+                bool state;
+                state = evse_fault_checkbox[a].Checked;
+
+                if (evse_fault_before[a] != state)
+                {
+                    evse_fault_before[a] = state;
+
+                    if (state)
+                    {
+                        evse_fault[a] = true;//i buff sudeti reles is eiles pagel fault mygtukus
+                        net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[a + RL_Name.RL_51] + "1";
+                        dbg_print(DbgType.MAIN, "Evse_fault_on:" + a, Color.Blue);
+                        net_dev.State = MainBoard_State.RELAY_SET;
+                    }
+                    else
+                    {
+                        if (evse_fault[a])
+                        {
+                            evse_fault[a] = false;
+                            net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[a + RL_Name.RL_51] + "0";
+                            dbg_print(DbgType.MAIN, "Evse_fault_off:" + a, Color.Blue);
+                            net_dev.State = MainBoard_State.RELAY_SET;
+                        }
+                    }
+                }
+
+
+                
+            }
+        }
+        /*  EVSE MODE SELECT RADIO BTN HANDLER */
+        private void CheckEvseRadioBtn(object sender, EventArgs e)//indijuojam irangos busena
+        {
+            RadioButton rb = sender as RadioButton;
+
+            if (rb != null)
+            {
+                for (int a = 0; a < ev_mode_select_radio_btn.Length; a++)
+                {
+                    if (ev_mode_select_radio_btn[a].Checked)
+                    {
+                        if (evse_mode_before != a)
+                        {
+                            evse_mode_before = a;
+                            dbg_print(DbgType.MAIN, "Evse_mode:" + a, Color.Gray);
+                            evse_mode_index = a + 1;
+                            network_dev[NetDev_Tab.MAIN_CONTROLLER].SubState = evse_mode_index;
+                            network_dev[NetDev_Tab.MAIN_CONTROLLER].State = MainBoard_State.EV_MODE_SET;
+                        }
+                    }
+                }
+            }
+
+        }
+        /*  POWER RELAY MODE SELECT RADIO BTN HANDLER */
+        private void CheckRelayRadioBtn(object sender, EventArgs e)//indijuojam irangos busena
+        {
+            RadioButton rb = sender as RadioButton;
+
+            if (rb != null)
+            {
+                for (int a = 0; a < pwr_select_radio_btn.Length; a++)
+                {
+                    if (pwr_select_radio_btn[a].Checked)
+                    {
+                        if (power_relay_before != a)
+                        {
+                            power_relay_before = a;
+                            dbg_print(DbgType.MAIN, "CheckRelayRadioBtn:" + a, Color.Gray);
+                            main_power_relay_index = a+1;
+                            //network_dev[NetDev_Tab.MAIN_CONTROLLER].SubState = EV_Mode_State.EV_READY;
+                            network_dev[NetDev_Tab.MAIN_CONTROLLER].State = MainBoard_State.LOAD_SOURCE_SET;
+                        }
+
+                    }
+                }
+            }
+
+        }
 
         private void Checkboxes_lizdai_handler(object sender, EventArgs e)
         {
             lizdai_checbox_change();
         }
+
+        /*  IRANGOS EN/DIS  */
         private void ShowCheckedCheckboxes(object sender, EventArgs e)//indijuojam irangos busena
         {
             bool state = false;
@@ -550,6 +673,9 @@ namespace ArtiluxEOL
 
             groupBoxBarcode2.Controls.Add(evse2_params);
 
+
+
+            /* THREADS INIT */
             //NetworkDevConn.WorkerSupportsCancellation = true;
             NetworkDevConn.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.NetworkDevConn_DoWork);
             NetworkDevConn.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(NetworkThreads.NetworkDevConn_RunWorkerCompleted);
@@ -657,7 +783,6 @@ namespace ArtiluxEOL
                 case 0:
                     lbl_vald.BackColor = color;
                     break;
-
                 case 1:
                     lbl_hvgen.BackColor = color;
                     break;
@@ -1361,6 +1486,7 @@ namespace ArtiluxEOL
 
         #endregion
 
+        /* PALEIDZIAM TESTAVIMO LANGUS VISIEMS I VISUS MONITORIUS*/
         private void btnStart_Click(object sender, EventArgs e)
         {
             //get_all_monitors();
@@ -1368,11 +1494,53 @@ namespace ArtiluxEOL
             try
             {
                 int i = 0;
+                int id = 0;
                 int py = 10;
 
                 int w = 0;
                 int h = 0;
-                foreach (MonitorTest ids in ml)//pridedam reikiamus atributus ir kiekvinam monitoriuje atverciam TESTAVIMO langa
+                foreach (var wp in SavedWorkplaces)//pridedam reikiamus atributus ir kiekvinam monitoriuje atverciam TESTAVIMO langa
+                {
+                    if(wp.WorplaceMonitorID > 0)
+                    {
+                        //imam is eiles is reg saugomu monitoriu listo, ir iskom tokio monitoriaus detectuotu mon liste
+                        for (int a = 0; a < 3; a++)
+                        {
+                            if (wp.WorplaceMonitorID == Convert.ToUInt64(ml[a].MonitorIds))
+                            {
+                                i = a;
+                                //System.Diagnostics.Debug.Print($"ID: = {i}" + $" RES: = {w}");
+                            }
+                        }
+
+                        string labelName = "label" + i;
+
+                        Label label = new Label { Name = labelName, AutoSize = true, Text = ml[i].MonitorIds, Location = new Point(x: 5, y: py) };
+                        System.Windows.Forms.ProgressBar progress = new System.Windows.Forms.ProgressBar();
+                        progress.Name = Name = "progres" + i;
+                        progress.Style = ProgressBarStyle.Continuous;
+                        progress.Location = new Point(x: 150, y: py);
+                        panelTestResult.Controls.Add(label);
+                        panelTestResult.Controls.Add(progress);
+                        py = py + 35;
+
+                        w = Screen.AllScreens[i].WorkingArea.Width;
+                        h = Screen.AllScreens[i].WorkingArea.Height;
+
+                        MonitorTest mt = new MonitorTest { Id = id, MonitorIds = ml[i].MonitorIds, Width = w, Height = h, WorkPlaceNr = 0, Location = Screen.AllScreens[i].WorkingArea.Location, testList = new List<TestList>() };
+                        //System.Diagnostics.Debug.Print($"IDDD: = {mt.Id}" + $" RES: = {w} {h}");
+                        mtlist.Add(mt);
+                        WindowModal tm = new WindowModal(mt);
+                        tm.Show(this);
+                        progress.Visible = true;
+                        id++;
+                        tm.FormClosing += Tm_FormClosing;
+                        
+                    }
+                    
+                }
+
+                /*foreach (MonitorTest ids in ml)//pridedam reikiamus atributus ir kiekvinam monitoriuje atverciam TESTAVIMO langa
                 {
                     string labelName = "label" + i;
 
@@ -1388,8 +1556,17 @@ namespace ArtiluxEOL
                     w = Screen.AllScreens[i].WorkingArea.Width;
                     h = Screen.AllScreens[i].WorkingArea.Height;
 
+
+
+                    for (int a = 0; a < 3; a++)
+                    {
+                        if (SavedWorkplaces[a].WorplaceMonitorID != Convert.ToUInt64(ids.MonitorIds))
+                        {
+                            i = a;
+                        }
+                    }
+
                     MonitorTest mt = new MonitorTest { Id = i, MonitorIds = ids.MonitorIds, Width = w, Height = h, WorkPlaceNr = 0, testList = new List<TestList>() };
-                    //System.Diagnostics.Debug.WriteLine("Method1");
                     //System.Diagnostics.Debug.Print($"ID: = {mt.Id}" + $" RES: = {w}");
                     mtlist.Add(mt);
                     WindowModal tm = new WindowModal(mt);
@@ -1397,7 +1574,7 @@ namespace ArtiluxEOL
                     progress.Visible = true;
                     i++;
                     tm.FormClosing += Tm_FormClosing;
-                }
+                }*/
             }
             catch (Exception err)
             {
@@ -1456,7 +1633,7 @@ namespace ArtiluxEOL
                 try
                 {
                     Workplaces_reg.SetValue("Workplace" + id, cBoxWplace[a].SelectedItem.ToString());
-                    Workplaces_reg.SetValue("WP_" + id + "_EN", SavedWorkplaces[id].Enable);
+                    Workplaces_reg.SetValue("WP_" + id + "_EN", SavedWorkplaces[a].Enable);
                     System.Diagnostics.Debug.Print($"WPLACE {id}" + $": = {SavedWorkplaces[a].WorplaceMonitorID}");
                 }
                 catch (Exception e)
@@ -1711,6 +1888,8 @@ namespace ArtiluxEOL
 
         #endregion
 
+
+        /* IESKOM PRIJUNGTU MONITORIU */
         public void get_all_monitors()
         {
 
@@ -1985,7 +2164,7 @@ namespace ArtiluxEOL
         }
         #endregion
 
-
+        /* VISU IRENGINIU VALDYMO LENTELES */
         #region Device control tab
         void load_dev_control()//irenginiu valdymo skirtukai ir lenteliu pradines reiksmes
         {
@@ -2400,31 +2579,31 @@ namespace ArtiluxEOL
             {
                 case 0:
                     net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_MAIN] + set_state;
-                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RL_SET;
+                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RELAY_SET;
                     network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     break;
 
                 case 1:
                     net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_11] + set_state;
-                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RL_SET;
+                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RELAY_SET;
                     network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     break;
 
                 case 2:
                     net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_12] + set_state;
-                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RL_SET;
+                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RELAY_SET;
                     network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     break;
 
                 case 3:
                     net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_13] + set_state;
-                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RL_SET;
+                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RELAY_SET;
                     network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     break;
 
                 case 4:
                     net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_14] + set_state;
-                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RL_SET;
+                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RELAY_SET;
                     network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     break;
 

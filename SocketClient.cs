@@ -294,7 +294,7 @@ namespace ArtiluxEOL
                 {
                     //Main.main.dbg_print(DbgType.NETWORK, "ERR_CON_callback", Color.LightCoral);
                     Console.WriteLine($"ERR_CON_callback:{0}");
-                    Console.WriteLine(e.ToString());
+                    //Console.WriteLine(e.ToString());
                 }
             }
 
