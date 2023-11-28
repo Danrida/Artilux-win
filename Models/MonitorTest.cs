@@ -242,13 +242,27 @@ namespace MonitorsTest.Models
 
     public static class MainBoard_State
     {
-        public const int NONE = 0;
-        public const int RELAY_SET = 1;
-        public const int RELAY_GET = 2;
-        public const int LOAD_SOURCE_SET = 3;
-        public const int LOAD_SOURCE_GET = 4;
-        public const int CHECK_LAST = 5;
-        public const int EV_MODE_SET = 6;
+        public const int IDLE = 0;
+        public const int BUSY = 1;
+        public const int ERROR = 2;
+    }
+
+    public class Relay
+    {
+        public int SET = 0;//Do not use directly, call Main_Board_RelayXX (int)
+        public int STATE = 0;//0: OFF, 1: ON, -1: No response, -2: No confirmation, 10: waiting for responce (OK), 11: waiting for confirmation (ON/OFF)
+        public int COM_ID = 0;//Main controller TCP command id attached to this relay (changes with new command)
+        public int ATTEMPTS = 0;//Number of attempts to execute current command
+        public string NAME = "UNDEF";//Command name (used to generate TCP commands)
+    }
+
+    public class NumericStateDevice
+    {
+        public int SET = 0;//Do not use directly,
+        public int STATE = 0;//0, 1, 2, 3..., -100: No response, -101: No confirmation, -10: waiting for responce (OK), -11: waiting for state confirmation (0/1/2/3...)
+        public int COM_ID = 0;//Main controller TCP command id attached to this device (changes with new command)
+        public int ATTEMPTS = 0;//Number of attempts to execute current command
+        public string NAME = "UNDEF";//Command name (used to generate TCP commands)
     }
 
     public static class EV_Mode_State
@@ -257,31 +271,6 @@ namespace MonitorsTest.Models
         public const int EV_CONNECTED = 1;
         public const int EV_CHARGING = 2;
         public const int EV_FAULT = 3;
-    }
-
-    public static class RL_Name
-    {
-        public const int RL_MAIN = 0;
-        public const int RL_11 = 1;
-        public const int RL_12 = 2;
-        public const int RL_13 = 3;
-        public const int RL_14 = 4;
-        public const int LS = 5;
-        public const int LS_EN = 6;
-        public const int LOAD = 7;
-        public const int SOURCE = 8;
-        public const int RL_51 = 9;
-        public const int RL_52 = 10;
-        public const int RL_53 = 11;
-        public const int RL_54 = 12;
-        public const int RL_55 = 13;
-        public const int RL_56 = 14;
-        public const int RL_61 = 15;
-        public const int RL_62 = 16;
-        public const int RL_63 = 17;
-        public const int RL_64 = 18;
-        public const int RL_65 = 19;
-        public const int RL_66 = 20;
     }
 
     public static class NetDev_SendState

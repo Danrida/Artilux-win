@@ -27,6 +27,7 @@ using Size = System.Drawing.Size;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Windows.Forms.DataVisualization.Charting;
 using static Ion.Sdk.Idi.Value.Constraint;
+using Ion.Sdk.Idi;
 
 namespace ArtiluxEOL
 {
@@ -51,13 +52,21 @@ namespace ArtiluxEOL
         int power_relay_before = 5;
         public int main_power_relay_index = 0;
 
-        public RadioButton[] ev_mode_select_radio_btn = new RadioButton[3];
+        public RadioButton[] ev_mode_select_radio_btn = new RadioButton[4];
         int evse_mode_before = 5;
         public int evse_mode_index = 0;
 
         public CheckBox[] evse_fault_checkbox = new CheckBox[3];
         public bool[] evse_fault = new bool[3];
         public bool[] evse_fault_before = new bool[3];
+
+        public CheckBox[] ls_checkbox = new CheckBox[3];
+        public bool[] ls = new bool[3];
+        public bool[] ls_before = new bool[3];
+
+        public RadioButton[] pp_select_radio_btn = new RadioButton[5];
+        int pp_select_before = 7;
+        public int pp_select_index = 0;
         ////////
         #region <<< KINTAMIEJI SERIAL PORT >>>
 
@@ -91,10 +100,6 @@ namespace ArtiluxEOL
 
         bool load_param_enable_edit = false;
 
-
-
-
-
         public class portas // BUTINAI CLASS NES NORIM PRIEITI PRIE VARIABLU
         {
             public SerialPort port;
@@ -104,9 +109,6 @@ namespace ArtiluxEOL
             public string dev_name;
             public List<string> cmd;
             public string NewLine;
-
-
-
         }
 
         List<portas> SerPorts = new List<portas>();
@@ -133,8 +135,57 @@ namespace ArtiluxEOL
         public DevList devList;
         public Test_struc[] Test = new Test_struc[3];
 
+        #region <<< Main board variables >>>
+
+        private static Mutex mut = new Mutex();//Thread lock
+
+        public int MainControlerTcpCommandId = 0;
+
+        /* 
+        To assign a main board control:
+
+        1) create the variable: public static Relay DEVICE = new Relay(); / public static NumericStateDevice DEVICE = new NumericStateDevice();
+        2) add that variable to "Main_Board_Controls" object array
+        3) assign device name (that will be used to generate TCP commands) in public Main()
+         */
+
+        public static Relay RL11 = new Relay();
+        public static Relay RL12 = new Relay();
+        public static Relay RL13 = new Relay();
+        public static Relay RL14 = new Relay();
+        public static Relay LS_EN = new Relay();
+        public static Relay LOAD = new Relay();
+        public static Relay SOURCE = new Relay();
+        public static Relay DIODE_SH = new Relay();
+        public static Relay PE_OP = new Relay();
+        public static Relay CP_SH = new Relay();
+
+        public static NumericStateDevice PP_Selector = new NumericStateDevice();
+        public static NumericStateDevice LS_Selector = new NumericStateDevice();
+        public static NumericStateDevice CP_Selector = new NumericStateDevice();
+
+        public static object[] Main_Board_Controls = new object[] { RL11, RL12, RL13, RL14, PP_Selector, LS_EN, LOAD, SOURCE, LS_Selector, CP_Selector, DIODE_SH, PE_OP, CP_SH };
+
+        #endregion
+
         public Main()
         {
+
+            //Assign relay names (used to generate TCP commands)
+            RL11.NAME = "RL:11";
+            RL12.NAME = "RL:12";
+            RL13.NAME = "RL:13";
+            RL14.NAME = "RL:14";
+            PP_Selector.NAME = "PP_SEL";
+            LS_EN.NAME = "LS_EN";
+            LOAD.NAME = "LOAD";
+            SOURCE.NAME = "SOURCE";
+            LS_Selector.NAME = "LS";
+            CP_Selector.NAME = "CP_SEL";
+            DIODE_SH.NAME = "DIODE_SH";
+            PE_OP.NAME = "PE_OP";
+            CP_SH.NAME = "CP_SH";
+
             Config_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Configs");
             Workplaces_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Workplaces");
             Periphery_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Devices");
@@ -204,6 +255,7 @@ namespace ArtiluxEOL
             SavedWorkplaces.Add(wplace);
             wplace = new WorkplaceList { WorplaceMonitorID = 123456789, Enable = true, BarcodePort = 1111 };
             SavedWorkplaces.Add(wplace);
+
         }
 
         protected override void OnHandleCreated(EventArgs e)
@@ -224,31 +276,65 @@ namespace ArtiluxEOL
 
             /*  PWR relay, EVSE mode, EVSE fault  */
             int x_point = 70;
-            int x_point_chbox = 500;
-            string[] name = { "EVSE 1", "EVSE 2", "EVSE 3"};
-            string[] name_ev_state = { "NONE", "PLUGGED", "CHARGING" };
-            string[] name_ev_fault = { "DIODE CH", "PE OPEN", "PE-CP CH" };
+            string[] name = { "EVSE 1", "EVSE 2", "EVSE 3" };
+            string[] name_ev_state = { "A", "B", "C", "D" };
+            string[] name_ev_fault = { "DIODE SH", "PE OPEN", "CP SH" };
+            string[] name_pp_select = { "NC", "13A", "20A", "32A", "63A" };
+            string[] name_ls_cntr = { "LOAD", "SOURCE", "ENABLE" };
             int y = 0;
 
             for (int j = 0; j < 3; j++)
-            {   
-                pwr_select_radio_btn[j] = new RadioButton { Name = "radioButton_" + j, Text = name[j], Location = new Point(x: x_point, y: 40) };
-                pwr_select_radio_btn[j].CheckedChanged += new EventHandler(CheckRelayRadioBtn);
-                this.groupBox_main_relay.Controls.Add(pwr_select_radio_btn[j]);
+            {
+                evse_fault_checkbox[j] = new CheckBox { Name = "chbox_ev_fault_" + j, Text = name_ev_fault[j], Location = new Point(x: x_point, y: 22), AutoSize = true };
+                evse_fault_checkbox[j].CheckedChanged += new EventHandler(ev_fault_checbox_change);
+                this.groupBox_checks.Controls.Add(evse_fault_checkbox[j]);
 
-                ev_mode_select_radio_btn[j] = new RadioButton { Name = "radBtn_ev_" + j, Text = name_ev_state[j], Location = new Point(x: x_point, y: 40), AutoSize = true };
+                x_point = x_point + 300;
+            }
+
+            x_point = 70;
+
+            for (int j = 0; j < 4; j++)
+            {
+                ev_mode_select_radio_btn[j] = new RadioButton { Name = "radBtn_ev_" + j, Text = name_ev_state[j], Location = new Point(x: x_point, y: 22), AutoSize = true };
                 ev_mode_select_radio_btn[j].CheckedChanged += new EventHandler(CheckEvseRadioBtn);
                 this.groupBox_evse_state.Controls.Add(ev_mode_select_radio_btn[j]);
 
-                evse_fault_checkbox[j] = new CheckBox { Name = "chbox_ev_fault_" + j, Text = name_ev_fault[j], Location = new Point(x: x_point_chbox, y: 40), AutoSize = true };
-                evse_fault_checkbox[j].CheckedChanged += new EventHandler(ev_fault_checbox_change);
-                this.groupBox_evse_state.Controls.Add(evse_fault_checkbox[j]);
+                x_point = x_point + 220;
+            }
+
+            x_point = 70;
+
+            for (int j = 0; j < 3; j++)
+            {
+                pwr_select_radio_btn[j] = new RadioButton { Name = "radioButton_" + j, Text = name[j], Location = new Point(x: x_point, y: 22) };
+                pwr_select_radio_btn[j].CheckedChanged += new EventHandler(CheckRelayRadioBtn);
+                this.groupBox_main_relay.Controls.Add(pwr_select_radio_btn[j]);
 
                 x_point = x_point + 130;
-                x_point_chbox = x_point_chbox + 130;
+            }
+
+            for (int j = 0; j < 3; j++)
+            {
+                ls_checkbox[j] = new CheckBox { Name = "chbox_ls_" + j, Text = name_ls_cntr[j], Location = new Point(x: x_point, y: 22), AutoSize = true };
+                ls_checkbox[j].CheckedChanged += new EventHandler(ls_ctrl_checbox_change);
+                this.groupBox_main_relay.Controls.Add(ls_checkbox[j]);
+
+                x_point = x_point + 130;
+            }
+
+            x_point = 70;
+
+            for (int j = 0; j < 5; j++)
+            {
+                pp_select_radio_btn[j] = new RadioButton { Name = "radBtn_pp_" + j, Text = name_pp_select[j], Location = new Point(x: x_point, y: 22) };
+                pp_select_radio_btn[j].CheckedChanged += new EventHandler(CheckPPSelRadioBtn);
+                this.groupBox_pp_select.Controls.Add(pp_select_radio_btn[j]);
+
+                x_point = x_point + 160;
             }
             //////////////////////////
-            
+
             for (int a = 0; a < 3; a++)//initinam structuras
             {
                 Test[a].test_type = new TestType_struc[9];
@@ -383,7 +469,7 @@ namespace ArtiluxEOL
                     regUpdatePeriphery(NetDev_Tab.BARCODE_1 + a);
                     network_dev[NetDev_Tab.RFID_1 + a].Enable = state;
                     regUpdatePeriphery(NetDev_Tab.RFID_1 + a);
-                    
+
                     SavedWorkplaces[a].Enable = state;
                     regUpdateWplace();
                 }
@@ -425,24 +511,96 @@ namespace ArtiluxEOL
                     if (state)
                     {
                         evse_fault[a] = true;//i buff sudeti reles is eiles pagel fault mygtukus
-                        net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[a + RL_Name.RL_51] + "1";
                         dbg_print(DbgType.MAIN, "Evse_fault_on:" + a, Color.Blue);
-                        net_dev.State = MainBoard_State.RELAY_SET;
                     }
                     else
                     {
                         if (evse_fault[a])
                         {
                             evse_fault[a] = false;
-                            net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[a + RL_Name.RL_51] + "0";
                             dbg_print(DbgType.MAIN, "Evse_fault_off:" + a, Color.Blue);
-                            net_dev.State = MainBoard_State.RELAY_SET;
                         }
                     }
+
+                    int stateInt = 0;
+
+                    if (state)
+                    {
+                        stateInt = 1;
+                    }
+                    else
+                    {
+                        stateInt = 0;
+                    }
+
+                    if (a == 0)//Diode sh
+                    {
+                        Main_Board_DIODE_SH(stateInt);
+                    }
+                    else if (a == 1)//PE op
+                    {
+                        Main_Board_PE_OP(stateInt);
+                    }
+                    else if (a == 2)//CP sh
+                    {
+                        Main_Board_CP_SH(stateInt);
+                    }
                 }
+            }
+        }
 
+        void ls_ctrl_checbox_change(object sender, EventArgs e)
+        {
+            var net_dev = network_dev[NetDev_Tab.MAIN_CONTROLLER];
+            for (int a = 0; a < ls_checkbox.Length; a++)
+            {
+                bool state;
+                state = ls_checkbox[a].Checked;
 
-                
+                if (ls_before[a] != state)
+                {
+                    ls_before[a] = state;
+
+                    if (state)
+                    {
+                        ls[a] = true;
+                        dbg_print(DbgType.MAIN, "LS_checkbox_on:" + a, Color.Blue);
+                    }
+                    else
+                    {
+                        if (ls[a])
+                        {
+                            ls[a] = false;
+                            dbg_print(DbgType.MAIN, "LS_checkbox_off:" + a, Color.Blue);
+                        }
+                    }
+
+                    //System.Diagnostics.Debug.Print($"Check box: {a}");
+
+                    int stateInt = 0;
+
+                    if (state)
+                    {
+                        stateInt = 1;
+                    }
+                    else
+                    {
+                        stateInt = 0;
+                    }
+
+                    if (a == 0)//Load
+                    {
+                        Main_Board_LOAD(stateInt);
+                    }
+                    else if (a == 1)//Source
+                    {
+                        Main_Board_SOURCE(stateInt);
+                    }
+                    else if (a == 2)//LS enable
+                    {
+                        Main_Board_LS_EN(stateInt);
+                    }
+                }
             }
         }
         /*  EVSE MODE SELECT RADIO BTN HANDLER */
@@ -461,8 +619,7 @@ namespace ArtiluxEOL
                             evse_mode_before = a;
                             dbg_print(DbgType.MAIN, "Evse_mode:" + a, Color.Gray);
                             evse_mode_index = a + 1;
-                            network_dev[NetDev_Tab.MAIN_CONTROLLER].SubState = evse_mode_index;
-                            network_dev[NetDev_Tab.MAIN_CONTROLLER].State = MainBoard_State.EV_MODE_SET;
+                            CP_Selector_Set(a);
                         }
                     }
                 }
@@ -473,6 +630,7 @@ namespace ArtiluxEOL
         private void CheckRelayRadioBtn(object sender, EventArgs e)//indijuojam irangos busena
         {
             RadioButton rb = sender as RadioButton;
+            var net_dev = network_dev[NetDev_Tab.MAIN_CONTROLLER];
 
             if (rb != null)
             {
@@ -484,9 +642,33 @@ namespace ArtiluxEOL
                         {
                             power_relay_before = a;
                             dbg_print(DbgType.MAIN, "CheckRelayRadioBtn:" + a, Color.Gray);
-                            main_power_relay_index = a+1;
-                            //network_dev[NetDev_Tab.MAIN_CONTROLLER].SubState = EV_Mode_State.EV_READY;
-                            network_dev[NetDev_Tab.MAIN_CONTROLLER].State = MainBoard_State.LOAD_SOURCE_SET;
+                            main_power_relay_index = a + 1;
+                            LS_Selector_Set(main_power_relay_index);//Starts at 1
+                        }
+
+                    }
+                }
+            }
+
+        }
+
+        private void CheckPPSelRadioBtn(object sender, EventArgs e)//indijuojam irangos busena
+        {
+            RadioButton rb = sender as RadioButton;
+            var net_dev = network_dev[NetDev_Tab.MAIN_CONTROLLER];
+
+            if (rb != null)
+            {
+                for (int a = 0; a < pp_select_radio_btn.Length; a++)
+                {
+                    if (pp_select_radio_btn[a].Checked)
+                    {
+                        if (pp_select_before != a)
+                        {
+                            pp_select_before = a;
+                            dbg_print(DbgType.MAIN, "CheckPPSelRadioBtn:" + a, Color.Gray);
+                            pp_select_index = a + 1;
+                            PP_Selector_Set(a);
                         }
 
                     }
@@ -1501,7 +1683,7 @@ namespace ArtiluxEOL
                 int h = 0;
                 foreach (var wp in SavedWorkplaces)//pridedam reikiamus atributus ir kiekvinam monitoriuje atverciam TESTAVIMO langa
                 {
-                    if(wp.WorplaceMonitorID > 0)
+                    if (wp.WorplaceMonitorID > 0)
                     {
                         //imam is eiles is reg saugomu monitoriu listo, ir iskom tokio monitoriaus detectuotu mon liste
                         for (int a = 0; a < 3; a++)
@@ -1535,9 +1717,9 @@ namespace ArtiluxEOL
                         progress.Visible = true;
                         id++;
                         tm.FormClosing += Tm_FormClosing;
-                        
+
                     }
-                    
+
                 }
 
                 /*foreach (MonitorTest ids in ml)//pridedam reikiamus atributus ir kiekvinam monitoriuje atverciam TESTAVIMO langa
@@ -1991,8 +2173,6 @@ namespace ArtiluxEOL
             Socket_.close_socket(network_dev[DevType.GWINSTEK_HV_TESTER]);
         }
 
-
-
         public void show_msg(string msg, Color _color)
         {
             Popup_msg popup = new Popup_msg("", msg, _color, 2);
@@ -2166,10 +2346,20 @@ namespace ArtiluxEOL
 
         /* VISU IRENGINIU VALDYMO LENTELES */
         #region Device control tab
+
+        DataGridViewComboBoxColumn CreateComboBoxWithEnums()
+        {
+            DataGridViewComboBoxColumn combo = new DataGridViewComboBoxColumn();
+            combo.DataSource = Enum.GetValues(typeof(Title));
+            combo.DataPropertyName = "Title";
+            combo.Name = "Title";
+            return combo;
+        }
+
+
         void load_dev_control()//irenginiu valdymo skirtukai ir lenteliu pradines reiksmes
         {
             DataGridViewRow Row0 = (DataGridViewRow)data_grid_main_board.Rows[0].Clone();
-            //dataGrid_HV_result.Rows.Insert(0);
 
             //MAIN BOARD
             Row0.Cells[0].Value = "Relay 11";
@@ -2183,6 +2373,19 @@ namespace ArtiluxEOL
             Row0 = (DataGridViewRow)data_grid_main_board.Rows[0].Clone();
             Row0.Cells[0].Value = "Relay 14";
             data_grid_main_board.Rows.Add(Row0);
+
+            Main_Board_Relay11(0);
+            Main_Board_Relay12(0);
+            Main_Board_Relay13(0);
+            Main_Board_Relay14(0);
+            Main_Board_LS_EN(0);
+            Main_Board_LOAD(0);
+            Main_Board_SOURCE(0);
+            Main_Board_DIODE_SH(0);
+            Main_Board_PE_OP(0);
+            Main_Board_CP_SH(0);
+
+            Update_data_grid();
 
             // GWINSTEK 
             Row0 = (DataGridViewRow)dataGrid_HV_test.Rows[0].Clone();
@@ -2471,8 +2674,6 @@ namespace ArtiluxEOL
             network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
         }
 
-
-
         private void btn_stop_Click(object sender, EventArgs e)
         {
             network_dev[DevType.GWINSTEK_HV_TESTER].Cmd = "FUNC:TEST OFF";
@@ -2556,9 +2757,10 @@ namespace ArtiluxEOL
             network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
         }
 
+        #region Main board
+
         private void dataGrid_main_board_click(object sender, DataGridViewCellEventArgs e)
         {
-
             var net_dev = Main.main.network_dev[DevType.MAIN_CONTROLLER];
             int set_state = 0;
 
@@ -2578,33 +2780,19 @@ namespace ArtiluxEOL
             switch (e.RowIndex)
             {
                 case 0:
-                    net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_MAIN] + set_state;
-                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RELAY_SET;
-                    network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                    Main_Board_Relay11(set_state);
                     break;
 
                 case 1:
-                    net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_11] + set_state;
-                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RELAY_SET;
-                    network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                    Main_Board_Relay12(set_state);
                     break;
 
                 case 2:
-                    net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_12] + set_state;
-                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RELAY_SET;
-                    network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                    Main_Board_Relay13(set_state);
                     break;
 
                 case 3:
-                    net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_13] + set_state;
-                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RELAY_SET;
-                    network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
-                    break;
-
-                case 4:
-                    net_dev.Cmd = net_dev.CommandId + NetworkThreads.Main_board_rl_command[RL_Name.RL_14] + set_state;
-                    network_dev[DevType.MAIN_CONTROLLER].State = MainBoard_State.RELAY_SET;
-                    network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                    Main_Board_Relay14(set_state);
                     break;
 
             }
@@ -2612,5 +2800,437 @@ namespace ArtiluxEOL
             NetworkThreads.MAIN_Ctrl_handle();
 
         }
+
+        public void Update_controls()
+        {
+            int colSelPP = 0;//Color array selector for PP selector
+            int colSelLS = 0;//Color array selector for LS selector
+            int colSelCP = 0;//Color array selector for CP selector
+
+            string[] PP_sel_btn_names = { "radBtn_pp_0", "radBtn_pp_1", "radBtn_pp_2", "radBtn_pp_3", "radBtn_pp_4" };//PP selector button names
+            string[] LS_sel_btn_names = { "radioButton_0", "radioButton_1", "radioButton_2" };//PP selector button names
+            string[] CP_sel_btn_names = { "radBtn_ev_0", "radBtn_ev_1", "radBtn_ev_2", "radBtn_ev_3" };//CP selector button names
+
+            Color[,] PP_sel_btn_colors = {//PP selector button colors depending on PP selector state
+                                            {Color.LightGreen, Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent },//PP_Selector = 0
+                                            {Color.Transparent, Color.LightGreen, Color.Transparent, Color.Transparent, Color.Transparent },//PP_Selector = 1
+                                            {Color.Transparent, Color.Transparent, Color.LightGreen, Color.Transparent, Color.Transparent },//PP_Selector = 2
+                                            {Color.Transparent, Color.Transparent, Color.Transparent, Color.LightGreen, Color.Transparent },//PP_Selector = 3
+                                            {Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent, Color.LightGreen },//PP_Selector = 4
+                                            {Color.Orange, Color.Orange, Color.Orange, Color.Orange, Color.Orange },                        //PP_Selector = -10/-11
+                                            {Color.Red, Color.Red, Color.Red, Color.Red, Color.Red }                                        //PP_Selector = -100/-101
+            };
+
+            Color[,] LS_sel_btn_colors = {//LS selector button colors depending on LS selector state
+                                            {Color.Transparent, Color.Transparent, Color.Transparent }, //LS_Selector = 0
+                                            {Color.LightGreen, Color.Transparent, Color.Transparent },  //LS_Selector = 1
+                                            {Color.Transparent, Color.LightGreen, Color.Transparent },  //LS_Selector = 2
+                                            {Color.Transparent, Color.Transparent, Color.LightGreen },  //LS_Selector = 3
+                                            {Color.Orange, Color.Orange, Color.Orange },                //LS_Selector = -10/-11
+                                            {Color.Red, Color.Red, Color.Red }                          //LS_Selector = -100/-101
+            };
+
+            Color[,] CP_sel_btn_colors = {//CP selector button colors depending on CP selector state
+                                            {Color.LightGreen, Color.Transparent, Color.Transparent, Color.Transparent },   //CP_Selector = 0
+                                            {Color.Transparent, Color.LightGreen, Color.Transparent, Color.Transparent },   //CP_Selector = 1
+                                            {Color.Transparent, Color.Transparent, Color.LightGreen, Color.Transparent },   //CP_Selector = 2
+                                            {Color.Transparent, Color.Transparent, Color.Transparent, Color.LightGreen },   //CP_Selector = 3
+                                            {Color.Orange, Color.Orange, Color.Orange, Color.Orange },                      //CP_Selector = -10/-11
+                                            {Color.Red, Color.Red, Color.Red, Color.Red }                                   //CP_Selector = -100/-101
+            };
+
+            if (PP_Selector.STATE >= 0 && PP_Selector.STATE < 5)//Color array selector depending on PP selector state
+            {
+                colSelPP = PP_Selector.STATE;
+            }
+            else if (PP_Selector.STATE <= -100)
+            {
+                colSelPP = 6;
+            }
+            else
+            {
+                colSelPP = 5;
+            }
+
+            if (LS_Selector.STATE >= 0 && LS_Selector.STATE < 4)//Color array selector depending on PP selector state
+            {
+                colSelLS = LS_Selector.STATE;
+            }
+            else if (LS_Selector.STATE <= -100)
+            {
+                colSelLS = 5;
+            }
+            else
+            {
+                colSelLS = 4;
+            }
+
+            if (CP_Selector.STATE >= 0 && CP_Selector.STATE < 4)//Color array selector depending on CP selector state
+            {
+                colSelCP = CP_Selector.STATE;
+            }
+            else if (CP_Selector.STATE <= -100)
+            {
+                colSelCP = 5;
+            }
+            else
+            {
+                colSelCP = 4;
+            }
+
+            foreach (var ctrl in GetControlHierarchy(this))//Go trough all UI controls
+            {
+                for (int i = 0; i < PP_sel_btn_names.Length; i++)//Look for the names of required buttons
+                {
+                    if (ctrl.Name == PP_sel_btn_names[i])//Name found
+                    {
+                        ctrl.BackColor = PP_sel_btn_colors[colSelPP, i];//Assign color
+                    }
+                }
+
+                for (int i = 0; i < LS_sel_btn_names.Length; i++)//Look for the names of required buttons
+                {
+                    if (ctrl.Name == LS_sel_btn_names[i])//Name found
+                    {
+                        ctrl.BackColor = LS_sel_btn_colors[colSelLS, i];//Assign color
+                    }
+                }
+
+                for (int i = 0; i < CP_sel_btn_names.Length; i++)//Look for the names of required buttons
+                {
+                    if (ctrl.Name == CP_sel_btn_names[i])//Name found
+                    {
+                        ctrl.BackColor = CP_sel_btn_colors[colSelCP, i];//Assign color
+                    }
+                }
+
+                if (ctrl.Name == "chbox_ls_0")//LOAD
+                {
+                    if (LOAD.STATE == 0) {
+                        ctrl.BackColor = Color.LightBlue;
+                    }
+                    else if (LOAD.STATE == 1)
+                    {
+                        ctrl.BackColor = Color.LightGreen;
+                    }
+                    else if (LOAD.STATE < 0)
+                    {
+                        ctrl.BackColor = Color.Red;
+                    }
+                    else
+                    {
+                        ctrl.BackColor = Color.Orange;
+                    }
+                }
+                else if (ctrl.Name == "chbox_ls_1")//SOURCE
+                {
+                    if (SOURCE.STATE == 0)
+                    {
+                        ctrl.BackColor = Color.LightBlue;
+                    }
+                    else if (SOURCE.STATE == 1)
+                    {
+                        ctrl.BackColor = Color.LightGreen;
+                    }
+                    else if (SOURCE.STATE < 0)
+                    {
+                        ctrl.BackColor = Color.Red;
+                    }
+                    else
+                    {
+                        ctrl.BackColor = Color.Orange;
+                    }
+                }
+                else if (ctrl.Name == "chbox_ls_2")//ENABLE
+                {
+                    if (LS_EN.STATE == 0)
+                    {
+                        ctrl.BackColor = Color.LightBlue;
+                    }
+                    else if (LS_EN.STATE == 1)
+                    {
+                        ctrl.BackColor = Color.LightGreen;
+                    }
+                    else if (LS_EN.STATE < 0)
+                    {
+                        ctrl.BackColor = Color.Red;
+                    }
+                    else
+                    {
+                        ctrl.BackColor = Color.Orange;
+                    }
+                }
+                else if (ctrl.Name == "chbox_ev_fault_0")//DIODE_SH
+                {
+                    if (DIODE_SH.STATE == 0)
+                    {
+                        ctrl.BackColor = Color.LightBlue;
+                    }
+                    else if (DIODE_SH.STATE == 1)
+                    {
+                        ctrl.BackColor = Color.LightGreen;
+                    }
+                    else if (DIODE_SH.STATE < 0)
+                    {
+                        ctrl.BackColor = Color.Red;
+                    }
+                    else
+                    {
+                        ctrl.BackColor = Color.Orange;
+                    }
+                }
+                else if (ctrl.Name == "chbox_ev_fault_1")//PE_OP
+                {
+                    if (PE_OP.STATE == 0)
+                    {
+                        ctrl.BackColor = Color.LightBlue;
+                    }
+                    else if (PE_OP.STATE == 1)
+                    {
+                        ctrl.BackColor = Color.LightGreen;
+                    }
+                    else if (PE_OP.STATE < 0)
+                    {
+                        ctrl.BackColor = Color.Red;
+                    }
+                    else
+                    {
+                        ctrl.BackColor = Color.Orange;
+                    }
+                }
+                else if (ctrl.Name == "chbox_ev_fault_2")//CP_SH
+                {
+                    if (CP_SH.STATE == 0)
+                    {
+                        ctrl.BackColor = Color.LightBlue;
+                    }
+                    else if (CP_SH.STATE == 1)
+                    {
+                        ctrl.BackColor = Color.LightGreen;
+                    }
+                    else if (CP_SH.STATE < 0)
+                    {
+                        ctrl.BackColor = Color.Red;
+                    }
+                    else
+                    {
+                        ctrl.BackColor = Color.Orange;
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<Control> GetControlHierarchy(Control root)
+        {
+            var queue = new Queue<Control>();
+
+            queue.Enqueue(root);
+
+            do
+            {
+                var control = queue.Dequeue();
+
+                yield return control;
+
+                foreach (var child in control.Controls.OfType<Control>())
+                    queue.Enqueue(child);
+
+            } while (queue.Count > 0);
+
+        }
+
+        public void Update_data_grid()
+        {
+            DataGridViewRow Row;
+            Relay RL = RL11;
+
+            for (int i = 0; i < 4; i++)
+            {
+                switch (i)
+                {
+                    case 0:
+                        RL = RL11;
+                        break;
+
+                    case 1:
+                        RL = RL12;
+                        break;
+
+                    case 2:
+                        RL = RL13;
+                        break;
+
+                    case 3:
+                        RL = RL14;
+                        break;
+                }
+
+                if (i < data_grid_main_board.Rows.Count)//Sometimes throws an exeption when closing the program, i is never more than data_grid_main_board.Rows count
+                {
+                    Row = (DataGridViewRow)data_grid_main_board.Rows[i];
+
+                    if (RL.STATE == 0)
+                    {
+                        Row.Cells[1].Value = "OFF";
+                        Row.Cells[1].Style.BackColor = Color.LightBlue;
+                    }
+                    else if (RL.STATE == 1)
+                    {
+                        Row.Cells[1].Value = "ON";
+                        Row.Cells[1].Style.BackColor = Color.LightGreen;
+                    }
+                    else if (RL.STATE < 0)
+                    {
+                        Row.Cells[1].Value = "ERROR";
+                        Row.Cells[1].Style.BackColor = Color.Red;
+                    }
+                    else
+                    {
+                        Row.Cells[1].Value = "-";
+                        Row.Cells[1].Style.BackColor = Color.Orange;
+                    }
+                }
+            }
+        }
+
+        public void Main_Board_Set_Command_ID(object targ)
+        {
+            mut.WaitOne();//Single thread access
+
+            if (targ is Relay)//If id is beeing assigned to a relay type object
+            {
+                Relay tmpRL = (Relay)targ;
+                tmpRL.COM_ID = MainControlerTcpCommandId;
+                targ = tmpRL;
+            }
+            else if (targ is NumericStateDevice)
+            {
+                NumericStateDevice tmpNmrc = (NumericStateDevice)targ;
+                tmpNmrc.COM_ID = MainControlerTcpCommandId;
+                targ = tmpNmrc;
+            }
+
+            if (MainControlerTcpCommandId < 254)//Overflow at 255
+            {
+                MainControlerTcpCommandId++;
+            }
+            else
+            {
+                MainControlerTcpCommandId = 0;
+            }
+
+            mut.ReleaseMutex();
+        }
+
+        public void Main_Board_Relay11(int en)
+        {
+            RL11.SET = en;//Assign requred state
+            RL11.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(RL11);//Assign an ID for this command
+            RL11.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_Relay12(int en)
+        {
+            RL12.SET = en;//Assign requred state
+            RL12.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(RL12);//Assign an ID for this command
+            RL12.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_Relay13(int en)
+        {
+            RL13.SET = en;//Assign requred state
+            RL13.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(RL13);//Assign an ID for this command
+            RL13.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_Relay14(int en)
+        {
+            RL14.SET = en;//Assign requred state
+            RL14.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(RL14);//Assign an ID for this command
+            RL14.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void PP_Selector_Set(int set)
+        {
+            PP_Selector.SET = set;//Assign requred state
+            PP_Selector.STATE = -10;//STATE = -10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(PP_Selector);//Assign an ID for this command
+            PP_Selector.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_LOAD(int en)
+        {
+            LOAD.SET = en;//Assign requred state
+            LOAD.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(LOAD);//Assign an ID for this command
+            LOAD.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_SOURCE(int en)
+        {
+            SOURCE.SET = en;//Assign requred state
+            SOURCE.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(SOURCE);//Assign an ID for this command
+            SOURCE.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_LS_EN(int en)
+        {
+            LS_EN.SET = en;//Assign requred state
+            LS_EN.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(LS_EN);//Assign an ID for this command
+            LS_EN.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void LS_Selector_Set(int set)
+        {
+            LS_Selector.SET = set;//Assign requred state
+            LS_Selector.STATE = -10;//STATE = -10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(LS_Selector);//Assign an ID for this command
+            LS_Selector.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void CP_Selector_Set(int set)
+        {
+            CP_Selector.SET = set;//Assign requred state
+            CP_Selector.STATE = -10;//STATE = -10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(CP_Selector);//Assign an ID for this command
+            CP_Selector.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_DIODE_SH(int en)
+        {
+            DIODE_SH.SET = en;//Assign requred state
+            DIODE_SH.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(DIODE_SH);//Assign an ID for this command
+            DIODE_SH.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_PE_OP(int en)
+        {
+            PE_OP.SET = en;//Assign requred state
+            PE_OP.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(PE_OP);//Assign an ID for this command
+            PE_OP.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_CP_SH(int en)
+        {
+            CP_SH.SET = en;//Assign requred state
+            CP_SH.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(CP_SH);//Assign an ID for this command
+            CP_SH.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+
+
+        #endregion
+
+
+
     }
 }

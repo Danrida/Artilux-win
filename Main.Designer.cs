@@ -33,17 +33,17 @@ namespace ArtiluxEOL
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle13 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle14 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle15 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle16 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -108,6 +108,10 @@ namespace ArtiluxEOL
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.groupBox_evse_state = new System.Windows.Forms.GroupBox();
+            this.groupBox_checks = new System.Windows.Forms.GroupBox();
+            this.groupBox_main_relay = new System.Windows.Forms.GroupBox();
+            this.groupBox_pp_select = new System.Windows.Forms.GroupBox();
             this.data_grid_main_board = new System.Windows.Forms.DataGridView();
             this.CMD = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column23 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -205,8 +209,6 @@ namespace ArtiluxEOL
             this.cbAdmin = new System.Windows.Forms.CheckBox();
             this.panelTestResult = new System.Windows.Forms.Panel();
             this.btnStart = new System.Windows.Forms.Button();
-            this.groupBox_main_relay = new System.Windows.Forms.GroupBox();
-            this.groupBox_evse_state = new System.Windows.Forms.GroupBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.Test_lizdas_3.SuspendLayout();
@@ -258,11 +260,11 @@ namespace ArtiluxEOL
             this.tabControl1.Controls.Add(this.debug_tab);
             this.tabControl1.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tabControl1.ItemSize = new System.Drawing.Size(160, 40);
-            this.tabControl1.Location = new System.Drawing.Point(5, 12);
-            this.tabControl1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tabControl1.Location = new System.Drawing.Point(4, 10);
+            this.tabControl1.Margin = new System.Windows.Forms.Padding(2);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1323, 814);
+            this.tabControl1.Size = new System.Drawing.Size(992, 661);
             this.tabControl1.TabIndex = 0;
             // 
             // tabPage1
@@ -283,10 +285,10 @@ namespace ArtiluxEOL
             this.tabPage1.Controls.Add(this.panel1);
             this.tabPage1.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tabPage1.Location = new System.Drawing.Point(4, 44);
-            this.tabPage1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tabPage1.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.tabPage1.Size = new System.Drawing.Size(1315, 766);
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage1.Size = new System.Drawing.Size(984, 613);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Pagrindinis";
             // 
@@ -295,11 +297,11 @@ namespace ArtiluxEOL
             this.Test_lizdas_3.Controls.Add(this.lbl_evse3);
             this.Test_lizdas_3.Controls.Add(this.lbl_barcode_3);
             this.Test_lizdas_3.Controls.Add(this.lbl_rfid_3);
-            this.Test_lizdas_3.Location = new System.Drawing.Point(967, 18);
-            this.Test_lizdas_3.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.Test_lizdas_3.Location = new System.Drawing.Point(725, 15);
+            this.Test_lizdas_3.Margin = new System.Windows.Forms.Padding(2);
             this.Test_lizdas_3.Name = "Test_lizdas_3";
-            this.Test_lizdas_3.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.Test_lizdas_3.Size = new System.Drawing.Size(264, 274);
+            this.Test_lizdas_3.Padding = new System.Windows.Forms.Padding(2);
+            this.Test_lizdas_3.Size = new System.Drawing.Size(198, 223);
             this.Test_lizdas_3.TabIndex = 12;
             this.Test_lizdas_3.TabStop = false;
             this.Test_lizdas_3.Text = "3";
@@ -307,30 +309,30 @@ namespace ArtiluxEOL
             // lbl_evse3
             // 
             this.lbl_evse3.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_evse3.Location = new System.Drawing.Point(5, 92);
-            this.lbl_evse3.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_evse3.Location = new System.Drawing.Point(4, 75);
+            this.lbl_evse3.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_evse3.Name = "lbl_evse3";
-            this.lbl_evse3.Size = new System.Drawing.Size(237, 37);
+            this.lbl_evse3.Size = new System.Drawing.Size(178, 30);
             this.lbl_evse3.TabIndex = 13;
             this.lbl_evse3.Text = "           EVSE";
             // 
             // lbl_barcode_3
             // 
             this.lbl_barcode_3.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_barcode_3.Location = new System.Drawing.Point(5, 185);
-            this.lbl_barcode_3.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_barcode_3.Location = new System.Drawing.Point(4, 150);
+            this.lbl_barcode_3.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_barcode_3.Name = "lbl_barcode_3";
-            this.lbl_barcode_3.Size = new System.Drawing.Size(237, 69);
+            this.lbl_barcode_3.Size = new System.Drawing.Size(178, 56);
             this.lbl_barcode_3.TabIndex = 10;
             this.lbl_barcode_3.Text = "      Skaitytuvas";
             // 
             // lbl_rfid_3
             // 
             this.lbl_rfid_3.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_rfid_3.Location = new System.Drawing.Point(5, 139);
-            this.lbl_rfid_3.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_rfid_3.Location = new System.Drawing.Point(4, 113);
+            this.lbl_rfid_3.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_rfid_3.Name = "lbl_rfid_3";
-            this.lbl_rfid_3.Size = new System.Drawing.Size(237, 36);
+            this.lbl_rfid_3.Size = new System.Drawing.Size(178, 29);
             this.lbl_rfid_3.TabIndex = 11;
             this.lbl_rfid_3.Text = "           RF-ID";
             // 
@@ -339,11 +341,11 @@ namespace ArtiluxEOL
             this.Test_lizdas_2.Controls.Add(this.lbl_evse2);
             this.Test_lizdas_2.Controls.Add(this.lbl_barcode_2);
             this.Test_lizdas_2.Controls.Add(this.lbl_rfid_2);
-            this.Test_lizdas_2.Location = new System.Drawing.Point(693, 18);
-            this.Test_lizdas_2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.Test_lizdas_2.Location = new System.Drawing.Point(520, 15);
+            this.Test_lizdas_2.Margin = new System.Windows.Forms.Padding(2);
             this.Test_lizdas_2.Name = "Test_lizdas_2";
-            this.Test_lizdas_2.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.Test_lizdas_2.Size = new System.Drawing.Size(264, 274);
+            this.Test_lizdas_2.Padding = new System.Windows.Forms.Padding(2);
+            this.Test_lizdas_2.Size = new System.Drawing.Size(198, 223);
             this.Test_lizdas_2.TabIndex = 11;
             this.Test_lizdas_2.TabStop = false;
             this.Test_lizdas_2.Text = "2";
@@ -351,30 +353,30 @@ namespace ArtiluxEOL
             // lbl_evse2
             // 
             this.lbl_evse2.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_evse2.Location = new System.Drawing.Point(5, 92);
-            this.lbl_evse2.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_evse2.Location = new System.Drawing.Point(4, 75);
+            this.lbl_evse2.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_evse2.Name = "lbl_evse2";
-            this.lbl_evse2.Size = new System.Drawing.Size(237, 37);
+            this.lbl_evse2.Size = new System.Drawing.Size(178, 30);
             this.lbl_evse2.TabIndex = 13;
             this.lbl_evse2.Text = "           EVSE";
             // 
             // lbl_barcode_2
             // 
             this.lbl_barcode_2.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_barcode_2.Location = new System.Drawing.Point(5, 185);
-            this.lbl_barcode_2.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_barcode_2.Location = new System.Drawing.Point(4, 150);
+            this.lbl_barcode_2.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_barcode_2.Name = "lbl_barcode_2";
-            this.lbl_barcode_2.Size = new System.Drawing.Size(237, 69);
+            this.lbl_barcode_2.Size = new System.Drawing.Size(178, 56);
             this.lbl_barcode_2.TabIndex = 10;
             this.lbl_barcode_2.Text = "      Skaitytuvas";
             // 
             // lbl_rfid_2
             // 
             this.lbl_rfid_2.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_rfid_2.Location = new System.Drawing.Point(5, 139);
-            this.lbl_rfid_2.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_rfid_2.Location = new System.Drawing.Point(4, 113);
+            this.lbl_rfid_2.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_rfid_2.Name = "lbl_rfid_2";
-            this.lbl_rfid_2.Size = new System.Drawing.Size(237, 36);
+            this.lbl_rfid_2.Size = new System.Drawing.Size(178, 29);
             this.lbl_rfid_2.TabIndex = 11;
             this.lbl_rfid_2.Text = "           RF-ID";
             // 
@@ -383,11 +385,11 @@ namespace ArtiluxEOL
             this.Test_lizdas_1.Controls.Add(this.lbl_evse1);
             this.Test_lizdas_1.Controls.Add(this.lbl_barcode_1);
             this.Test_lizdas_1.Controls.Add(this.lbl_rfid_1);
-            this.Test_lizdas_1.Location = new System.Drawing.Point(419, 18);
-            this.Test_lizdas_1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.Test_lizdas_1.Location = new System.Drawing.Point(314, 15);
+            this.Test_lizdas_1.Margin = new System.Windows.Forms.Padding(2);
             this.Test_lizdas_1.Name = "Test_lizdas_1";
-            this.Test_lizdas_1.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.Test_lizdas_1.Size = new System.Drawing.Size(264, 274);
+            this.Test_lizdas_1.Padding = new System.Windows.Forms.Padding(2);
+            this.Test_lizdas_1.Size = new System.Drawing.Size(198, 223);
             this.Test_lizdas_1.TabIndex = 10;
             this.Test_lizdas_1.TabStop = false;
             this.Test_lizdas_1.Text = "1";
@@ -395,39 +397,39 @@ namespace ArtiluxEOL
             // lbl_evse1
             // 
             this.lbl_evse1.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_evse1.Location = new System.Drawing.Point(5, 92);
-            this.lbl_evse1.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_evse1.Location = new System.Drawing.Point(4, 75);
+            this.lbl_evse1.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_evse1.Name = "lbl_evse1";
-            this.lbl_evse1.Size = new System.Drawing.Size(237, 37);
+            this.lbl_evse1.Size = new System.Drawing.Size(178, 30);
             this.lbl_evse1.TabIndex = 12;
             this.lbl_evse1.Text = "           EVSE";
             // 
             // lbl_barcode_1
             // 
             this.lbl_barcode_1.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_barcode_1.Location = new System.Drawing.Point(5, 185);
-            this.lbl_barcode_1.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_barcode_1.Location = new System.Drawing.Point(4, 150);
+            this.lbl_barcode_1.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_barcode_1.Name = "lbl_barcode_1";
-            this.lbl_barcode_1.Size = new System.Drawing.Size(237, 69);
+            this.lbl_barcode_1.Size = new System.Drawing.Size(178, 56);
             this.lbl_barcode_1.TabIndex = 10;
             this.lbl_barcode_1.Text = "      Skaitytuvas";
             // 
             // lbl_rfid_1
             // 
             this.lbl_rfid_1.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_rfid_1.Location = new System.Drawing.Point(5, 139);
-            this.lbl_rfid_1.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_rfid_1.Location = new System.Drawing.Point(4, 113);
+            this.lbl_rfid_1.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_rfid_1.Name = "lbl_rfid_1";
-            this.lbl_rfid_1.Size = new System.Drawing.Size(237, 36);
+            this.lbl_rfid_1.Size = new System.Drawing.Size(178, 29);
             this.lbl_rfid_1.TabIndex = 11;
             this.lbl_rfid_1.Text = "           RF-ID";
             // 
             // btn_popup
             // 
-            this.btn_popup.Location = new System.Drawing.Point(1167, 705);
-            this.btn_popup.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.btn_popup.Location = new System.Drawing.Point(875, 573);
+            this.btn_popup.Margin = new System.Windows.Forms.Padding(2);
             this.btn_popup.Name = "btn_popup";
-            this.btn_popup.Size = new System.Drawing.Size(123, 55);
+            this.btn_popup.Size = new System.Drawing.Size(92, 45);
             this.btn_popup.TabIndex = 9;
             this.btn_popup.Text = "popup";
             this.btn_popup.UseVisualStyleBackColor = true;
@@ -436,10 +438,10 @@ namespace ArtiluxEOL
             // metrel_skip_btn
             // 
             this.metrel_skip_btn.Enabled = false;
-            this.metrel_skip_btn.Location = new System.Drawing.Point(1013, 646);
-            this.metrel_skip_btn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.metrel_skip_btn.Location = new System.Drawing.Point(760, 525);
+            this.metrel_skip_btn.Margin = new System.Windows.Forms.Padding(2);
             this.metrel_skip_btn.Name = "metrel_skip_btn";
-            this.metrel_skip_btn.Size = new System.Drawing.Size(131, 47);
+            this.metrel_skip_btn.Size = new System.Drawing.Size(98, 38);
             this.metrel_skip_btn.TabIndex = 8;
             this.metrel_skip_btn.Text = "Skip";
             this.metrel_skip_btn.UseVisualStyleBackColor = true;
@@ -449,10 +451,10 @@ namespace ArtiluxEOL
             // metrel_break_btn
             // 
             this.metrel_break_btn.Enabled = false;
-            this.metrel_break_btn.Location = new System.Drawing.Point(1017, 586);
-            this.metrel_break_btn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.metrel_break_btn.Location = new System.Drawing.Point(763, 476);
+            this.metrel_break_btn.Margin = new System.Windows.Forms.Padding(2);
             this.metrel_break_btn.Name = "metrel_break_btn";
-            this.metrel_break_btn.Size = new System.Drawing.Size(131, 47);
+            this.metrel_break_btn.Size = new System.Drawing.Size(98, 38);
             this.metrel_break_btn.TabIndex = 7;
             this.metrel_break_btn.Text = "Break";
             this.metrel_break_btn.UseVisualStyleBackColor = true;
@@ -462,10 +464,10 @@ namespace ArtiluxEOL
             // Met_proceed_btn
             // 
             this.Met_proceed_btn.Enabled = false;
-            this.Met_proceed_btn.Location = new System.Drawing.Point(1017, 527);
-            this.Met_proceed_btn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.Met_proceed_btn.Location = new System.Drawing.Point(763, 428);
+            this.Met_proceed_btn.Margin = new System.Windows.Forms.Padding(2);
             this.Met_proceed_btn.Name = "Met_proceed_btn";
-            this.Met_proceed_btn.Size = new System.Drawing.Size(131, 47);
+            this.Met_proceed_btn.Size = new System.Drawing.Size(98, 38);
             this.Met_proceed_btn.TabIndex = 6;
             this.Met_proceed_btn.Text = "Proceed";
             this.Met_proceed_btn.UseVisualStyleBackColor = true;
@@ -475,10 +477,10 @@ namespace ArtiluxEOL
             // metrel_stop_btn
             // 
             this.metrel_stop_btn.Enabled = false;
-            this.metrel_stop_btn.Location = new System.Drawing.Point(1199, 591);
-            this.metrel_stop_btn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.metrel_stop_btn.Location = new System.Drawing.Point(899, 480);
+            this.metrel_stop_btn.Margin = new System.Windows.Forms.Padding(2);
             this.metrel_stop_btn.Name = "metrel_stop_btn";
-            this.metrel_stop_btn.Size = new System.Drawing.Size(91, 47);
+            this.metrel_stop_btn.Size = new System.Drawing.Size(68, 38);
             this.metrel_stop_btn.TabIndex = 5;
             this.metrel_stop_btn.Text = "Stop";
             this.metrel_stop_btn.UseVisualStyleBackColor = true;
@@ -488,10 +490,10 @@ namespace ArtiluxEOL
             // metrel_start_btn
             // 
             this.metrel_start_btn.Enabled = false;
-            this.metrel_start_btn.Location = new System.Drawing.Point(1199, 534);
-            this.metrel_start_btn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.metrel_start_btn.Location = new System.Drawing.Point(899, 434);
+            this.metrel_start_btn.Margin = new System.Windows.Forms.Padding(2);
             this.metrel_start_btn.Name = "metrel_start_btn";
-            this.metrel_start_btn.Size = new System.Drawing.Size(91, 47);
+            this.metrel_start_btn.Size = new System.Drawing.Size(68, 38);
             this.metrel_start_btn.TabIndex = 4;
             this.metrel_start_btn.Text = "Start";
             this.metrel_start_btn.UseVisualStyleBackColor = true;
@@ -501,10 +503,10 @@ namespace ArtiluxEOL
             // metrel_auto_btn
             // 
             this.metrel_auto_btn.Enabled = false;
-            this.metrel_auto_btn.Location = new System.Drawing.Point(791, 494);
-            this.metrel_auto_btn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.metrel_auto_btn.Location = new System.Drawing.Point(593, 401);
+            this.metrel_auto_btn.Margin = new System.Windows.Forms.Padding(2);
             this.metrel_auto_btn.Name = "metrel_auto_btn";
-            this.metrel_auto_btn.Size = new System.Drawing.Size(161, 95);
+            this.metrel_auto_btn.Size = new System.Drawing.Size(121, 77);
             this.metrel_auto_btn.TabIndex = 3;
             this.metrel_auto_btn.Text = "Metrel\r\nAUTO";
             this.metrel_auto_btn.UseVisualStyleBackColor = true;
@@ -514,10 +516,10 @@ namespace ArtiluxEOL
             // mtrelTest
             // 
             this.mtrelTest.Enabled = false;
-            this.mtrelTest.Location = new System.Drawing.Point(788, 610);
-            this.mtrelTest.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.mtrelTest.Location = new System.Drawing.Point(591, 496);
+            this.mtrelTest.Margin = new System.Windows.Forms.Padding(2);
             this.mtrelTest.Name = "mtrelTest";
-            this.mtrelTest.Size = new System.Drawing.Size(161, 95);
+            this.mtrelTest.Size = new System.Drawing.Size(121, 77);
             this.mtrelTest.TabIndex = 2;
             this.mtrelTest.Text = "Metrel\r\nSingle";
             this.mtrelTest.UseVisualStyleBackColor = true;
@@ -528,10 +530,10 @@ namespace ArtiluxEOL
             // 
             this.panel2.Controls.Add(this.label4);
             this.panel2.Controls.Add(this.label5);
-            this.panel2.Location = new System.Drawing.Point(55, 18);
-            this.panel2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.panel2.Location = new System.Drawing.Point(41, 15);
+            this.panel2.Margin = new System.Windows.Forms.Padding(2);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(269, 165);
+            this.panel2.Size = new System.Drawing.Size(202, 134);
             this.panel2.TabIndex = 1;
             // 
             // label4
@@ -539,9 +541,10 @@ namespace ArtiluxEOL
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.ForeColor = System.Drawing.Color.MediumSeaGreen;
-            this.label4.Location = new System.Drawing.Point(61, 71);
+            this.label4.Location = new System.Drawing.Point(46, 58);
+            this.label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(155, 35);
+            this.label4.Size = new System.Drawing.Size(122, 27);
             this.label4.TabIndex = 4;
             this.label4.Text = "PASIRUOŠĘS";
             // 
@@ -550,9 +553,10 @@ namespace ArtiluxEOL
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label5.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label5.Location = new System.Drawing.Point(41, 27);
+            this.label5.Location = new System.Drawing.Point(31, 22);
+            this.label5.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(187, 35);
+            this.label5.Size = new System.Drawing.Size(152, 27);
             this.label5.TabIndex = 3;
             this.label5.Text = "Įrangos būsena";
             // 
@@ -564,69 +568,70 @@ namespace ArtiluxEOL
             this.panel1.Controls.Add(this.lbl_vald);
             this.panel1.Controls.Add(this.lbl_hvgen);
             this.panel1.Controls.Add(this.lbl_osc);
-            this.panel1.Location = new System.Drawing.Point(8, 230);
-            this.panel1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.panel1.Location = new System.Drawing.Point(6, 187);
+            this.panel1.Margin = new System.Windows.Forms.Padding(2);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(369, 530);
+            this.panel1.Size = new System.Drawing.Size(277, 431);
             this.panel1.TabIndex = 0;
             // 
             // lbl_evse
             // 
             this.lbl_evse.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_evse.Location = new System.Drawing.Point(45, 369);
-            this.lbl_evse.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_evse.Location = new System.Drawing.Point(34, 300);
+            this.lbl_evse.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_evse.Name = "lbl_evse";
-            this.lbl_evse.Size = new System.Drawing.Size(235, 69);
+            this.lbl_evse.Size = new System.Drawing.Size(176, 56);
             this.lbl_evse.TabIndex = 9;
             this.lbl_evse.Text = "   EVSE Testas";
             // 
             // lbl_load
             // 
             this.lbl_load.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_load.Location = new System.Drawing.Point(43, 255);
-            this.lbl_load.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_load.Location = new System.Drawing.Point(32, 207);
+            this.lbl_load.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_load.Name = "lbl_load";
-            this.lbl_load.Size = new System.Drawing.Size(237, 69);
+            this.lbl_load.Size = new System.Drawing.Size(178, 56);
             this.lbl_load.TabIndex = 8;
             this.lbl_load.Text = "        Apkrova";
             // 
             // lbl_specrum
             // 
             this.lbl_specrum.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_specrum.Location = new System.Drawing.Point(43, 176);
-            this.lbl_specrum.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_specrum.Location = new System.Drawing.Point(32, 143);
+            this.lbl_specrum.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_specrum.Name = "lbl_specrum";
-            this.lbl_specrum.Size = new System.Drawing.Size(237, 69);
+            this.lbl_specrum.Size = new System.Drawing.Size(178, 56);
             this.lbl_specrum.TabIndex = 7;
             this.lbl_specrum.Text = "         Spektro \r\n    analizatorius";
             // 
             // lbl_vald
             // 
             this.lbl_vald.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_vald.Location = new System.Drawing.Point(43, 18);
+            this.lbl_vald.Location = new System.Drawing.Point(32, 15);
+            this.lbl_vald.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lbl_vald.Name = "lbl_vald";
-            this.lbl_vald.Size = new System.Drawing.Size(237, 69);
+            this.lbl_vald.Size = new System.Drawing.Size(178, 56);
             this.lbl_vald.TabIndex = 6;
             this.lbl_vald.Text = "        Valdiklis      ";
             // 
             // lbl_hvgen
             // 
             this.lbl_hvgen.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_hvgen.Location = new System.Drawing.Point(43, 97);
-            this.lbl_hvgen.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_hvgen.Location = new System.Drawing.Point(32, 79);
+            this.lbl_hvgen.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_hvgen.Name = "lbl_hvgen";
-            this.lbl_hvgen.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
-            this.lbl_hvgen.Size = new System.Drawing.Size(237, 69);
+            this.lbl_hvgen.Padding = new System.Windows.Forms.Padding(0, 4, 0, 0);
+            this.lbl_hvgen.Size = new System.Drawing.Size(178, 56);
             this.lbl_hvgen.TabIndex = 5;
             this.lbl_hvgen.Text = "            HV\r\n   Generatorius  ";
             // 
             // lbl_osc
             // 
             this.lbl_osc.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_osc.Location = new System.Drawing.Point(41, 448);
-            this.lbl_osc.Margin = new System.Windows.Forms.Padding(3, 10, 3, 0);
+            this.lbl_osc.Location = new System.Drawing.Point(31, 364);
+            this.lbl_osc.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_osc.Name = "lbl_osc";
-            this.lbl_osc.Size = new System.Drawing.Size(239, 69);
+            this.lbl_osc.Size = new System.Drawing.Size(179, 56);
             this.lbl_osc.TabIndex = 4;
             this.lbl_osc.Text = "   Osciloskopas";
             // 
@@ -636,10 +641,10 @@ namespace ArtiluxEOL
             this.tabPage2.Controls.Add(this.groupBox1);
             this.tabPage2.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tabPage2.Location = new System.Drawing.Point(4, 44);
-            this.tabPage2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tabPage2.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.tabPage2.Size = new System.Drawing.Size(1315, 766);
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage2.Size = new System.Drawing.Size(984, 613);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Nustatymai";
             // 
@@ -649,11 +654,11 @@ namespace ArtiluxEOL
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Location = new System.Drawing.Point(8, 23);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBox1.Location = new System.Drawing.Point(6, 19);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBox1.Size = new System.Drawing.Size(429, 350);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox1.Size = new System.Drawing.Size(322, 284);
             this.groupBox1.TabIndex = 4;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Darbo vieta";
@@ -661,10 +666,10 @@ namespace ArtiluxEOL
             // saveWplace
             // 
             this.saveWplace.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.saveWplace.Location = new System.Drawing.Point(223, 283);
-            this.saveWplace.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.saveWplace.Location = new System.Drawing.Point(167, 230);
+            this.saveWplace.Margin = new System.Windows.Forms.Padding(2);
             this.saveWplace.Name = "saveWplace";
-            this.saveWplace.Size = new System.Drawing.Size(123, 42);
+            this.saveWplace.Size = new System.Drawing.Size(92, 34);
             this.saveWplace.TabIndex = 5;
             this.saveWplace.Text = "Išsaugoti";
             this.saveWplace.UseVisualStyleBackColor = true;
@@ -673,27 +678,30 @@ namespace ArtiluxEOL
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(20, 54);
+            this.label1.Location = new System.Drawing.Point(15, 44);
+            this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(30, 32);
+            this.label1.Size = new System.Drawing.Size(24, 26);
             this.label1.TabIndex = 1;
             this.label1.Text = "1";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(20, 203);
+            this.label3.Location = new System.Drawing.Point(15, 165);
+            this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(30, 32);
+            this.label3.Size = new System.Drawing.Size(24, 26);
             this.label3.TabIndex = 3;
             this.label3.Text = "3";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(20, 124);
+            this.label2.Location = new System.Drawing.Point(15, 101);
+            this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(30, 32);
+            this.label2.Size = new System.Drawing.Size(24, 26);
             this.label2.TabIndex = 2;
             this.label2.Text = "2";
             // 
@@ -710,10 +718,10 @@ namespace ArtiluxEOL
             this.tabPage3.Controls.Add(this.groupBox_HVgen);
             this.tabPage3.Controls.Add(this.groupBox_Osc_USB);
             this.tabPage3.Location = new System.Drawing.Point(4, 44);
-            this.tabPage3.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tabPage3.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.tabPage3.Size = new System.Drawing.Size(1315, 766);
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage3.Size = new System.Drawing.Size(984, 613);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Įranga";
             // 
@@ -723,11 +731,11 @@ namespace ArtiluxEOL
             this.groupBox_Rfid.Controls.Add(this.label18);
             this.groupBox_Rfid.Controls.Add(this.label10);
             this.groupBox_Rfid.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox_Rfid.Location = new System.Drawing.Point(629, 516);
-            this.groupBox_Rfid.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBox_Rfid.Location = new System.Drawing.Point(472, 419);
+            this.groupBox_Rfid.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox_Rfid.Name = "groupBox_Rfid";
-            this.groupBox_Rfid.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBox_Rfid.Size = new System.Drawing.Size(589, 194);
+            this.groupBox_Rfid.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_Rfid.Size = new System.Drawing.Size(442, 158);
             this.groupBox_Rfid.TabIndex = 14;
             this.groupBox_Rfid.TabStop = false;
             this.groupBox_Rfid.Text = "Testavimo lizdai";
@@ -736,10 +744,10 @@ namespace ArtiluxEOL
             // 
             this.label19.AutoSize = true;
             this.label19.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label19.Location = new System.Drawing.Point(12, 154);
-            this.label19.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label19.Location = new System.Drawing.Point(9, 125);
+            this.label19.Margin = new System.Windows.Forms.Padding(2, 0, 2, 4);
             this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(81, 22);
+            this.label19.Size = new System.Drawing.Size(66, 18);
             this.label19.TabIndex = 4;
             this.label19.Text = "3  ADDR";
             // 
@@ -747,10 +755,10 @@ namespace ArtiluxEOL
             // 
             this.label18.AutoSize = true;
             this.label18.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label18.Location = new System.Drawing.Point(12, 103);
-            this.label18.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label18.Location = new System.Drawing.Point(9, 84);
+            this.label18.Margin = new System.Windows.Forms.Padding(2, 0, 2, 4);
             this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(81, 22);
+            this.label18.Size = new System.Drawing.Size(66, 18);
             this.label18.TabIndex = 3;
             this.label18.Text = "2  ADDR";
             // 
@@ -758,10 +766,10 @@ namespace ArtiluxEOL
             // 
             this.label10.AutoSize = true;
             this.label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label10.Location = new System.Drawing.Point(12, 60);
-            this.label10.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label10.Location = new System.Drawing.Point(9, 49);
+            this.label10.Margin = new System.Windows.Forms.Padding(2, 0, 2, 4);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(81, 22);
+            this.label10.Size = new System.Drawing.Size(66, 18);
             this.label10.TabIndex = 2;
             this.label10.Text = "1  ADDR";
             // 
@@ -771,11 +779,11 @@ namespace ArtiluxEOL
             this.groupBox_Barcode.Controls.Add(this.label11);
             this.groupBox_Barcode.Controls.Add(this.label9);
             this.groupBox_Barcode.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox_Barcode.Location = new System.Drawing.Point(27, 516);
-            this.groupBox_Barcode.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBox_Barcode.Location = new System.Drawing.Point(20, 419);
+            this.groupBox_Barcode.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox_Barcode.Name = "groupBox_Barcode";
-            this.groupBox_Barcode.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBox_Barcode.Size = new System.Drawing.Size(584, 194);
+            this.groupBox_Barcode.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_Barcode.Size = new System.Drawing.Size(438, 158);
             this.groupBox_Barcode.TabIndex = 13;
             this.groupBox_Barcode.TabStop = false;
             this.groupBox_Barcode.Text = " Skaitytuvai";
@@ -784,10 +792,10 @@ namespace ArtiluxEOL
             // 
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.Location = new System.Drawing.Point(12, 154);
-            this.label12.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label12.Location = new System.Drawing.Point(9, 125);
+            this.label12.Margin = new System.Windows.Forms.Padding(2, 0, 2, 4);
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(102, 22);
+            this.label12.Size = new System.Drawing.Size(83, 18);
             this.label12.TabIndex = 4;
             this.label12.Text = "3  IP:PORT";
             // 
@@ -795,10 +803,10 @@ namespace ArtiluxEOL
             // 
             this.label11.AutoSize = true;
             this.label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label11.Location = new System.Drawing.Point(12, 107);
-            this.label11.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label11.Location = new System.Drawing.Point(9, 87);
+            this.label11.Margin = new System.Windows.Forms.Padding(2, 0, 2, 4);
             this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(102, 22);
+            this.label11.Size = new System.Drawing.Size(83, 18);
             this.label11.TabIndex = 3;
             this.label11.Text = "2  IP:PORT";
             // 
@@ -806,20 +814,20 @@ namespace ArtiluxEOL
             // 
             this.label9.AutoSize = true;
             this.label9.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label9.Location = new System.Drawing.Point(12, 60);
-            this.label9.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label9.Location = new System.Drawing.Point(9, 49);
+            this.label9.Margin = new System.Windows.Forms.Padding(2, 0, 2, 4);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(102, 22);
+            this.label9.Size = new System.Drawing.Size(83, 18);
             this.label9.TabIndex = 2;
             this.label9.Text = "1  IP:PORT";
             // 
             // save_ip
             // 
             this.save_ip.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.save_ip.Location = new System.Drawing.Point(1041, 378);
-            this.save_ip.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.save_ip.Location = new System.Drawing.Point(781, 307);
+            this.save_ip.Margin = new System.Windows.Forms.Padding(2);
             this.save_ip.Name = "save_ip";
-            this.save_ip.Size = new System.Drawing.Size(147, 44);
+            this.save_ip.Size = new System.Drawing.Size(110, 36);
             this.save_ip.TabIndex = 12;
             this.save_ip.Text = "Išsaugoti";
             this.save_ip.UseVisualStyleBackColor = true;
@@ -829,11 +837,11 @@ namespace ArtiluxEOL
             // 
             this.groupBox_Metrel_USB.Controls.Add(this.label16);
             this.groupBox_Metrel_USB.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox_Metrel_USB.Location = new System.Drawing.Point(629, 31);
-            this.groupBox_Metrel_USB.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBox_Metrel_USB.Location = new System.Drawing.Point(472, 25);
+            this.groupBox_Metrel_USB.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox_Metrel_USB.Name = "groupBox_Metrel_USB";
-            this.groupBox_Metrel_USB.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBox_Metrel_USB.Size = new System.Drawing.Size(589, 110);
+            this.groupBox_Metrel_USB.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_Metrel_USB.Size = new System.Drawing.Size(442, 89);
             this.groupBox_Metrel_USB.TabIndex = 7;
             this.groupBox_Metrel_USB.TabStop = false;
             this.groupBox_Metrel_USB.Text = "EVSE (Metrel)";
@@ -842,10 +850,10 @@ namespace ArtiluxEOL
             // 
             this.label16.AutoSize = true;
             this.label16.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label16.Location = new System.Drawing.Point(19, 60);
-            this.label16.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label16.Location = new System.Drawing.Point(14, 49);
+            this.label16.Margin = new System.Windows.Forms.Padding(2, 0, 2, 4);
             this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(94, 22);
+            this.label16.Size = new System.Drawing.Size(79, 18);
             this.label16.TabIndex = 2;
             this.label16.Text = "ID_WORD";
             // 
@@ -853,11 +861,11 @@ namespace ArtiluxEOL
             // 
             this.groupBox_Valdiklis.Controls.Add(this.label8);
             this.groupBox_Valdiklis.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox_Valdiklis.Location = new System.Drawing.Point(27, 31);
-            this.groupBox_Valdiklis.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBox_Valdiklis.Location = new System.Drawing.Point(20, 25);
+            this.groupBox_Valdiklis.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox_Valdiklis.Name = "groupBox_Valdiklis";
-            this.groupBox_Valdiklis.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBox_Valdiklis.Size = new System.Drawing.Size(584, 110);
+            this.groupBox_Valdiklis.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_Valdiklis.Size = new System.Drawing.Size(438, 89);
             this.groupBox_Valdiklis.TabIndex = 11;
             this.groupBox_Valdiklis.TabStop = false;
             this.groupBox_Valdiklis.Text = "Valdiklis";
@@ -866,10 +874,10 @@ namespace ArtiluxEOL
             // 
             this.label8.AutoSize = true;
             this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label8.Location = new System.Drawing.Point(12, 60);
-            this.label8.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label8.Location = new System.Drawing.Point(9, 49);
+            this.label8.Margin = new System.Windows.Forms.Padding(2, 0, 2, 4);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(82, 22);
+            this.label8.Size = new System.Drawing.Size(67, 18);
             this.label8.TabIndex = 0;
             this.label8.Text = "IP:PORT";
             // 
@@ -877,11 +885,11 @@ namespace ArtiluxEOL
             // 
             this.groupBox_Load.Controls.Add(this.label13);
             this.groupBox_Load.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox_Load.Location = new System.Drawing.Point(27, 386);
-            this.groupBox_Load.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBox_Load.Location = new System.Drawing.Point(20, 314);
+            this.groupBox_Load.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox_Load.Name = "groupBox_Load";
-            this.groupBox_Load.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBox_Load.Size = new System.Drawing.Size(584, 110);
+            this.groupBox_Load.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_Load.Size = new System.Drawing.Size(438, 89);
             this.groupBox_Load.TabIndex = 10;
             this.groupBox_Load.TabStop = false;
             this.groupBox_Load.Text = " AC apkrova";
@@ -890,10 +898,10 @@ namespace ArtiluxEOL
             // 
             this.label13.AutoSize = true;
             this.label13.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label13.Location = new System.Drawing.Point(12, 60);
-            this.label13.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label13.Location = new System.Drawing.Point(9, 49);
+            this.label13.Margin = new System.Windows.Forms.Padding(2, 0, 2, 4);
             this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(82, 22);
+            this.label13.Size = new System.Drawing.Size(67, 18);
             this.label13.TabIndex = 2;
             this.label13.Text = "IP:PORT";
             // 
@@ -901,11 +909,11 @@ namespace ArtiluxEOL
             // 
             this.groupBox_Spectr.Controls.Add(this.label14);
             this.groupBox_Spectr.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox_Spectr.Location = new System.Drawing.Point(27, 263);
-            this.groupBox_Spectr.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBox_Spectr.Location = new System.Drawing.Point(20, 214);
+            this.groupBox_Spectr.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox_Spectr.Name = "groupBox_Spectr";
-            this.groupBox_Spectr.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBox_Spectr.Size = new System.Drawing.Size(584, 106);
+            this.groupBox_Spectr.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_Spectr.Size = new System.Drawing.Size(438, 86);
             this.groupBox_Spectr.TabIndex = 9;
             this.groupBox_Spectr.TabStop = false;
             this.groupBox_Spectr.Text = "Spektro analizatorius";
@@ -914,10 +922,10 @@ namespace ArtiluxEOL
             // 
             this.label14.AutoSize = true;
             this.label14.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label14.Location = new System.Drawing.Point(12, 60);
-            this.label14.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label14.Location = new System.Drawing.Point(9, 49);
+            this.label14.Margin = new System.Windows.Forms.Padding(2, 0, 2, 4);
             this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(82, 22);
+            this.label14.Size = new System.Drawing.Size(67, 18);
             this.label14.TabIndex = 2;
             this.label14.Text = "IP:PORT";
             // 
@@ -925,11 +933,11 @@ namespace ArtiluxEOL
             // 
             this.groupBox_HVgen.Controls.Add(this.label15);
             this.groupBox_HVgen.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox_HVgen.Location = new System.Drawing.Point(27, 146);
-            this.groupBox_HVgen.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBox_HVgen.Location = new System.Drawing.Point(20, 119);
+            this.groupBox_HVgen.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox_HVgen.Name = "groupBox_HVgen";
-            this.groupBox_HVgen.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBox_HVgen.Size = new System.Drawing.Size(584, 111);
+            this.groupBox_HVgen.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_HVgen.Size = new System.Drawing.Size(438, 90);
             this.groupBox_HVgen.TabIndex = 8;
             this.groupBox_HVgen.TabStop = false;
             this.groupBox_HVgen.Text = "HV generatorius";
@@ -938,10 +946,10 @@ namespace ArtiluxEOL
             // 
             this.label15.AutoSize = true;
             this.label15.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label15.Location = new System.Drawing.Point(12, 60);
-            this.label15.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label15.Location = new System.Drawing.Point(9, 49);
+            this.label15.Margin = new System.Windows.Forms.Padding(2, 0, 2, 4);
             this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(82, 22);
+            this.label15.Size = new System.Drawing.Size(67, 18);
             this.label15.TabIndex = 2;
             this.label15.Text = "IP:PORT";
             // 
@@ -949,11 +957,11 @@ namespace ArtiluxEOL
             // 
             this.groupBox_Osc_USB.Controls.Add(this.label17);
             this.groupBox_Osc_USB.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox_Osc_USB.Location = new System.Drawing.Point(629, 146);
-            this.groupBox_Osc_USB.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBox_Osc_USB.Location = new System.Drawing.Point(472, 119);
+            this.groupBox_Osc_USB.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox_Osc_USB.Name = "groupBox_Osc_USB";
-            this.groupBox_Osc_USB.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBox_Osc_USB.Size = new System.Drawing.Size(589, 111);
+            this.groupBox_Osc_USB.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_Osc_USB.Size = new System.Drawing.Size(442, 90);
             this.groupBox_Osc_USB.TabIndex = 6;
             this.groupBox_Osc_USB.TabStop = false;
             this.groupBox_Osc_USB.Text = "Osciloskopas";
@@ -962,10 +970,10 @@ namespace ArtiluxEOL
             // 
             this.label17.AutoSize = true;
             this.label17.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label17.Location = new System.Drawing.Point(19, 60);
-            this.label17.Margin = new System.Windows.Forms.Padding(3, 0, 3, 5);
+            this.label17.Location = new System.Drawing.Point(14, 49);
+            this.label17.Margin = new System.Windows.Forms.Padding(2, 0, 2, 4);
             this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(94, 22);
+            this.label17.Size = new System.Drawing.Size(79, 18);
             this.label17.TabIndex = 2;
             this.label17.Text = "ID_WORD";
             // 
@@ -973,10 +981,10 @@ namespace ArtiluxEOL
             // 
             this.tabPage4.Controls.Add(this.tabControl2);
             this.tabPage4.Location = new System.Drawing.Point(4, 44);
-            this.tabPage4.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tabPage4.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.tabPage4.Size = new System.Drawing.Size(1315, 766);
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage4.Size = new System.Drawing.Size(984, 613);
             this.tabPage4.TabIndex = 4;
             this.tabPage4.Text = "Valdymas";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -988,11 +996,11 @@ namespace ArtiluxEOL
             this.tabControl2.Controls.Add(this.tabPage6);
             this.tabControl2.Controls.Add(this.tabPage8);
             this.tabControl2.Controls.Add(this.tabPage9);
-            this.tabControl2.Location = new System.Drawing.Point(8, 25);
-            this.tabControl2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tabControl2.Location = new System.Drawing.Point(6, 20);
+            this.tabControl2.Margin = new System.Windows.Forms.Padding(2);
             this.tabControl2.Name = "tabControl2";
             this.tabControl2.SelectedIndex = 0;
-            this.tabControl2.Size = new System.Drawing.Size(1300, 697);
+            this.tabControl2.Size = new System.Drawing.Size(975, 566);
             this.tabControl2.TabIndex = 0;
             this.tabControl2.SelectedIndexChanged += new System.EventHandler(this.tabControl2_SelectedIndexChanged);
             // 
@@ -1000,16 +1008,62 @@ namespace ArtiluxEOL
             // 
             this.tabPage5.Controls.Add(this.groupBox_evse_state);
             this.tabPage5.Controls.Add(this.groupBox_main_relay);
+            this.tabPage5.Controls.Add(this.groupBox_pp_select);
+            this.tabPage5.Controls.Add(this.groupBox_checks);
             this.tabPage5.Controls.Add(this.data_grid_main_board);
             this.tabPage5.Controls.Add(this.button1);
-            this.tabPage5.Location = new System.Drawing.Point(4, 38);
-            this.tabPage5.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tabPage5.Location = new System.Drawing.Point(4, 31);
+            this.tabPage5.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.tabPage5.Size = new System.Drawing.Size(1292, 655);
+            this.tabPage5.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage5.Size = new System.Drawing.Size(967, 531);
             this.tabPage5.TabIndex = 0;
             this.tabPage5.Text = "  CONTROL_BOARD  ";
             this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // groupBox_evse_state
+            // 
+            this.groupBox_evse_state.Location = new System.Drawing.Point(32, 100);
+            this.groupBox_evse_state.Margin = new System.Windows.Forms.Padding(2);
+            this.groupBox_evse_state.Name = "groupBox_evse_state";
+            this.groupBox_evse_state.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_evse_state.Size = new System.Drawing.Size(888, 60);
+            this.groupBox_evse_state.TabIndex = 3;
+            this.groupBox_evse_state.TabStop = false;
+            this.groupBox_evse_state.Text = "EV_MODE";
+            // 
+            // groupBox_checks
+            // 
+            this.groupBox_checks.Location = new System.Drawing.Point(32, 22);
+            this.groupBox_checks.Margin = new System.Windows.Forms.Padding(2);
+            this.groupBox_checks.Name = "groupBox_checks";
+            this.groupBox_checks.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_checks.Size = new System.Drawing.Size(888, 60);
+            this.groupBox_checks.TabIndex = 3;
+            this.groupBox_checks.TabStop = false;
+            this.groupBox_checks.Text = "CHECKS";
+            // 
+            // groupBox_main_relay
+            // 
+            this.groupBox_main_relay.Location = new System.Drawing.Point(32, 256);
+            this.groupBox_main_relay.Margin = new System.Windows.Forms.Padding(2);
+            this.groupBox_main_relay.Name = "groupBox_main_relay";
+            this.groupBox_main_relay.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_main_relay.Size = new System.Drawing.Size(888, 60);
+            this.groupBox_main_relay.TabIndex = 2;
+            this.groupBox_main_relay.TabStop = false;
+            this.groupBox_main_relay.Text = "PWR";
+            // 
+            // groupBox_pp_select
+            // 
+            this.groupBox_pp_select.Location = new System.Drawing.Point(32, 178);
+            this.groupBox_pp_select.Margin = new System.Windows.Forms.Padding(2);
+            this.groupBox_pp_select.Name = "groupBox_pp_select";
+            this.groupBox_pp_select.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_pp_select.Size = new System.Drawing.Size(888, 60);
+            this.groupBox_pp_select.TabIndex = 2;
+            this.groupBox_pp_select.TabStop = false;
+            this.groupBox_pp_select.Text = "POWER";
             // 
             // data_grid_main_board
             // 
@@ -1019,11 +1073,11 @@ namespace ArtiluxEOL
             this.Column23,
             this.Column24,
             this.Column25});
-            this.data_grid_main_board.Location = new System.Drawing.Point(43, 296);
-            this.data_grid_main_board.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.data_grid_main_board.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
+            this.data_grid_main_board.Location = new System.Drawing.Point(32, 376);
             this.data_grid_main_board.Name = "data_grid_main_board";
             this.data_grid_main_board.RowHeadersWidth = 51;
-            this.data_grid_main_board.Size = new System.Drawing.Size(933, 185);
+            this.data_grid_main_board.Size = new System.Drawing.Size(700, 150);
             this.data_grid_main_board.TabIndex = 1;
             this.data_grid_main_board.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGrid_main_board_click);
             // 
@@ -1036,7 +1090,7 @@ namespace ArtiluxEOL
             // 
             // Column23
             // 
-            this.Column23.HeaderText = "Value";
+            this.Column23.HeaderText = "State";
             this.Column23.MinimumWidth = 6;
             this.Column23.Name = "Column23";
             this.Column23.Width = 125;
@@ -1061,10 +1115,9 @@ namespace ArtiluxEOL
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(1061, 535);
-            this.button1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button1.Location = new System.Drawing.Point(796, 435);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(188, 112);
+            this.button1.Size = new System.Drawing.Size(141, 91);
             this.button1.TabIndex = 0;
             this.button1.Text = "button1";
             this.button1.UseVisualStyleBackColor = true;
@@ -1076,20 +1129,20 @@ namespace ArtiluxEOL
             this.tabPage7.Controls.Add(this.button5);
             this.tabPage7.Controls.Add(this.dataGrid_HV_result);
             this.tabPage7.Controls.Add(this.dataGrid_HV_test);
-            this.tabPage7.Location = new System.Drawing.Point(4, 38);
-            this.tabPage7.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tabPage7.Location = new System.Drawing.Point(4, 31);
+            this.tabPage7.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage7.Name = "tabPage7";
-            this.tabPage7.Size = new System.Drawing.Size(1292, 655);
+            this.tabPage7.Size = new System.Drawing.Size(967, 531);
             this.tabPage7.TabIndex = 2;
             this.tabPage7.Text = "  HV_GEN  ";
             this.tabPage7.UseVisualStyleBackColor = true;
             // 
             // btn_stop
             // 
-            this.btn_stop.Location = new System.Drawing.Point(877, 270);
-            this.btn_stop.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.btn_stop.Location = new System.Drawing.Point(658, 219);
+            this.btn_stop.Margin = new System.Windows.Forms.Padding(2);
             this.btn_stop.Name = "btn_stop";
-            this.btn_stop.Size = new System.Drawing.Size(164, 42);
+            this.btn_stop.Size = new System.Drawing.Size(123, 34);
             this.btn_stop.TabIndex = 4;
             this.btn_stop.Text = "STOP";
             this.btn_stop.UseVisualStyleBackColor = true;
@@ -1097,10 +1150,10 @@ namespace ArtiluxEOL
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(709, 270);
-            this.button5.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.button5.Location = new System.Drawing.Point(532, 219);
+            this.button5.Margin = new System.Windows.Forms.Padding(2);
             this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(139, 42);
+            this.button5.Size = new System.Drawing.Size(104, 34);
             this.button5.TabIndex = 3;
             this.button5.Text = "get_res";
             this.button5.UseVisualStyleBackColor = true;
@@ -1118,22 +1171,22 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn4,
             this.dataGridViewTextBoxColumn5,
             this.dataGridViewTextBoxColumn6});
-            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle9.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle9.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle9.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle9.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle9.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle9.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle9.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGrid_HV_result.DefaultCellStyle = dataGridViewCellStyle9;
-            this.dataGrid_HV_result.Location = new System.Drawing.Point(3, 332);
-            this.dataGrid_HV_result.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGrid_HV_result.DefaultCellStyle = dataGridViewCellStyle1;
+            this.dataGrid_HV_result.Location = new System.Drawing.Point(2, 270);
+            this.dataGrid_HV_result.Margin = new System.Windows.Forms.Padding(2);
             this.dataGrid_HV_result.Name = "dataGrid_HV_result";
             this.dataGrid_HV_result.RowHeadersVisible = false;
             this.dataGrid_HV_result.RowHeadersWidth = 51;
             this.dataGrid_HV_result.RowTemplate.Height = 24;
-            this.dataGrid_HV_result.Size = new System.Drawing.Size(1063, 170);
+            this.dataGrid_HV_result.Size = new System.Drawing.Size(797, 138);
             this.dataGrid_HV_result.TabIndex = 2;
             // 
             // Column10
@@ -1142,7 +1195,7 @@ namespace ArtiluxEOL
             this.Column10.HeaderText = "DATE";
             this.Column10.MinimumWidth = 6;
             this.Column10.Name = "Column10";
-            this.Column10.Width = 116;
+            this.Column10.Width = 96;
             // 
             // Column9
             // 
@@ -1150,7 +1203,7 @@ namespace ArtiluxEOL
             this.Column9.HeaderText = "TEST";
             this.Column9.MinimumWidth = 6;
             this.Column9.Name = "Column9";
-            this.Column9.Width = 116;
+            this.Column9.Width = 94;
             // 
             // dataGridViewButtonColumn1
             // 
@@ -1160,7 +1213,7 @@ namespace ArtiluxEOL
             this.dataGridViewButtonColumn1.MinimumWidth = 6;
             this.dataGridViewButtonColumn1.Name = "dataGridViewButtonColumn1";
             this.dataGridViewButtonColumn1.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridViewButtonColumn1.Width = 147;
+            this.dataGridViewButtonColumn1.Width = 118;
             // 
             // dataGridViewTextBoxColumn4
             // 
@@ -1168,7 +1221,7 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn4.HeaderText = "PARAM1";
             this.dataGridViewTextBoxColumn4.MinimumWidth = 6;
             this.dataGridViewTextBoxColumn4.Name = "dataGridViewTextBoxColumn4";
-            this.dataGridViewTextBoxColumn4.Width = 148;
+            this.dataGridViewTextBoxColumn4.Width = 122;
             // 
             // dataGridViewTextBoxColumn5
             // 
@@ -1176,7 +1229,7 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn5.HeaderText = "PARAM2";
             this.dataGridViewTextBoxColumn5.MinimumWidth = 6;
             this.dataGridViewTextBoxColumn5.Name = "dataGridViewTextBoxColumn5";
-            this.dataGridViewTextBoxColumn5.Width = 148;
+            this.dataGridViewTextBoxColumn5.Width = 122;
             // 
             // dataGridViewTextBoxColumn6
             // 
@@ -1184,13 +1237,13 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn6.HeaderText = "TIME";
             this.dataGridViewTextBoxColumn6.MinimumWidth = 6;
             this.dataGridViewTextBoxColumn6.Name = "dataGridViewTextBoxColumn6";
-            this.dataGridViewTextBoxColumn6.Width = 110;
+            this.dataGridViewTextBoxColumn6.Width = 90;
             // 
             // dataGrid_HV_test
             // 
             this.dataGrid_HV_test.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle10.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_HV_test.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle10;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_HV_test.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle2;
             this.dataGrid_HV_test.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_HV_test.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_HV_test.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1205,16 +1258,16 @@ namespace ArtiluxEOL
             this.Column1,
             this.Column4,
             this.Column5});
-            this.dataGrid_HV_test.Location = new System.Drawing.Point(3, 15);
-            this.dataGrid_HV_test.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.dataGrid_HV_test.Location = new System.Drawing.Point(2, 12);
+            this.dataGrid_HV_test.Margin = new System.Windows.Forms.Padding(2);
             this.dataGrid_HV_test.Name = "dataGrid_HV_test";
             this.dataGrid_HV_test.RowHeadersVisible = false;
             this.dataGrid_HV_test.RowHeadersWidth = 51;
-            dataGridViewCellStyle11.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_HV_test.RowsDefaultCellStyle = dataGridViewCellStyle11;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_HV_test.RowsDefaultCellStyle = dataGridViewCellStyle3;
             this.dataGrid_HV_test.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_HV_test.RowTemplate.Height = 35;
-            this.dataGrid_HV_test.Size = new System.Drawing.Size(1063, 231);
+            this.dataGrid_HV_test.Size = new System.Drawing.Size(797, 188);
             this.dataGrid_HV_test.TabIndex = 1;
             this.dataGrid_HV_test.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
             this.dataGrid_HV_test.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGrid_HV_test_CellValueChanged);
@@ -1226,7 +1279,6 @@ namespace ArtiluxEOL
             this.Column6.MinimumWidth = 6;
             this.Column6.Name = "Column6";
             this.Column6.Visible = false;
-            this.Column6.Width = 125;
             // 
             // Column0
             // 
@@ -1236,7 +1288,7 @@ namespace ArtiluxEOL
             this.Column0.Name = "Column0";
             this.Column0.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.Column0.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.Column0.Width = 106;
+            this.Column0.Width = 84;
             // 
             // Column8
             // 
@@ -1247,7 +1299,7 @@ namespace ArtiluxEOL
             this.Column8.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.Column8.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             this.Column8.UseColumnTextForButtonValue = true;
-            this.Column8.Width = 92;
+            this.Column8.Width = 74;
             // 
             // Column7
             // 
@@ -1255,7 +1307,7 @@ namespace ArtiluxEOL
             this.Column7.HeaderText = "SET";
             this.Column7.MinimumWidth = 6;
             this.Column7.Name = "Column7";
-            this.Column7.Width = 67;
+            this.Column7.Width = 53;
             // 
             // Column2
             // 
@@ -1263,7 +1315,7 @@ namespace ArtiluxEOL
             this.Column2.HeaderText = "V, kV";
             this.Column2.MinimumWidth = 6;
             this.Column2.Name = "Column2";
-            this.Column2.Width = 96;
+            this.Column2.Width = 80;
             // 
             // Column3
             // 
@@ -1271,7 +1323,7 @@ namespace ArtiluxEOL
             this.Column3.HeaderText = "HI SET";
             this.Column3.MinimumWidth = 6;
             this.Column3.Name = "Column3";
-            this.Column3.Width = 119;
+            this.Column3.Width = 95;
             // 
             // Column1
             // 
@@ -1279,7 +1331,7 @@ namespace ArtiluxEOL
             this.Column1.HeaderText = "LO SET";
             this.Column1.MinimumWidth = 6;
             this.Column1.Name = "Column1";
-            this.Column1.Width = 128;
+            this.Column1.Width = 102;
             // 
             // Column4
             // 
@@ -1287,7 +1339,7 @@ namespace ArtiluxEOL
             this.Column4.HeaderText = "REF";
             this.Column4.MinimumWidth = 6;
             this.Column4.Name = "Column4";
-            this.Column4.Width = 90;
+            this.Column4.Width = 73;
             // 
             // Column5
             // 
@@ -1295,17 +1347,18 @@ namespace ArtiluxEOL
             this.Column5.HeaderText = "TIME";
             this.Column5.MinimumWidth = 6;
             this.Column5.Name = "Column5";
+            this.Column5.Width = 80;
             // 
             // tabPage6
             // 
             this.tabPage6.Controls.Add(this.dataGrid_Spectrum);
             this.tabPage6.Controls.Add(this.button7);
             this.tabPage6.Controls.Add(this.chart1);
-            this.tabPage6.Location = new System.Drawing.Point(4, 38);
-            this.tabPage6.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tabPage6.Location = new System.Drawing.Point(4, 31);
+            this.tabPage6.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage6.Name = "tabPage6";
-            this.tabPage6.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.tabPage6.Size = new System.Drawing.Size(1292, 655);
+            this.tabPage6.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage6.Size = new System.Drawing.Size(967, 531);
             this.tabPage6.TabIndex = 1;
             this.tabPage6.Text = "  SPECTRUM  ";
             this.tabPage6.UseVisualStyleBackColor = true;
@@ -1316,25 +1369,25 @@ namespace ArtiluxEOL
             this.dataGrid_Spectrum.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Spectrum.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.dataGrid_Spectrum.BackgroundColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle12.BackColor = System.Drawing.SystemColors.ActiveBorder;
-            dataGridViewCellStyle12.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle12.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle12.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle12.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle12.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGrid_Spectrum.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle12;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGrid_Spectrum.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dataGrid_Spectrum.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGrid_Spectrum.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Column18,
             this.Column19});
-            this.dataGrid_Spectrum.Location = new System.Drawing.Point(767, 31);
-            this.dataGrid_Spectrum.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.dataGrid_Spectrum.Location = new System.Drawing.Point(575, 25);
+            this.dataGrid_Spectrum.Margin = new System.Windows.Forms.Padding(2);
             this.dataGrid_Spectrum.Name = "dataGrid_Spectrum";
             this.dataGrid_Spectrum.RowHeadersVisible = false;
             this.dataGrid_Spectrum.RowHeadersWidth = 51;
             this.dataGrid_Spectrum.RowTemplate.Height = 24;
-            this.dataGrid_Spectrum.Size = new System.Drawing.Size(356, 432);
+            this.dataGrid_Spectrum.Size = new System.Drawing.Size(267, 351);
             this.dataGrid_Spectrum.TabIndex = 5;
             // 
             // Column18
@@ -1342,21 +1395,21 @@ namespace ArtiluxEOL
             this.Column18.HeaderText = "PARAM";
             this.Column18.MinimumWidth = 6;
             this.Column18.Name = "Column18";
-            this.Column18.Width = 125;
+            this.Column18.Width = 102;
             // 
             // Column19
             // 
             this.Column19.HeaderText = "VALUE";
             this.Column19.MinimumWidth = 6;
             this.Column19.Name = "Column19";
-            this.Column19.Width = 118;
+            this.Column19.Width = 97;
             // 
             // button7
             // 
-            this.button7.Location = new System.Drawing.Point(9, 462);
-            this.button7.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.button7.Location = new System.Drawing.Point(7, 375);
+            this.button7.Margin = new System.Windows.Forms.Padding(2);
             this.button7.Name = "button7";
-            this.button7.Size = new System.Drawing.Size(149, 73);
+            this.button7.Size = new System.Drawing.Size(112, 59);
             this.button7.TabIndex = 1;
             this.button7.Text = "GET DATA";
             this.button7.UseVisualStyleBackColor = true;
@@ -1364,19 +1417,19 @@ namespace ArtiluxEOL
             // 
             // chart1
             // 
-            chartArea2.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea2);
-            legend2.Name = "Legend1";
-            this.chart1.Legends.Add(legend2);
-            this.chart1.Location = new System.Drawing.Point(7, 7);
-            this.chart1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            chartArea1.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea1);
+            legend1.Name = "Legend1";
+            this.chart1.Legends.Add(legend1);
+            this.chart1.Location = new System.Drawing.Point(5, 6);
+            this.chart1.Margin = new System.Windows.Forms.Padding(2);
             this.chart1.Name = "chart1";
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series2.Legend = "Legend1";
-            series2.Name = "Series1";
-            this.chart1.Series.Add(series2);
-            this.chart1.Size = new System.Drawing.Size(751, 455);
+            series1.ChartArea = "ChartArea1";
+            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series1.Legend = "Legend1";
+            series1.Name = "Series1";
+            this.chart1.Series.Add(series1);
+            this.chart1.Size = new System.Drawing.Size(563, 370);
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart1";
             // 
@@ -1387,20 +1440,20 @@ namespace ArtiluxEOL
             this.tabPage8.Controls.Add(this.label6);
             this.tabPage8.Controls.Add(this.dataGrid_Load_Line);
             this.tabPage8.Controls.Add(this.dataGrid_Load_load);
-            this.tabPage8.Location = new System.Drawing.Point(4, 38);
-            this.tabPage8.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tabPage8.Location = new System.Drawing.Point(4, 31);
+            this.tabPage8.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage8.Name = "tabPage8";
-            this.tabPage8.Size = new System.Drawing.Size(1292, 655);
+            this.tabPage8.Size = new System.Drawing.Size(967, 531);
             this.tabPage8.TabIndex = 3;
             this.tabPage8.Text = "  Load  ";
             this.tabPage8.UseVisualStyleBackColor = true;
             // 
             // button6
             // 
-            this.button6.Location = new System.Drawing.Point(913, 290);
-            this.button6.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.button6.Location = new System.Drawing.Point(685, 236);
+            this.button6.Margin = new System.Windows.Forms.Padding(2);
             this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(139, 50);
+            this.button6.Size = new System.Drawing.Size(104, 41);
             this.button6.TabIndex = 6;
             this.button6.Text = "GET";
             this.button6.UseVisualStyleBackColor = true;
@@ -1410,9 +1463,10 @@ namespace ArtiluxEOL
             // 
             this.label7.AutoSize = true;
             this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(3, 290);
+            this.label7.Location = new System.Drawing.Point(2, 236);
+            this.label7.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(76, 32);
+            this.label7.Size = new System.Drawing.Size(61, 26);
             this.label7.TabIndex = 5;
             this.label7.Text = "LINE";
             // 
@@ -1420,17 +1474,18 @@ namespace ArtiluxEOL
             // 
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(3, 18);
+            this.label6.Location = new System.Drawing.Point(2, 15);
+            this.label6.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(91, 32);
+            this.label6.Size = new System.Drawing.Size(72, 26);
             this.label6.TabIndex = 4;
             this.label6.Text = "LOAD";
             // 
             // dataGrid_Load_Line
             // 
             this.dataGrid_Load_Line.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle13.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_Line.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle13;
+            dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_Line.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle5;
             this.dataGrid_Load_Line.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Load_Line.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_Load_Line.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1442,16 +1497,16 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn9,
             this.Column12,
             this.dataGridViewTextBoxColumn2});
-            this.dataGrid_Load_Line.Location = new System.Drawing.Point(3, 325);
-            this.dataGrid_Load_Line.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.dataGrid_Load_Line.Location = new System.Drawing.Point(2, 264);
+            this.dataGrid_Load_Line.Margin = new System.Windows.Forms.Padding(2);
             this.dataGrid_Load_Line.Name = "dataGrid_Load_Line";
             this.dataGrid_Load_Line.RowHeadersVisible = false;
             this.dataGrid_Load_Line.RowHeadersWidth = 51;
-            dataGridViewCellStyle14.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_Line.RowsDefaultCellStyle = dataGridViewCellStyle14;
+            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_Line.RowsDefaultCellStyle = dataGridViewCellStyle6;
             this.dataGrid_Load_Line.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_Load_Line.RowTemplate.Height = 35;
-            this.dataGrid_Load_Line.Size = new System.Drawing.Size(591, 210);
+            this.dataGrid_Load_Line.Size = new System.Drawing.Size(443, 171);
             this.dataGrid_Load_Line.TabIndex = 3;
             // 
             // Column17
@@ -1459,7 +1514,7 @@ namespace ArtiluxEOL
             this.Column17.HeaderText = "PHASE";
             this.Column17.MinimumWidth = 6;
             this.Column17.Name = "Column17";
-            this.Column17.Width = 122;
+            this.Column17.Width = 99;
             // 
             // dataGridViewTextBoxColumn7
             // 
@@ -1468,7 +1523,7 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn7.MinimumWidth = 6;
             this.dataGridViewTextBoxColumn7.Name = "dataGridViewTextBoxColumn7";
             this.dataGridViewTextBoxColumn7.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridViewTextBoxColumn7.Width = 59;
+            this.dataGridViewTextBoxColumn7.Width = 48;
             // 
             // dataGridViewTextBoxColumn8
             // 
@@ -1477,7 +1532,7 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn8.MinimumWidth = 6;
             this.dataGridViewTextBoxColumn8.Name = "dataGridViewTextBoxColumn8";
             this.dataGridViewTextBoxColumn8.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridViewTextBoxColumn8.Width = 48;
+            this.dataGridViewTextBoxColumn8.Width = 39;
             // 
             // dataGridViewTextBoxColumn9
             // 
@@ -1487,14 +1542,14 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn9.Name = "dataGridViewTextBoxColumn9";
             this.dataGridViewTextBoxColumn9.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.dataGridViewTextBoxColumn9.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.dataGridViewTextBoxColumn9.Width = 35;
+            this.dataGridViewTextBoxColumn9.Width = 28;
             // 
             // Column12
             // 
             this.Column12.HeaderText = "POWER";
             this.Column12.MinimumWidth = 6;
             this.Column12.Name = "Column12";
-            this.Column12.Width = 132;
+            this.Column12.Width = 106;
             // 
             // dataGridViewTextBoxColumn2
             // 
@@ -1502,13 +1557,13 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn2.HeaderText = "-----------";
             this.dataGridViewTextBoxColumn2.MinimumWidth = 6;
             this.dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
-            this.dataGridViewTextBoxColumn2.Width = 130;
+            this.dataGridViewTextBoxColumn2.Width = 101;
             // 
             // dataGrid_Load_load
             // 
             this.dataGrid_Load_load.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle15.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_load.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle15;
+            dataGridViewCellStyle7.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_load.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle7;
             this.dataGrid_Load_load.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Load_load.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_Load_load.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1522,16 +1577,16 @@ namespace ArtiluxEOL
             this.Column13,
             this.dataGridViewTextBoxColumn3,
             this.dataGridViewTextBoxColumn1});
-            this.dataGrid_Load_load.Location = new System.Drawing.Point(3, 58);
-            this.dataGrid_Load_load.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.dataGrid_Load_load.Location = new System.Drawing.Point(2, 47);
+            this.dataGrid_Load_load.Margin = new System.Windows.Forms.Padding(2);
             this.dataGrid_Load_load.Name = "dataGrid_Load_load";
             this.dataGrid_Load_load.RowHeadersVisible = false;
             this.dataGrid_Load_load.RowHeadersWidth = 51;
-            dataGridViewCellStyle16.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_load.RowsDefaultCellStyle = dataGridViewCellStyle16;
+            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_load.RowsDefaultCellStyle = dataGridViewCellStyle8;
             this.dataGrid_Load_load.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_Load_load.RowTemplate.Height = 35;
-            this.dataGrid_Load_load.Size = new System.Drawing.Size(983, 220);
+            this.dataGrid_Load_load.Size = new System.Drawing.Size(737, 179);
             this.dataGrid_Load_load.TabIndex = 2;
             this.dataGrid_Load_load.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGrid_Load_load_CellContentClick);
             this.dataGrid_Load_load.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGrid_Load_load_CellValueChanged);
@@ -1544,42 +1599,42 @@ namespace ArtiluxEOL
             this.dataGridViewButtonColumn2.MinimumWidth = 6;
             this.dataGridViewButtonColumn2.Name = "dataGridViewButtonColumn2";
             this.dataGridViewButtonColumn2.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridViewButtonColumn2.Width = 122;
+            this.dataGridViewButtonColumn2.Width = 99;
             // 
             // Column14
             // 
             this.Column14.HeaderText = "U";
             this.Column14.MinimumWidth = 6;
             this.Column14.Name = "Column14";
-            this.Column14.Width = 59;
+            this.Column14.Width = 48;
             // 
             // Column15
             // 
             this.Column15.HeaderText = "I";
             this.Column15.MinimumWidth = 6;
             this.Column15.Name = "Column15";
-            this.Column15.Width = 48;
+            this.Column15.Width = 39;
             // 
             // Column16
             // 
             this.Column16.HeaderText = "P";
             this.Column16.MinimumWidth = 6;
             this.Column16.Name = "Column16";
-            this.Column16.Width = 58;
+            this.Column16.Width = 47;
             // 
             // Column11
             // 
             this.Column11.HeaderText = "POWER";
             this.Column11.MinimumWidth = 6;
             this.Column11.Name = "Column11";
-            this.Column11.Width = 132;
+            this.Column11.Width = 106;
             // 
             // Column13
             // 
             this.Column13.HeaderText = "MODE";
             this.Column13.MinimumWidth = 6;
             this.Column13.Name = "Column13";
-            this.Column13.Width = 114;
+            this.Column13.Width = 92;
             // 
             // dataGridViewTextBoxColumn3
             // 
@@ -1587,7 +1642,7 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn3.HeaderText = "SET I, A";
             this.dataGridViewTextBoxColumn3.MinimumWidth = 6;
             this.dataGridViewTextBoxColumn3.Name = "dataGridViewTextBoxColumn3";
-            this.dataGridViewTextBoxColumn3.Width = 129;
+            this.dataGridViewTextBoxColumn3.Width = 104;
             // 
             // dataGridViewTextBoxColumn1
             // 
@@ -1597,18 +1652,18 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
             this.dataGridViewTextBoxColumn1.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.dataGridViewTextBoxColumn1.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.dataGridViewTextBoxColumn1.Width = 121;
+            this.dataGridViewTextBoxColumn1.Width = 97;
             // 
             // tabPage9
             // 
             this.tabPage9.Controls.Add(this.groupBoxBarcode3);
             this.tabPage9.Controls.Add(this.groupBoxBarcode2);
             this.tabPage9.Controls.Add(this.groupBoxBarcode1);
-            this.tabPage9.Location = new System.Drawing.Point(4, 38);
-            this.tabPage9.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tabPage9.Location = new System.Drawing.Point(4, 31);
+            this.tabPage9.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage9.Name = "tabPage9";
-            this.tabPage9.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.tabPage9.Size = new System.Drawing.Size(1292, 655);
+            this.tabPage9.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage9.Size = new System.Drawing.Size(967, 531);
             this.tabPage9.TabIndex = 4;
             this.tabPage9.Text = "  EVSE  ";
             this.tabPage9.UseVisualStyleBackColor = true;
@@ -1618,11 +1673,11 @@ namespace ArtiluxEOL
             this.groupBoxBarcode3.Controls.Add(this.label21);
             this.groupBoxBarcode3.Controls.Add(this.dataGrid_Barcode3);
             this.groupBoxBarcode3.Enabled = false;
-            this.groupBoxBarcode3.Location = new System.Drawing.Point(871, 16);
-            this.groupBoxBarcode3.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBoxBarcode3.Location = new System.Drawing.Point(653, 13);
+            this.groupBoxBarcode3.Margin = new System.Windows.Forms.Padding(2);
             this.groupBoxBarcode3.Name = "groupBoxBarcode3";
-            this.groupBoxBarcode3.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBoxBarcode3.Size = new System.Drawing.Size(397, 633);
+            this.groupBoxBarcode3.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBoxBarcode3.Size = new System.Drawing.Size(298, 514);
             this.groupBoxBarcode3.TabIndex = 1;
             this.groupBoxBarcode3.TabStop = false;
             this.groupBoxBarcode3.Text = "3";
@@ -1630,9 +1685,10 @@ namespace ArtiluxEOL
             // label21
             // 
             this.label21.AutoSize = true;
-            this.label21.Location = new System.Drawing.Point(159, 18);
+            this.label21.Location = new System.Drawing.Point(119, 15);
+            this.label21.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(87, 29);
+            this.label21.Size = new System.Drawing.Size(66, 24);
             this.label21.TabIndex = 3;
             this.label21.Text = "SSID 3";
             // 
@@ -1646,13 +1702,13 @@ namespace ArtiluxEOL
             this.dataGrid_Barcode3.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn12,
             this.dataGridViewTextBoxColumn13});
-            this.dataGrid_Barcode3.Location = new System.Drawing.Point(12, 78);
-            this.dataGrid_Barcode3.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.dataGrid_Barcode3.Location = new System.Drawing.Point(9, 63);
+            this.dataGrid_Barcode3.Margin = new System.Windows.Forms.Padding(2);
             this.dataGrid_Barcode3.Name = "dataGrid_Barcode3";
             this.dataGrid_Barcode3.RowHeadersVisible = false;
             this.dataGrid_Barcode3.RowHeadersWidth = 51;
             this.dataGrid_Barcode3.RowTemplate.Height = 24;
-            this.dataGrid_Barcode3.Size = new System.Drawing.Size(380, 377);
+            this.dataGrid_Barcode3.Size = new System.Drawing.Size(285, 306);
             this.dataGrid_Barcode3.TabIndex = 0;
             this.dataGrid_Barcode3.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGrid_Barcode3_CellContentClick);
             // 
@@ -1663,14 +1719,14 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn12.Name = "dataGridViewTextBoxColumn12";
             this.dataGridViewTextBoxColumn12.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.dataGridViewTextBoxColumn12.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.dataGridViewTextBoxColumn12.Width = 96;
+            this.dataGridViewTextBoxColumn12.Width = 77;
             // 
             // dataGridViewTextBoxColumn13
             // 
             this.dataGridViewTextBoxColumn13.HeaderText = "RESULT";
             this.dataGridViewTextBoxColumn13.MinimumWidth = 6;
             this.dataGridViewTextBoxColumn13.Name = "dataGridViewTextBoxColumn13";
-            this.dataGridViewTextBoxColumn13.Width = 137;
+            this.dataGridViewTextBoxColumn13.Width = 108;
             // 
             // groupBoxBarcode2
             // 
@@ -1678,11 +1734,11 @@ namespace ArtiluxEOL
             this.groupBoxBarcode2.Controls.Add(this.label20);
             this.groupBoxBarcode2.Controls.Add(this.dataGrid_Barcode2);
             this.groupBoxBarcode2.Enabled = false;
-            this.groupBoxBarcode2.Location = new System.Drawing.Point(437, 16);
-            this.groupBoxBarcode2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBoxBarcode2.Location = new System.Drawing.Point(328, 13);
+            this.groupBoxBarcode2.Margin = new System.Windows.Forms.Padding(2);
             this.groupBoxBarcode2.Name = "groupBoxBarcode2";
-            this.groupBoxBarcode2.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBoxBarcode2.Size = new System.Drawing.Size(397, 633);
+            this.groupBoxBarcode2.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBoxBarcode2.Size = new System.Drawing.Size(298, 514);
             this.groupBoxBarcode2.TabIndex = 1;
             this.groupBoxBarcode2.TabStop = false;
             this.groupBoxBarcode2.Text = "2";
@@ -1690,18 +1746,20 @@ namespace ArtiluxEOL
             // evse2_params
             // 
             this.evse2_params.AutoSize = true;
-            this.evse2_params.Location = new System.Drawing.Point(21, 466);
+            this.evse2_params.Location = new System.Drawing.Point(16, 379);
+            this.evse2_params.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.evse2_params.Name = "evse2_params";
-            this.evse2_params.Size = new System.Drawing.Size(37, 29);
+            this.evse2_params.Size = new System.Drawing.Size(28, 24);
             this.evse2_params.TabIndex = 2;
             this.evse2_params.Text = "---";
             // 
             // label20
             // 
             this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(153, 18);
+            this.label20.Location = new System.Drawing.Point(115, 15);
+            this.label20.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(87, 29);
+            this.label20.Size = new System.Drawing.Size(66, 24);
             this.label20.TabIndex = 2;
             this.label20.Text = "SSID 2";
             // 
@@ -1715,13 +1773,13 @@ namespace ArtiluxEOL
             this.dataGrid_Barcode2.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn10,
             this.dataGridViewTextBoxColumn11});
-            this.dataGrid_Barcode2.Location = new System.Drawing.Point(12, 78);
-            this.dataGrid_Barcode2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.dataGrid_Barcode2.Location = new System.Drawing.Point(9, 63);
+            this.dataGrid_Barcode2.Margin = new System.Windows.Forms.Padding(2);
             this.dataGrid_Barcode2.Name = "dataGrid_Barcode2";
             this.dataGrid_Barcode2.RowHeadersVisible = false;
             this.dataGrid_Barcode2.RowHeadersWidth = 51;
             this.dataGrid_Barcode2.RowTemplate.Height = 24;
-            this.dataGrid_Barcode2.Size = new System.Drawing.Size(380, 377);
+            this.dataGrid_Barcode2.Size = new System.Drawing.Size(285, 306);
             this.dataGrid_Barcode2.TabIndex = 0;
             this.dataGrid_Barcode2.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGrid_Barcode2_CellContentClick);
             // 
@@ -1732,25 +1790,25 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn10.Name = "dataGridViewTextBoxColumn10";
             this.dataGridViewTextBoxColumn10.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.dataGridViewTextBoxColumn10.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.dataGridViewTextBoxColumn10.Width = 96;
+            this.dataGridViewTextBoxColumn10.Width = 77;
             // 
             // dataGridViewTextBoxColumn11
             // 
             this.dataGridViewTextBoxColumn11.HeaderText = "RESULT";
             this.dataGridViewTextBoxColumn11.MinimumWidth = 6;
             this.dataGridViewTextBoxColumn11.Name = "dataGridViewTextBoxColumn11";
-            this.dataGridViewTextBoxColumn11.Width = 137;
+            this.dataGridViewTextBoxColumn11.Width = 108;
             // 
             // groupBoxBarcode1
             // 
             this.groupBoxBarcode1.Controls.Add(this.sta);
             this.groupBoxBarcode1.Controls.Add(this.dataGrid_Barcode1);
             this.groupBoxBarcode1.Enabled = false;
-            this.groupBoxBarcode1.Location = new System.Drawing.Point(5, 16);
-            this.groupBoxBarcode1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.groupBoxBarcode1.Location = new System.Drawing.Point(4, 13);
+            this.groupBoxBarcode1.Margin = new System.Windows.Forms.Padding(2);
             this.groupBoxBarcode1.Name = "groupBoxBarcode1";
-            this.groupBoxBarcode1.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBoxBarcode1.Size = new System.Drawing.Size(397, 633);
+            this.groupBoxBarcode1.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBoxBarcode1.Size = new System.Drawing.Size(298, 514);
             this.groupBoxBarcode1.TabIndex = 0;
             this.groupBoxBarcode1.TabStop = false;
             this.groupBoxBarcode1.Text = "1";
@@ -1758,9 +1816,10 @@ namespace ArtiluxEOL
             // sta
             // 
             this.sta.AutoSize = true;
-            this.sta.Location = new System.Drawing.Point(147, 18);
+            this.sta.Location = new System.Drawing.Point(110, 15);
+            this.sta.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.sta.Name = "sta";
-            this.sta.Size = new System.Drawing.Size(87, 29);
+            this.sta.Size = new System.Drawing.Size(66, 24);
             this.sta.TabIndex = 1;
             this.sta.Text = "SSID 1";
             // 
@@ -1775,13 +1834,13 @@ namespace ArtiluxEOL
             this.dataGrid_Barcode1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Column20,
             this.Column21});
-            this.dataGrid_Barcode1.Location = new System.Drawing.Point(12, 78);
-            this.dataGrid_Barcode1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.dataGrid_Barcode1.Location = new System.Drawing.Point(9, 63);
+            this.dataGrid_Barcode1.Margin = new System.Windows.Forms.Padding(2);
             this.dataGrid_Barcode1.Name = "dataGrid_Barcode1";
             this.dataGrid_Barcode1.RowHeadersVisible = false;
             this.dataGrid_Barcode1.RowHeadersWidth = 51;
             this.dataGrid_Barcode1.RowTemplate.Height = 35;
-            this.dataGrid_Barcode1.Size = new System.Drawing.Size(380, 377);
+            this.dataGrid_Barcode1.Size = new System.Drawing.Size(285, 306);
             this.dataGrid_Barcode1.TabIndex = 0;
             this.dataGrid_Barcode1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGrid_Barcode1_CellContentClick);
             // 
@@ -1792,14 +1851,14 @@ namespace ArtiluxEOL
             this.Column20.Name = "Column20";
             this.Column20.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.Column20.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.Column20.Width = 96;
+            this.Column20.Width = 77;
             // 
             // Column21
             // 
             this.Column21.HeaderText = "RESULT";
             this.Column21.MinimumWidth = 6;
             this.Column21.Name = "Column21";
-            this.Column21.Width = 137;
+            this.Column21.Width = 108;
             // 
             // debug_tab
             // 
@@ -1815,20 +1874,20 @@ namespace ArtiluxEOL
             this.debug_tab.Controls.Add(this.debug_network_cbox);
             this.debug_tab.Controls.Add(this.list_debug);
             this.debug_tab.Location = new System.Drawing.Point(4, 44);
-            this.debug_tab.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.debug_tab.Margin = new System.Windows.Forms.Padding(2);
             this.debug_tab.Name = "debug_tab";
-            this.debug_tab.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.debug_tab.Size = new System.Drawing.Size(1315, 766);
+            this.debug_tab.Padding = new System.Windows.Forms.Padding(2);
+            this.debug_tab.Size = new System.Drawing.Size(984, 613);
             this.debug_tab.TabIndex = 3;
             this.debug_tab.Text = "Debug";
             // 
             // debug_ping_cbox
             // 
             this.debug_ping_cbox.AutoSize = true;
-            this.debug_ping_cbox.Location = new System.Drawing.Point(945, 402);
-            this.debug_ping_cbox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.debug_ping_cbox.Location = new System.Drawing.Point(709, 327);
+            this.debug_ping_cbox.Margin = new System.Windows.Forms.Padding(2);
             this.debug_ping_cbox.Name = "debug_ping_cbox";
-            this.debug_ping_cbox.Size = new System.Drawing.Size(93, 33);
+            this.debug_ping_cbox.Size = new System.Drawing.Size(73, 28);
             this.debug_ping_cbox.TabIndex = 9;
             this.debug_ping_cbox.Text = "PING";
             this.debug_ping_cbox.UseVisualStyleBackColor = true;
@@ -1837,10 +1896,10 @@ namespace ArtiluxEOL
             // debug_load_cbox
             // 
             this.debug_load_cbox.AutoSize = true;
-            this.debug_load_cbox.Location = new System.Drawing.Point(945, 306);
-            this.debug_load_cbox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.debug_load_cbox.Location = new System.Drawing.Point(709, 249);
+            this.debug_load_cbox.Margin = new System.Windows.Forms.Padding(2);
             this.debug_load_cbox.Name = "debug_load_cbox";
-            this.debug_load_cbox.Size = new System.Drawing.Size(222, 33);
+            this.debug_load_cbox.Size = new System.Drawing.Size(177, 28);
             this.debug_load_cbox.TabIndex = 8;
             this.debug_load_cbox.Text = "EVSE/BARCODE";
             this.debug_load_cbox.UseVisualStyleBackColor = true;
@@ -1849,10 +1908,10 @@ namespace ArtiluxEOL
             // debug_siglent_cbox
             // 
             this.debug_siglent_cbox.AutoSize = true;
-            this.debug_siglent_cbox.Location = new System.Drawing.Point(945, 250);
-            this.debug_siglent_cbox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.debug_siglent_cbox.Location = new System.Drawing.Point(709, 203);
+            this.debug_siglent_cbox.Margin = new System.Windows.Forms.Padding(2);
             this.debug_siglent_cbox.Name = "debug_siglent_cbox";
-            this.debug_siglent_cbox.Size = new System.Drawing.Size(262, 33);
+            this.debug_siglent_cbox.Size = new System.Drawing.Size(203, 28);
             this.debug_siglent_cbox.TabIndex = 7;
             this.debug_siglent_cbox.Text = "SPECTRO/SIGLENT";
             this.debug_siglent_cbox.UseVisualStyleBackColor = true;
@@ -1861,10 +1920,10 @@ namespace ArtiluxEOL
             // debug_gwinstek_cbox
             // 
             this.debug_gwinstek_cbox.AutoSize = true;
-            this.debug_gwinstek_cbox.Location = new System.Drawing.Point(945, 201);
-            this.debug_gwinstek_cbox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.debug_gwinstek_cbox.Location = new System.Drawing.Point(709, 163);
+            this.debug_gwinstek_cbox.Margin = new System.Windows.Forms.Padding(2);
             this.debug_gwinstek_cbox.Name = "debug_gwinstek_cbox";
-            this.debug_gwinstek_cbox.Size = new System.Drawing.Size(202, 33);
+            this.debug_gwinstek_cbox.Size = new System.Drawing.Size(160, 28);
             this.debug_gwinstek_cbox.TabIndex = 6;
             this.debug_gwinstek_cbox.Text = "HV/GWINSTEK";
             this.debug_gwinstek_cbox.UseVisualStyleBackColor = true;
@@ -1873,10 +1932,10 @@ namespace ArtiluxEOL
             // debug_evse_cbox
             // 
             this.debug_evse_cbox.AutoSize = true;
-            this.debug_evse_cbox.Location = new System.Drawing.Point(945, 151);
-            this.debug_evse_cbox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.debug_evse_cbox.Location = new System.Drawing.Point(709, 123);
+            this.debug_evse_cbox.Margin = new System.Windows.Forms.Padding(2);
             this.debug_evse_cbox.Name = "debug_evse_cbox";
-            this.debug_evse_cbox.Size = new System.Drawing.Size(222, 33);
+            this.debug_evse_cbox.Size = new System.Drawing.Size(177, 28);
             this.debug_evse_cbox.TabIndex = 5;
             this.debug_evse_cbox.Text = "EVSE/BARCODE";
             this.debug_evse_cbox.UseVisualStyleBackColor = true;
@@ -1885,10 +1944,10 @@ namespace ArtiluxEOL
             // debug_main_cbox
             // 
             this.debug_main_cbox.AutoSize = true;
-            this.debug_main_cbox.Location = new System.Drawing.Point(945, 6);
-            this.debug_main_cbox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.debug_main_cbox.Location = new System.Drawing.Point(709, 5);
+            this.debug_main_cbox.Margin = new System.Windows.Forms.Padding(2);
             this.debug_main_cbox.Name = "debug_main_cbox";
-            this.debug_main_cbox.Size = new System.Drawing.Size(87, 33);
+            this.debug_main_cbox.Size = new System.Drawing.Size(70, 28);
             this.debug_main_cbox.TabIndex = 4;
             this.debug_main_cbox.Text = "Main";
             this.debug_main_cbox.UseVisualStyleBackColor = true;
@@ -1896,10 +1955,10 @@ namespace ArtiluxEOL
             // 
             // dbg_list_clear
             // 
-            this.dbg_list_clear.Location = new System.Drawing.Point(945, 462);
-            this.dbg_list_clear.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.dbg_list_clear.Location = new System.Drawing.Point(709, 375);
+            this.dbg_list_clear.Margin = new System.Windows.Forms.Padding(2);
             this.dbg_list_clear.Name = "dbg_list_clear";
-            this.dbg_list_clear.Size = new System.Drawing.Size(200, 39);
+            this.dbg_list_clear.Size = new System.Drawing.Size(150, 32);
             this.dbg_list_clear.TabIndex = 3;
             this.dbg_list_clear.Text = "Clear";
             this.dbg_list_clear.UseVisualStyleBackColor = true;
@@ -1908,10 +1967,10 @@ namespace ArtiluxEOL
             // debug_usb_cbox
             // 
             this.debug_usb_cbox.AutoSize = true;
-            this.debug_usb_cbox.Location = new System.Drawing.Point(945, 101);
-            this.debug_usb_cbox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.debug_usb_cbox.Location = new System.Drawing.Point(709, 82);
+            this.debug_usb_cbox.Margin = new System.Windows.Forms.Padding(2);
             this.debug_usb_cbox.Name = "debug_usb_cbox";
-            this.debug_usb_cbox.Size = new System.Drawing.Size(84, 33);
+            this.debug_usb_cbox.Size = new System.Drawing.Size(66, 28);
             this.debug_usb_cbox.TabIndex = 2;
             this.debug_usb_cbox.Text = "USB";
             this.debug_usb_cbox.UseVisualStyleBackColor = true;
@@ -1920,10 +1979,10 @@ namespace ArtiluxEOL
             // debug_network_cbox
             // 
             this.debug_network_cbox.AutoSize = true;
-            this.debug_network_cbox.Location = new System.Drawing.Point(945, 53);
-            this.debug_network_cbox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.debug_network_cbox.Location = new System.Drawing.Point(709, 43);
+            this.debug_network_cbox.Margin = new System.Windows.Forms.Padding(2);
             this.debug_network_cbox.Name = "debug_network_cbox";
-            this.debug_network_cbox.Size = new System.Drawing.Size(125, 33);
+            this.debug_network_cbox.Size = new System.Drawing.Size(98, 28);
             this.debug_network_cbox.TabIndex = 1;
             this.debug_network_cbox.Text = "Network";
             this.debug_network_cbox.UseVisualStyleBackColor = true;
@@ -1937,10 +1996,10 @@ namespace ArtiluxEOL
             this.list_debug.GridLines = true;
             this.list_debug.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
             this.list_debug.HideSelection = false;
-            this.list_debug.Location = new System.Drawing.Point(3, 6);
-            this.list_debug.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.list_debug.Location = new System.Drawing.Point(2, 5);
+            this.list_debug.Margin = new System.Windows.Forms.Padding(2);
             this.list_debug.Name = "list_debug";
-            this.list_debug.Size = new System.Drawing.Size(927, 600);
+            this.list_debug.Size = new System.Drawing.Size(696, 488);
             this.list_debug.TabIndex = 0;
             this.list_debug.UseCompatibleStateImageBehavior = false;
             this.list_debug.View = System.Windows.Forms.View.Details;
@@ -1970,10 +2029,9 @@ namespace ArtiluxEOL
             this.cbAdmin.AutoSize = true;
             this.cbAdmin.Checked = true;
             this.cbAdmin.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbAdmin.Location = new System.Drawing.Point(59, 94);
-            this.cbAdmin.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.cbAdmin.Location = new System.Drawing.Point(44, 76);
             this.cbAdmin.Name = "cbAdmin";
-            this.cbAdmin.Size = new System.Drawing.Size(179, 20);
+            this.cbAdmin.Size = new System.Drawing.Size(141, 17);
             this.cbAdmin.TabIndex = 2;
             this.cbAdmin.Text = "Aadministratoriaus teises";
             this.cbAdmin.UseVisualStyleBackColor = true;
@@ -1984,51 +2042,30 @@ namespace ArtiluxEOL
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panelTestResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panelTestResult.Controls.Add(this.cbAdmin);
-            this.panelTestResult.Location = new System.Drawing.Point(940, 833);
-            this.panelTestResult.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.panelTestResult.Location = new System.Drawing.Point(705, 677);
             this.panelTestResult.Name = "panelTestResult";
-            this.panelTestResult.Size = new System.Drawing.Size(381, 192);
+            this.panelTestResult.Size = new System.Drawing.Size(286, 156);
             this.panelTestResult.TabIndex = 0;
             // 
             // btnStart
             // 
             this.btnStart.Font = new System.Drawing.Font("Microsoft Sans Serif", 19.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnStart.Location = new System.Drawing.Point(17, 884);
-            this.btnStart.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnStart.Location = new System.Drawing.Point(13, 718);
             this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(176, 94);
+            this.btnStart.Size = new System.Drawing.Size(132, 76);
             this.btnStart.TabIndex = 2;
             this.btnStart.Text = "Pradėti";
             this.btnStart.UseVisualStyleBackColor = true;
             this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
-            // groupBox_main_relay
-            // 
-            this.groupBox_main_relay.Location = new System.Drawing.Point(43, 27);
-            this.groupBox_main_relay.Name = "groupBox_main_relay";
-            this.groupBox_main_relay.Size = new System.Drawing.Size(1184, 104);
-            this.groupBox_main_relay.TabIndex = 2;
-            this.groupBox_main_relay.TabStop = false;
-            this.groupBox_main_relay.Text = "PWR";
-            // 
-            // groupBox_evse_state
-            // 
-            this.groupBox_evse_state.Location = new System.Drawing.Point(43, 158);
-            this.groupBox_evse_state.Name = "groupBox_evse_state";
-            this.groupBox_evse_state.Size = new System.Drawing.Size(1184, 104);
-            this.groupBox_evse_state.TabIndex = 3;
-            this.groupBox_evse_state.TabStop = false;
-            this.groupBox_evse_state.Text = "EV_MODE";
-            // 
             // Main
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1333, 1025);
+            this.ClientSize = new System.Drawing.Size(1000, 833);
             this.Controls.Add(this.btnStart);
             this.Controls.Add(this.panelTestResult);
             this.Controls.Add(this.tabControl1);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "Main";
             this.Text = "Monitors Test v03";
             this.tabControl1.ResumeLayout(false);
@@ -2249,12 +2286,14 @@ namespace ArtiluxEOL
         private CheckBox debug_gwinstek_cbox;
         private System.Windows.Forms.Button button1;
         private DataGridView data_grid_main_board;
+        private GroupBox groupBox_main_relay;
+        private GroupBox groupBox_pp_select;
+        private GroupBox groupBox_evse_state;
+        private GroupBox groupBox_checks;
         private DataGridViewTextBoxColumn CMD;
         private DataGridViewTextBoxColumn Column23;
         private DataGridViewButtonColumn Column24;
         private DataGridViewButtonColumn Column25;
-        private GroupBox groupBox_main_relay;
-        private GroupBox groupBox_evse_state;
     }
 }
 
