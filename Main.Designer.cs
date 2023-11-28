@@ -112,6 +112,7 @@ namespace ArtiluxEOL
             this.groupBox_checks = new System.Windows.Forms.GroupBox();
             this.groupBox_main_relay = new System.Windows.Forms.GroupBox();
             this.groupBox_pp_select = new System.Windows.Forms.GroupBox();
+            this.groupBox_tp_select = new System.Windows.Forms.GroupBox();
             this.data_grid_main_board = new System.Windows.Forms.DataGridView();
             this.CMD = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column23 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -1009,6 +1010,7 @@ namespace ArtiluxEOL
             this.tabPage5.Controls.Add(this.groupBox_evse_state);
             this.tabPage5.Controls.Add(this.groupBox_main_relay);
             this.tabPage5.Controls.Add(this.groupBox_pp_select);
+            this.tabPage5.Controls.Add(this.groupBox_tp_select);
             this.tabPage5.Controls.Add(this.groupBox_checks);
             this.tabPage5.Controls.Add(this.data_grid_main_board);
             this.tabPage5.Controls.Add(this.button1);
@@ -1027,7 +1029,7 @@ namespace ArtiluxEOL
             this.groupBox_evse_state.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox_evse_state.Name = "groupBox_evse_state";
             this.groupBox_evse_state.Padding = new System.Windows.Forms.Padding(2);
-            this.groupBox_evse_state.Size = new System.Drawing.Size(888, 60);
+            this.groupBox_evse_state.Size = new System.Drawing.Size(700, 60);
             this.groupBox_evse_state.TabIndex = 3;
             this.groupBox_evse_state.TabStop = false;
             this.groupBox_evse_state.Text = "EV_MODE";
@@ -1038,7 +1040,7 @@ namespace ArtiluxEOL
             this.groupBox_checks.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox_checks.Name = "groupBox_checks";
             this.groupBox_checks.Padding = new System.Windows.Forms.Padding(2);
-            this.groupBox_checks.Size = new System.Drawing.Size(888, 60);
+            this.groupBox_checks.Size = new System.Drawing.Size(700, 60);
             this.groupBox_checks.TabIndex = 3;
             this.groupBox_checks.TabStop = false;
             this.groupBox_checks.Text = "CHECKS";
@@ -1060,10 +1062,10 @@ namespace ArtiluxEOL
             this.groupBox_pp_select.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox_pp_select.Name = "groupBox_pp_select";
             this.groupBox_pp_select.Padding = new System.Windows.Forms.Padding(2);
-            this.groupBox_pp_select.Size = new System.Drawing.Size(888, 60);
+            this.groupBox_pp_select.Size = new System.Drawing.Size(700, 60);
             this.groupBox_pp_select.TabIndex = 2;
             this.groupBox_pp_select.TabStop = false;
-            this.groupBox_pp_select.Text = "POWER";
+            this.groupBox_pp_select.Text = "CABLE";
             // 
             // data_grid_main_board
             // 
@@ -1080,6 +1082,17 @@ namespace ArtiluxEOL
             this.data_grid_main_board.Size = new System.Drawing.Size(700, 150);
             this.data_grid_main_board.TabIndex = 1;
             this.data_grid_main_board.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGrid_main_board_click);
+            // 
+            // groupBox_tp_select
+            // 
+            this.groupBox_tp_select.Location = new System.Drawing.Point(750, 22);
+            this.groupBox_tp_select.Margin = new System.Windows.Forms.Padding(2);
+            this.groupBox_tp_select.Name = "groupBox_tp_select";
+            this.groupBox_tp_select.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_tp_select.Size = new System.Drawing.Size(170, 216);
+            this.groupBox_tp_select.TabIndex = 2;
+            this.groupBox_tp_select.TabStop = false;
+            this.groupBox_tp_select.Text = "POSITION";
             // 
             // CMD
             // 
@@ -2288,6 +2301,7 @@ namespace ArtiluxEOL
         private DataGridView data_grid_main_board;
         private GroupBox groupBox_main_relay;
         private GroupBox groupBox_pp_select;
+        private GroupBox groupBox_tp_select;
         private GroupBox groupBox_evse_state;
         private GroupBox groupBox_checks;
         private DataGridViewTextBoxColumn CMD;

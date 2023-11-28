@@ -67,6 +67,10 @@ namespace ArtiluxEOL
         public RadioButton[] pp_select_radio_btn = new RadioButton[5];
         int pp_select_before = 7;
         public int pp_select_index = 0;
+
+        public RadioButton[] tp_select_radio_btn = new RadioButton[3];
+        int tp_select_before = 0;
+        public int tp_select_index = 0;
         ////////
         #region <<< KINTAMIEJI SERIAL PORT >>>
 
@@ -163,8 +167,9 @@ namespace ArtiluxEOL
         public static NumericStateDevice PP_Selector = new NumericStateDevice();
         public static NumericStateDevice LS_Selector = new NumericStateDevice();
         public static NumericStateDevice CP_Selector = new NumericStateDevice();
+        public static NumericStateDevice TP_Selector = new NumericStateDevice();
 
-        public static object[] Main_Board_Controls = new object[] { RL11, RL12, RL13, RL14, PP_Selector, LS_EN, LOAD, SOURCE, LS_Selector, CP_Selector, DIODE_SH, PE_OP, CP_SH };
+        public static object[] Main_Board_Controls = new object[] { RL11, RL12, RL13, RL14, PP_Selector, LS_EN, LOAD, SOURCE, LS_Selector, CP_Selector, DIODE_SH, PE_OP, CP_SH, TP_Selector };
 
         #endregion
 
@@ -185,6 +190,7 @@ namespace ArtiluxEOL
             DIODE_SH.NAME = "DIODE_SH";
             PE_OP.NAME = "PE_OP";
             CP_SH.NAME = "CP_SH";
+            TP_Selector.NAME = "TP_SEL";
 
             Config_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Configs");
             Workplaces_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Workplaces");
@@ -276,36 +282,37 @@ namespace ArtiluxEOL
 
             /*  PWR relay, EVSE mode, EVSE fault  */
             int x_point = 70;
+            int y_point = 35;
             string[] name = { "EVSE 1", "EVSE 2", "EVSE 3" };
             string[] name_ev_state = { "A", "B", "C", "D" };
             string[] name_ev_fault = { "DIODE SH", "PE OPEN", "CP SH" };
             string[] name_pp_select = { "NC", "13A", "20A", "32A", "63A" };
             string[] name_ls_cntr = { "LOAD", "SOURCE", "ENABLE" };
-            int y = 0;
+            string[] name_tp_select = { "EVSE 1", "EVSE 2", "EVSE 3" };
 
-            for (int j = 0; j < 3; j++)
+            for (int j = 0; j < 3; j++)//DIODEsh, PEop, CPsh
             {
                 evse_fault_checkbox[j] = new CheckBox { Name = "chbox_ev_fault_" + j, Text = name_ev_fault[j], Location = new Point(x: x_point, y: 22), AutoSize = true };
                 evse_fault_checkbox[j].CheckedChanged += new EventHandler(ev_fault_checbox_change);
                 this.groupBox_checks.Controls.Add(evse_fault_checkbox[j]);
 
-                x_point = x_point + 300;
+                x_point = x_point + 260;
             }
 
             x_point = 70;
 
-            for (int j = 0; j < 4; j++)
+            for (int j = 0; j < 4; j++)//CP
             {
                 ev_mode_select_radio_btn[j] = new RadioButton { Name = "radBtn_ev_" + j, Text = name_ev_state[j], Location = new Point(x: x_point, y: 22), AutoSize = true };
                 ev_mode_select_radio_btn[j].CheckedChanged += new EventHandler(CheckEvseRadioBtn);
                 this.groupBox_evse_state.Controls.Add(ev_mode_select_radio_btn[j]);
 
-                x_point = x_point + 220;
+                x_point = x_point + 174;
             }
 
             x_point = 70;
 
-            for (int j = 0; j < 3; j++)
+            for (int j = 0; j < 3; j++)//LS select
             {
                 pwr_select_radio_btn[j] = new RadioButton { Name = "radioButton_" + j, Text = name[j], Location = new Point(x: x_point, y: 22) };
                 pwr_select_radio_btn[j].CheckedChanged += new EventHandler(CheckRelayRadioBtn);
@@ -314,7 +321,7 @@ namespace ArtiluxEOL
                 x_point = x_point + 130;
             }
 
-            for (int j = 0; j < 3; j++)
+            for (int j = 0; j < 3; j++)//LOAD, SOURCE, LSen
             {
                 ls_checkbox[j] = new CheckBox { Name = "chbox_ls_" + j, Text = name_ls_cntr[j], Location = new Point(x: x_point, y: 22), AutoSize = true };
                 ls_checkbox[j].CheckedChanged += new EventHandler(ls_ctrl_checbox_change);
@@ -325,13 +332,22 @@ namespace ArtiluxEOL
 
             x_point = 70;
 
-            for (int j = 0; j < 5; j++)
+            for (int j = 0; j < 5; j++)//PP
             {
                 pp_select_radio_btn[j] = new RadioButton { Name = "radBtn_pp_" + j, Text = name_pp_select[j], Location = new Point(x: x_point, y: 22) };
                 pp_select_radio_btn[j].CheckedChanged += new EventHandler(CheckPPSelRadioBtn);
                 this.groupBox_pp_select.Controls.Add(pp_select_radio_btn[j]);
 
-                x_point = x_point + 160;
+                x_point = x_point + 130;
+            }
+
+            for (int j = 0; j < 3; j++)//Position select
+            {
+                tp_select_radio_btn[j] = new RadioButton { Name = "radBtn_tp_" + j, Text = name_tp_select[j], Location = new Point(x: 40, y: y_point) };
+                tp_select_radio_btn[j].CheckedChanged += new EventHandler(CheckTPSelRadioBtn);
+                this.groupBox_tp_select.Controls.Add(tp_select_radio_btn[j]);
+
+                y_point = y_point + 65;
             }
             //////////////////////////
 
@@ -669,6 +685,31 @@ namespace ArtiluxEOL
                             dbg_print(DbgType.MAIN, "CheckPPSelRadioBtn:" + a, Color.Gray);
                             pp_select_index = a + 1;
                             PP_Selector_Set(a);
+                        }
+
+                    }
+                }
+            }
+
+        }
+
+        private void CheckTPSelRadioBtn(object sender, EventArgs e)//indijuojam irangos busena
+        {
+            RadioButton rb = sender as RadioButton;
+            var net_dev = network_dev[NetDev_Tab.MAIN_CONTROLLER];
+
+            if (rb != null)
+            {
+                for (int a = 0; a < tp_select_radio_btn.Length; a++)
+                {
+                    if (tp_select_radio_btn[a].Checked)
+                    {
+                        if (tp_select_before != a)
+                        {
+                            tp_select_before = a;
+                            dbg_print(DbgType.MAIN, "CheckTPSelRadioBtn:" + a, Color.Gray);
+                            tp_select_index = a + 1;
+                            TP_Selector_Set(a);
                         }
 
                     }
@@ -2806,10 +2847,12 @@ namespace ArtiluxEOL
             int colSelPP = 0;//Color array selector for PP selector
             int colSelLS = 0;//Color array selector for LS selector
             int colSelCP = 0;//Color array selector for CP selector
+            int colSelTP = 0;//Color array selector for TP selector
 
             string[] PP_sel_btn_names = { "radBtn_pp_0", "radBtn_pp_1", "radBtn_pp_2", "radBtn_pp_3", "radBtn_pp_4" };//PP selector button names
             string[] LS_sel_btn_names = { "radioButton_0", "radioButton_1", "radioButton_2" };//PP selector button names
             string[] CP_sel_btn_names = { "radBtn_ev_0", "radBtn_ev_1", "radBtn_ev_2", "radBtn_ev_3" };//CP selector button names
+            string[] TP_sel_btn_names = { "radBtn_tp_0", "radBtn_tp_1", "radBtn_tp_2" };//TP selector button names
 
             Color[,] PP_sel_btn_colors = {//PP selector button colors depending on PP selector state
                                             {Color.LightGreen, Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent },//PP_Selector = 0
@@ -2835,6 +2878,14 @@ namespace ArtiluxEOL
                                             {Color.Transparent, Color.LightGreen, Color.Transparent, Color.Transparent },   //CP_Selector = 1
                                             {Color.Transparent, Color.Transparent, Color.LightGreen, Color.Transparent },   //CP_Selector = 2
                                             {Color.Transparent, Color.Transparent, Color.Transparent, Color.LightGreen },   //CP_Selector = 3
+                                            {Color.Orange, Color.Orange, Color.Orange, Color.Orange },                      //CP_Selector = -10/-11
+                                            {Color.Red, Color.Red, Color.Red, Color.Red }                                   //CP_Selector = -100/-101
+            };
+
+            Color[,] TP_sel_btn_colors = {//TP selector button colors depending on CP selector state
+                                            {Color.LightGreen, Color.Transparent, Color.Transparent, Color.Transparent },   //TP_Selector = 0
+                                            {Color.Transparent, Color.LightGreen, Color.Transparent, Color.Transparent },   //TP_Selector = 1
+                                            {Color.Transparent, Color.Transparent, Color.LightGreen, Color.Transparent },   //TP_Selector = 2
                                             {Color.Orange, Color.Orange, Color.Orange, Color.Orange },                      //CP_Selector = -10/-11
                                             {Color.Red, Color.Red, Color.Red, Color.Red }                                   //CP_Selector = -100/-101
             };
@@ -2878,6 +2929,19 @@ namespace ArtiluxEOL
                 colSelCP = 4;
             }
 
+            if (TP_Selector.STATE >= 0 && TP_Selector.STATE < 3)//Color array selector depending on TP selector state
+            {
+                colSelTP = TP_Selector.STATE;
+            }
+            else if (TP_Selector.STATE <= -100)
+            {
+                colSelTP = 4;
+            }
+            else
+            {
+                colSelTP = 3;
+            }
+
             foreach (var ctrl in GetControlHierarchy(this))//Go trough all UI controls
             {
                 for (int i = 0; i < PP_sel_btn_names.Length; i++)//Look for the names of required buttons
@@ -2901,6 +2965,14 @@ namespace ArtiluxEOL
                     if (ctrl.Name == CP_sel_btn_names[i])//Name found
                     {
                         ctrl.BackColor = CP_sel_btn_colors[colSelCP, i];//Assign color
+                    }
+                }
+
+                for (int i = 0; i < TP_sel_btn_names.Length; i++)//Look for the names of required buttons
+                {
+                    if (ctrl.Name == TP_sel_btn_names[i])//Name found
+                    {
+                        ctrl.BackColor = TP_sel_btn_colors[colSelTP, i];//Assign color
                     }
                 }
 
@@ -3224,6 +3296,14 @@ namespace ArtiluxEOL
             CP_SH.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
             Main_Board_Set_Command_ID(CP_SH);//Assign an ID for this command
             CP_SH.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void TP_Selector_Set(int set)
+        {
+            TP_Selector.SET = set;//Assign requred state
+            TP_Selector.STATE = -10;//STATE = -10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(TP_Selector);//Assign an ID for this command
+            TP_Selector.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
         }
 
 
