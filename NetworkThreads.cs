@@ -43,7 +43,7 @@ namespace ArtiluxEOL
 
         public string[] Itech_load_param_get_type = new string[] { "MEAS", "FETC:POW:APP:TOT", "FUNC", "CURR", "INP" };
 
-        string[,] Itech_load_list_load = new string[,]
+        string[,] Itech_load_list_load = new string[,]//ev MODE A > B > Lock > C > EVSE relay ON > EVSE voltage (if relay ON) > LS enable > voltage EVSE - load > amps EVSE - load (max 32A) > current 33A+ (nuimt fault)
         {
             {"STATE", "PHASE", "U", "I","P", "POWER"},
             {"STATE", "PHASE", "U", "I","P", "POWER"},
@@ -105,8 +105,6 @@ namespace ArtiluxEOL
             {
                 e.Cancel = true;
             }
-
-            
         }
 
         public void NetworkDevConn_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -129,7 +127,7 @@ namespace ArtiluxEOL
                 //MessageBox.Show(msg);
                 Main.main.show_msg("Network scan complete!", Color.SpringGreen);
             }        
-    }
+        }
 
         public object Connect_network_periphery(BackgroundWorker bw, int arg)//backraound task
         {
@@ -137,7 +135,6 @@ namespace ArtiluxEOL
             int a = 0;
             int ret = 1;
 
-  
             System.Diagnostics.Debug.Print($"Connect_network_periphery:");
             try
             {
@@ -185,17 +182,17 @@ namespace ArtiluxEOL
                                 case 4:
                                     Main.main.Barcode1.RunWorkerAsync();
                                     Socket_.receive_socket(Main.main.network_dev[a]);
-                                    Main.main.network_dev[a].State = Evse_State.EVSE_NOT_CONNECTED;
+                                    Main.main.network_dev[a].State = Evse_State.EVSE_CONNECTED;
                                     break;
                                 case 5:
                                     Main.main.Barcode2.RunWorkerAsync();
                                     Socket_.receive_socket(Main.main.network_dev[a]);
-                                    Main.main.network_dev[a].State = Evse_State.EVSE_NOT_CONNECTED;
+                                    Main.main.network_dev[a].State = Evse_State.EVSE_CONNECTED;
                                     break;
                                 case 6:
                                     Main.main.Barcode3.RunWorkerAsync();
                                     Socket_.receive_socket(Main.main.network_dev[a]);
-                                    Main.main.network_dev[a].State = Evse_State.EVSE_NOT_CONNECTED;
+                                    Main.main.network_dev[a].State = Evse_State.EVSE_CONNECTED;
                                     break;
                             }
                         }
@@ -539,7 +536,7 @@ namespace ArtiluxEOL
         #endregion
 
         #region LOAD_ITECH_HANDLER
-                    public void Load_DoWork(object sender, DoWorkEventArgs e)
+        public void Load_DoWork(object sender, DoWorkEventArgs e)
         {
             // Do not access the form's BackgroundWorker reference directly.
             // Instead, use the reference provided by the sender parameter.
@@ -563,13 +560,9 @@ namespace ArtiluxEOL
         {
             int result = 0;
             bool connection_closed = false;
-
             long timestamp_now = 0;
-
             int ptr = 0;
-
             var net_dev = Main.main.network_dev[DevType.ITECH_LOAD];
-
             var main_func = Main.main;
 
             while (!connection_closed)
@@ -590,7 +583,6 @@ namespace ArtiluxEOL
                         net_dev.SendReceiveState = NetDev_SendState.IDLE;
                         switch (net_dev.State)
                         {
-
                             case NetDev_State.SET_PARAM:
                                 if (net_dev.GetSetParamLeft > 1)
                                 {
@@ -601,7 +593,6 @@ namespace ArtiluxEOL
                             case NetDev_State.START_TEST:
                                 //network_dev[DevType.GWINSTEK_HV_TESTER].SubState++; 
                                 net_dev.SendReceiveState = NetDev_SendState.IDLE;
-
 
                                 break;
                             case NetDev_State.GET_PARAM_ALL:
@@ -647,18 +638,6 @@ namespace ArtiluxEOL
                         System.Diagnostics.Debug.Print($"RECEIVE_FAIL:{0}");
                         break;
                 }
-
-                /* if (network_dev[DevType.GWINSTEK_HV_TESTER].NewSendData)
-                 {
-                     string data = network_dev[DevType.GWINSTEK_HV_TESTER].Cmd;
-                     Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], data);
-                 }
-
-                 if (network_dev[DevType.GWINSTEK_HV_TESTER].NewResp)
-                 {
-                     network_dev[DevType.GWINSTEK_HV_TESTER].NewResp = false;
-                     System.Diagnostics.Debug.Print($"newCMD:{network_dev[DevType.GWINSTEK_HV_TESTER].Resp}");
-                 }*/
 
                 Thread.Sleep(100);
             }

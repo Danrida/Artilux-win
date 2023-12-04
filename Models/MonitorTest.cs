@@ -159,10 +159,18 @@ namespace MonitorsTest.Models
 
     }
 
+    public struct LoadLine_struc
+    {
+        public int voltage;
+        public int current;
+        public int freq;
+    }
     public struct DevLoad_struc
     {
         public bool state;
         public int load_current;
+        public LoadLine_struc[] line;
+        public LoadLine_struc[] load;
     }
 
     public struct DevHV_struc

@@ -173,6 +173,20 @@ namespace ArtiluxEOL
 
         #endregion
 
+        #region <<< Test sequence variables >>>
+
+        int Max_TCP_Cmd_Attempts = 10;
+
+
+        int Load_Test_State = 0;//0: Idle (not testing), 1: Get load voltage, 2: Get EVSE voltage, 3: Set load mode to constatnt current, 4: Get load mode setting, 5: Set load current 5A, 6: Get load current setting (5A), 7: Get EVSE current (5A), 8: Get load voltage, 9: Get EVSE voltage
+        int Load_Test_Cmd_Attempts = 0;
+        long Load_Test_Timer = 0;
+        float Load_Test_Max_Voltage_Diff = 2;//V
+        float Load_Test_Max_Current_Diff = 0.5f;//A
+
+
+        #endregion
+
         public Main()
         {
 
@@ -471,7 +485,6 @@ namespace ArtiluxEOL
 
             }
         }
-
 
         void lizdai_checbox_change()//EVSE test lizdai, indijuojam busena
         {
