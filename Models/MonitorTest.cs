@@ -66,7 +66,6 @@ namespace MonitorsTest.Models
         public long TimeStamp { get; set; }
         public bool NewSendData { get; set; }
         public int SendReceiveState { get; set; }
-        public int CommandId { get; set; }
         public int CmdRetransmitCnt { get; set; }
         public int PingPktTmrCnt { get; set; }
         public int GetSetParamCount { get; set; }
@@ -229,10 +228,10 @@ namespace MonitorsTest.Models
         public const int WIFI_SIGNAL = 4;
         public const int LTE_SIGNAL = 5;
         public const int RELAY_ON = 6;
-        public const int RELAY_OFF = 7;
-        public const int GET_METER = 8;
-        public const int GET_RFID = 9;
-       
+        public const int GET_METER = 7;
+        public const int GET_RFID = 8;
+        public const int RELAY_OFF = 9;
+
         public const int ERR = 115;
     }
 
@@ -271,6 +270,12 @@ namespace MonitorsTest.Models
         public int COM_ID = 0;//Main controller TCP command id attached to this device (changes with new command)
         public int ATTEMPTS = 0;//Number of attempts to execute current command
         public string NAME = "UNDEF";//Command name (used to generate TCP commands)
+    }
+
+    public class SpectumPoint
+    {
+        public int SAMPLE = 0;//Sample number
+        public float FREQUENCY = 0;//Frequency value
     }
 
     public static class EV_Mode_State

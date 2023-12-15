@@ -151,12 +151,27 @@
     <Compile Include="DevControl.Designer.cs">
       <DependentUpon>DevControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\SpectroscopeTestWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Models\SpectroscopeTestWindow.Designer.cs">
+      <DependentUpon>SpectroscopeTestWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="NetworkThreads.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="NetworkThreads.Designer.cs">
       <DependentUpon>NetworkThreads.cs</DependentUpon>
     </Compile>
+    <Compile Include="OsciloscopeTestWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="OsciloscopeTestWindow.Designer.cs">
+      <DependentUpon>OsciloscopeTestWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PicoPinnedArray.cs" />
+    <Compile Include="PicoStatus.cs" />
+    <Compile Include="PS2000AImports.cs" />
     <Compile Include="Tests.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -212,6 +227,12 @@
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Models\SpectroscopeTestWindow.resx">
+      <DependentUpon>SpectroscopeTestWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="OsciloscopeTestWindow.resx">
+      <DependentUpon>OsciloscopeTestWindow.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Popup_msg.resx">
       <DependentUpon>Popup_msg.cs</DependentUpon>

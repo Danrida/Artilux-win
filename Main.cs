@@ -28,12 +28,22 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Windows.Forms.DataVisualization.Charting;
 using static Ion.Sdk.Idi.Value.Constraint;
 using Ion.Sdk.Idi;
+using static System.Net.Mime.MediaTypeNames;
+using ArtiluxEOL.Models;
+using PicoStatus;
+using PS2000AImports;
+using PicoPinnedArray;
+using static PS2000AImports.Imports;
+
 
 namespace ArtiluxEOL
 {
     public partial class Main : Form
     {
         public static Main main;
+        SpectroscopeTestWindow spectro_form;
+        OscilloscopeTestWindow oscillo_form;
+        bool Form_Focused = false;
 
         static RegistryKey Config_reg;
         static RegistryKey Workplaces_reg;
@@ -175,21 +185,128 @@ namespace ArtiluxEOL
 
         #region <<< Test sequence variables >>>
 
-        int Max_TCP_Cmd_Attempts = 10;
+        public static int Max_TCP_Cmd_Attempts = 20;
 
+        //Load test variables
+        public static int Load_Test_State = 0;
+        public static int Load_Test_State_Last = 0;
+        public static int Load_Test_Cmd_Attempts = 0;
+        public static long Load_Test_Timer = 0;
+        public static int Load_Test_EVSE_ID = 1;//0 / 1 / 2
+        public static bool Load_Test_One_Call = false;
+        public static float Load_Test_Max_Voltage_Diff = 10;//V
+        public static float Load_Test_Max_Current_Diff = 0.5f;//A
+        public static float[] Load_Test_Measured_Voltage_Load = new float[3];
+        public static float[] Load_Test_Measured_Voltage_EVSE = new float[3];
+        public static float[] Load_Test_Measured_Current_Load = new float[3];
+        public static float[] Load_Test_Measured_Current_EVSE = new float[3];
+        public static bool Load_Test_Load_Possibly_ON = true;
+        public static bool Load_Test_Cancel = false;
+        public static long Load_Test_Timeout_Timer = 0;
+        public static int Load_Test_EVSE_Responce_Timeout = 5000;//ms
+        public static bool Load_Test_Failed = false;
+        public static int Load_Test_EVSE_OFF_Voltage_Max = 20;//Maximum voltage considered as OFF state (EVSE relay)
 
-        int Load_Test_State = 0;//0: Idle (not testing), 1: Get load voltage, 2: Get EVSE voltage, 3: Set load mode to constatnt current, 4: Get load mode setting, 5: Set load current 5A, 6: Get load current setting (5A), 7: Get EVSE current (5A), 8: Get load voltage, 9: Get EVSE voltage
-        int Load_Test_Cmd_Attempts = 0;
-        long Load_Test_Timer = 0;
-        float Load_Test_Max_Voltage_Diff = 2;//V
-        float Load_Test_Max_Current_Diff = 0.5f;//A
+        //HV test variables
+        public static int HV_Test_State = 0;
+        public static int HV_Test_State_Last = 0;
+        public static bool HV_Test_One_Call = false;
+        public static int HV_Test_Cmd_Attempts = 0;
+        public static int HV_Test_EVSE_ID = 1;//0 / 1 / 2
+        public static long HV_Test_Step_Timer = 0;
+        public static int HV_Test_Step_Delay = 500;//ms
+        public static bool HV_Test_Cancel = false;
+        public static long HV_Test_Timeout_Timer = 0;
+        public static int HV_Test_Retry_Count = 5;//0 - Max_TCP_Cmd_Attempts
+        public static int HV_Test_000_ACW_Timeout = 6000;//ms Test 000 ACW
+        public static int HV_Test_001_GB_Timeout = 2000;//ms Test 001 GB
+        public static bool HV_Test_Failed = false;
 
+        //Spectroscope test variables
+        public static int Spectroscope_Test_State = 0;
+        public static int Spectroscope_Test_State_Last = 0;
+        public static bool Spectroscope_Test_One_Call = false;
+        public static int Spectroscope_Test_Cmd_Attempts = 0;
+        public static int Spectroscope_Test_EVSE_ID = 1;//0 / 1 / 2
+        public static long Spectroscope_Test_Step_Timer = 0;
+        public static bool Spectroscope_Test_Cancel = false;
+        public static long Spectroscope_Test_Timeout_Timer = 0;
+        public static bool Spectroscope_Test_Failed = false;
+        public static int Spectroscope_Test_Timeout = 2000;
+        public const int Spectroscope_Readings_Count = 751;//Spectroscope returns 751 values
+        public static float[] Spectroscope_Readings = new float[Spectroscope_Readings_Count];
+        public static float[] Spectroscope_Readings_Old = new float[Spectroscope_Readings_Count];
+        public static SpectumPoint[] Spectroscope_Peaks;//Spectrum peak locations and their values
+        public static float Spectroscope_Marker_Value_Current;
+        public static float Spectroscope_Marker_Value_Previous;
+        public static int Spectroscope_Marker_Move_Attempts = 0;
+        public static long Spectroscope_Frequency_Start = 780000000;//Hz
+        public static long Spectroscope_Frequency_Stop = 960000000;//Hz
+        public static int Spectroscope_Test_Step_Delay = 200;//ms
+        public static int Spectroscope_Test_Retry_Count = 5;//0 - Max_TCP_Cmd_Attempts - how many times to retry starting the test if it doesint start
+        public static int Spectroscope_Peak_Search_Retry_Count = 5;//0 - Max_TCP_Cmd_Attempts - how many times to retry moving a marker to the next peak before the current one is considered to be the last one
+        public static float Spectroscope_Max_Sample_Diff = 10;//% - Maximum difference between any sample and its previuos value to be considered stable
+        public static int Spectroscope_Stable_Samples_Ammount = 3;//How many stable samples needed to receive to carry on with the test
+        public static int Spectroscope_Stable_Samples_Confirmed = 0;//How many stable samples received
+        public static int Spectroscope_Sample_Request_Delay = 200;//ms - Delay between sample requests when checking for stability of the graph
+
+        #endregion
+
+        #region <<< Picoscope variables >>>
+
+        uint Pico_Status = StatusCodes.PICO_RESERVED;
+        short handle;
+        short count = 0;
+        static short serialsLength = 40;
+        StringBuilder serials = new StringBuilder(serialsLength);
+        bool Pico_Measuring = false;//Is Picoscope measuring now
+        bool New_data = false;//New data obtained
+        static int Channel_Count = 2;//Number of channels on the osciloscope (A, B, C...)
+        bool Canceling_Process = false;
+
+        short maxValue;
+        ushort[] inputRanges = { 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000 };
+        short Selected_Input_Range = 8;
+        public short Trigger_Threshold = 2000;
+
+        //Set channel parameters
+        Imports.Channel Selected_Channel = Imports.Channel.ChannelA;
+        Imports.CouplingType Using_DC_Voltage = Imports.CouplingType.PS2000A_DC;
+        Imports.Range Measuring_Voltage_Range = Imports.Range.Range_5V;
+
+        //Set trigger parameters
+        short Set_Threshold = 0;//scaled in 16-bit ADC counts at the currently selected range
+        Imports.ThresholdDirection Trigger_Direction = Imports.ThresholdDirection.Rising;
+        uint Trigger_Delay = 0;//percentage of the requested number of data points, between the trigger event and the start of the block. It should be in the range -100% to +100%.    ?????
+        short Auto_Trigger_Ms = 0;//the delay in milliseconds after which the oscilloscope will collect samples if no trigger event occurs. If this is set to zero the oscilloscope will wait for a trigger indefinitely.
+
+        //Set time base parameters
+        public uint Set_Time_Base = 100000;//100 = 1ms
+        public const int Sample_Count = 1000;//Number of samples to get. The function uses this value to calculate the most suitable time unit to use.
+        int Time_Interval_In_Nanoseconds;//Read only, returned when setting the time base.
+        short Oversample = 1;//When the oscilloscope is operating at sampling rates less than the maximum, it is possible to oversample. Oversampling is taking more than one measurement during a time interval and returning an average.
+        int Maximum_Sample_Count;//Read only, the maximum number of samples available, returned when setting the time base.
+        uint Segment_Index = 0;//? Keep 0
+
+        //Run block parameters
+        int Pre_Trigger_Sample_Count = 0;
+        int Time_Indisposed_Ms;//Read only approximate time, in milliseconds, that the ADC will take to collect data.
+        private Imports.ps2000aBlockReady Call_Back_Delegate;//?
+        bool Running_Time_Block = false;
+
+        //UI stuff
+        bool Lable_Measuring_Blink_State = false;
+
+        PinnedArray<short>[] minPinned = new PinnedArray<short>[Channel_Count];
+        PinnedArray<short>[] maxPinned = new PinnedArray<short>[Channel_Count];
+
+        int[] Pico_Output_A = new int[Sample_Count];
+        int[] Pico_Output_B = new int[Sample_Count];
 
         #endregion
 
         public Main()
         {
-
             //Assign relay names (used to generate TCP commands)
             RL11.NAME = "RL:11";
             RL12.NAME = "RL:12";
@@ -218,6 +335,21 @@ namespace ArtiluxEOL
 
             InitializeComponent();
             main = this;
+            spectro_form = new SpectroscopeTestWindow();
+            oscillo_form = new OscilloscopeTestWindow();
+            oscillo_form.comboBox_Voltage.SelectedIndex = Selected_Input_Range;
+
+            if (Selected_Channel == Imports.Channel.ChannelB)
+            {
+                oscillo_form.comboBox_Channel.SelectedIndex = 1;
+            }
+            else
+            {
+                oscillo_form.comboBox_Channel.SelectedIndex = 0;
+            }
+            
+            Thread thread1 = new Thread(PicoThread); //Create Pocoscope thread
+            //thread1.Start();
 
             this.groupBox1.Controls.Add(cBoxWplace[0]); //Darbo vietos nr prikyrimas
             this.groupBox1.Controls.Add(cBoxWplace[1]);
@@ -277,6 +409,503 @@ namespace ArtiluxEOL
             SavedWorkplaces.Add(wplace);
 
         }
+
+        #region <<< Picoscope >>>
+
+        public void PicoThread()
+        {
+            while (true)
+            {
+                if (Pico_Measuring == false)//Dont ping when measuring is in progress
+                {
+                    oscillo_form.label_Measuring1.BackColor = Color.Transparent;
+                    oscillo_form.label_Measuring2.BackColor = Color.Transparent;
+                    Int16 pingResp = (Int16)Imports.PingUnit(handle);
+
+                    if (pingResp != 0)
+                    {
+                        lbl_osc.BackColor = Color.LightCoral;
+                        Imports.CloseUnit(handle);
+                        Pico_Status = Imports.EnumerateUnits(out count, serials, ref serialsLength);
+
+                        if (Pico_Status == StatusCodes.PICO_OK)
+                        {
+                            System.Diagnostics.Debug.Print("Devices found =" + count);
+
+                            Pico_Status = Imports.OpenUnit(out handle, null);
+
+                            if (Pico_Status == StatusCodes.PICO_OK)
+                            {
+                                System.Diagnostics.Debug.Print("Handle: " + handle);
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.Print("Unable to open device");
+                                System.Diagnostics.Debug.Print("Error code: " + Pico_Status);
+                            }
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.Print("Looking for devices...");
+                        }
+                    }
+                    else
+                    {
+                        lbl_osc.BackColor = Color.SpringGreen;
+
+                        if (Form_Focused == false)//Focus on this window (Picoscope splash screen hides this application after startup)
+                        {
+                            this.Invoke(new Action(() => { this.Activate(); }));
+                            Form_Focused = true;
+                        }
+                    }
+
+                    Thread.Sleep(1000);
+
+                }
+                else
+                {
+                    if (Lable_Measuring_Blink_State)
+                    {
+                        oscillo_form.label_Measuring1.BackColor = Color.LightGreen;
+                        oscillo_form.label_Measuring2.BackColor = Color.LightGreen;
+                    }
+                    else
+                    {
+                        oscillo_form.label_Measuring1.BackColor = Color.Transparent;
+                        oscillo_form.label_Measuring2.BackColor = Color.Transparent;
+                    }
+                    Lable_Measuring_Blink_State = !Lable_Measuring_Blink_State;
+
+                    Thread.Sleep(300);
+                }
+
+                if (New_data)
+                {
+                    if (Canceling_Process)
+                    {
+                        New_data = false;
+                        Canceling_Process = false;
+                        Running_Time_Block = false;//Reset time block flag for next measurment
+                    }
+                    else
+                    {
+                        New_data = false;
+                        GetData();//Store the data
+
+                        for (int i = 0; i < 10; i++)//Read first 10 readings
+                        {
+                            System.Diagnostics.Debug.Print("[" + i + "] " + adc_to_mv(maxPinned[0].Target[i], Selected_Input_Range));//Convert to volts * 1000
+                        }
+
+                        this.Invoke((MethodInvoker)delegate//Calling form from another thread
+                        {
+                            OutputToChart();
+                        });
+
+                        if (Running_Time_Block)
+                        {
+                            AnalyzeTimeBlock();
+                        }
+
+                        Running_Time_Block = false;//Reset time block flag for next measurment
+                    }
+                }
+            }
+        }
+
+        public int RunTimerBlock()
+        {
+            Running_Time_Block = true;
+            int toRet = 0;//Return value of this function
+            Int16 pingResp = (Int16)Imports.PingUnit(handle);//Ping responce from Picoscope
+
+            if (pingResp == 0)//Check if still with us
+            {
+                Pico_Status = Imports.SetChannel(handle, Imports.Channel.ChannelA, 1, Using_DC_Voltage, Measuring_Voltage_Range, 0);//Set channel settings
+                Pico_Status = Imports.SetChannel(handle, Imports.Channel.ChannelB, 1, Using_DC_Voltage, Measuring_Voltage_Range, 0);//Set channel settings
+
+                if (Pico_Status == StatusCodes.PICO_OK)
+                {
+                    Pico_Status = Imports.MaximumValue(handle, out maxValue);
+
+                    if (Pico_Status == StatusCodes.PICO_OK)
+                    {
+                        Set_Threshold = mv_to_adc(Trigger_Threshold, Selected_Input_Range);
+
+                        Pico_Status = Imports.SetSimpleTrigger(handle, 1, Imports.Channel.ChannelA, Set_Threshold, Trigger_Direction, Trigger_Delay, Auto_Trigger_Ms);//Set trigger settings
+
+                        if (Pico_Status == StatusCodes.PICO_OK)
+                        {
+                            Pico_Status = Imports.GetTimebase(handle, Set_Time_Base, Sample_Count, out Time_Interval_In_Nanoseconds, Oversample, out Maximum_Sample_Count, Segment_Index);//Set timebase settings
+
+                            System.Diagnostics.Debug.Print("Time interval= " + Time_Interval_In_Nanoseconds + "ns");
+                            System.Diagnostics.Debug.Print("Maximum samples= " + Maximum_Sample_Count);
+
+                            while (Imports.GetTimebase(handle, Set_Time_Base, Sample_Count, out Time_Interval_In_Nanoseconds, Oversample, out Maximum_Sample_Count, Segment_Index) != 0)
+                            {
+                                System.Diagnostics.Debug.Print("Selected timebase {0} could not be used\n", Set_Time_Base);
+                                Set_Time_Base++;
+                            }
+
+                            if (Pico_Status == StatusCodes.PICO_OK)
+                            {
+                                Pico_Measuring = true;//Measuring in progress
+                                Call_Back_Delegate = BlockCallback;//Call this function when done
+
+                                Pico_Status = Imports.RunBlock(handle, Pre_Trigger_Sample_Count, Sample_Count, Set_Time_Base, Oversample, out Time_Indisposed_Ms, Segment_Index, Call_Back_Delegate, IntPtr.Zero);//Set run block settings
+                                System.Diagnostics.Debug.Print("Time needed for measuring= " + Time_Indisposed_Ms + "ms");
+
+                                if (Pico_Status == StatusCodes.PICO_OK)
+                                {
+                                    toRet = 1;
+                                }
+                                else
+                                {
+                                    toRet = -6;
+                                }
+                            }
+                            else
+                            {
+                                toRet = -5;
+                            }
+                        }
+                        else
+                        {
+                            toRet = -4;
+                        }
+                    }
+                    else
+                    {
+                        toRet = -3;
+                    }
+                }
+                else
+                {
+                    toRet = -2;
+                }
+            }
+            else
+            {
+                toRet = -1;
+            }
+
+            return toRet;//0: ?; 1: Successful; //-1: no responce from device; -2: failed to set channel settings; -3: failed to obtain maxValue; -4: failed to set trigger settings; -5: failed to set time base; -6: failed to run block
+        }
+
+        public int GetData()
+        {
+            int toRet = 0;
+            short overflow;
+            uint sampleCnt = Sample_Count;
+
+            for (int i = 0; i < Channel_Count; i++)//Create buffer arrays
+            {
+                short[] minBuffers = new short[Sample_Count];
+                short[] maxBuffers = new short[Sample_Count];
+
+                minPinned[i] = new PinnedArray<short>(minBuffers);
+                maxPinned[i] = new PinnedArray<short>(maxBuffers);
+
+                Pico_Status = Imports.SetDataBuffers(handle, (Imports.Channel)i, maxBuffers, minBuffers, Sample_Count, 0, Imports.RatioMode.None);//Set data storage location
+
+                if (Pico_Status != StatusCodes.PICO_OK)
+                {
+                    System.Diagnostics.Debug.Print("BlockDataHandler:ps2000aSetDataBuffer Channel {0} Status = 0x{1:X6}", (char)('A' + i), Pico_Status);
+                    toRet = -1;
+                }
+            }
+
+            if (Pico_Status == StatusCodes.PICO_OK)
+            {
+                Imports.GetValues(handle, 0, ref sampleCnt, 1, Imports.DownSamplingMode.None, 0, out overflow);
+                toRet = 1;
+            }
+            else
+            {
+                toRet = -1;
+            }
+
+            Imports.Stop(handle);
+
+            return toRet;//0: ?; 1: Successful, -1: Could not set up data buffers
+        }
+
+        public int RunTriggerBlock()
+        {
+            int toRet = 0;//Return value of this function
+            Int16 pingResp = (Int16)Imports.PingUnit(handle);//Ping responce from Picoscope
+
+            if (pingResp == 0)//Check if still with us
+            {
+                Pico_Status = Imports.SetChannel(handle, Selected_Channel, 1, Using_DC_Voltage, Measuring_Voltage_Range, 0);//Set channel settings
+
+                if (Pico_Status == StatusCodes.PICO_OK)
+                {
+                    Pico_Status = Imports.MaximumValue(handle, out maxValue);
+
+                    if (Pico_Status == StatusCodes.PICO_OK)
+                    {
+                        Set_Threshold = mv_to_adc(Trigger_Threshold, Selected_Input_Range);
+
+                        Pico_Status = Imports.SetSimpleTrigger(handle, 1, Selected_Channel, Set_Threshold, Trigger_Direction, Trigger_Delay, Auto_Trigger_Ms);//Set trigger settings
+
+                        if (Pico_Status == StatusCodes.PICO_OK)
+                        {
+                            Pico_Status = Imports.GetTimebase(handle, Set_Time_Base, Sample_Count, out Time_Interval_In_Nanoseconds, Oversample, out Maximum_Sample_Count, Segment_Index);//Set timebase settings
+
+                            System.Diagnostics.Debug.Print("Time interval= " + Time_Interval_In_Nanoseconds + "ns");
+                            System.Diagnostics.Debug.Print("Maximum samples= " + Maximum_Sample_Count);
+
+                            while (Imports.GetTimebase(handle, Set_Time_Base, Sample_Count, out Time_Interval_In_Nanoseconds, Oversample, out Maximum_Sample_Count, Segment_Index) != 0)
+                            {
+                                System.Diagnostics.Debug.Print("Selected timebase {0} could not be used\n", Set_Time_Base);
+                                Set_Time_Base++;
+                            }
+
+                            if (Pico_Status == StatusCodes.PICO_OK)
+                            {
+                                Pico_Measuring = true;//Measuring in progress
+                                Call_Back_Delegate = BlockCallback;//Call this function when done
+
+                                Pico_Status = Imports.RunBlock(handle, Pre_Trigger_Sample_Count, Sample_Count, Set_Time_Base, Oversample, out Time_Indisposed_Ms, Segment_Index, Call_Back_Delegate, IntPtr.Zero);//Set run block settings
+                                System.Diagnostics.Debug.Print("Time needed for measuring= " + Time_Indisposed_Ms + "ms");
+
+                                if (Pico_Status == StatusCodes.PICO_OK)
+                                {
+                                    toRet = 1;
+                                }
+                                else
+                                {
+                                    toRet = -6;
+                                }
+                            }
+                            else
+                            {
+                                toRet = -5;
+                            }
+                        }
+                        else
+                        {
+                            toRet = -4;
+                        }
+                    }
+                    else
+                    {
+                        toRet = -3;
+                    }
+                }
+                else
+                {
+                    toRet = -2;
+                }
+            }
+            else
+            {
+                toRet = -1;
+            }
+
+            return toRet;//0: ?; 1: Successful; //-1: no responce from device; -2: failed to set channel settings; -3: failed to obtain maxValue; -4: failed to set trigger settings; -5: failed to set time base; -6: failed to run block
+        }
+
+        int adc_to_mv(int raw, int rng)
+        {
+            return (raw * inputRanges[rng]) / maxValue;
+        }
+
+        short mv_to_adc(short mv, short rng)
+        {
+            return (short)((mv * maxValue) / inputRanges[rng]);
+        }
+
+        void BlockCallback(short handle, uint status, IntPtr pVoid)
+        {
+            Pico_Measuring = false;//Done reading
+            New_data = true;//New data obtained
+        }
+
+        void OutputToChart()
+        {
+            oscillo_form.chart_Oscilloscope.Series["Channel A"].Points.Clear();
+            oscillo_form.chart_Oscilloscope.Series["Channel B"].Points.Clear();
+
+            int[] x_axis = new int[Sample_Count];
+
+            for (int i = 0; i < Sample_Count; i++)//Sample_Count
+            {
+                Pico_Output_A[i] = adc_to_mv(maxPinned[0].Target[i], Selected_Input_Range);
+                Pico_Output_B[i] = adc_to_mv(maxPinned[1].Target[i], Selected_Input_Range);
+                x_axis[i] = i;
+            }
+
+            if (Running_Time_Block)//Display time block
+            {
+                oscillo_form.chart_Oscilloscope.Series["Channel A"].Points.DataBindXY(x_axis, Pico_Output_A);
+                oscillo_form.chart_Oscilloscope.Series["Channel B"].Points.DataBindXY(x_axis, Pico_Output_B);
+            }
+            else//Display selected channel
+            {
+                if (Selected_Channel == Imports.Channel.ChannelA)
+                {
+                    oscillo_form.chart_Oscilloscope.Series["Channel A"].Points.DataBindXY(x_axis, Pico_Output_A);
+                }
+                else if (Selected_Channel == Imports.Channel.ChannelB)
+                {
+                    oscillo_form.chart_Oscilloscope.Series["Channel B"].Points.DataBindXY(x_axis, Pico_Output_B);
+                }
+            }
+        }
+
+        public void Input_Range_Selector(int index)
+        {
+            Selected_Input_Range = (short)index;
+            System.Diagnostics.Debug.Print("Selected range= " + Selected_Input_Range);
+
+            switch (index)
+            {
+                case 0://10 mV
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Maximum = 10;
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Minimum = -10;
+                    Measuring_Voltage_Range = Imports.Range.Range_10MV;
+                    break;
+
+                case 1://20 mV
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Maximum = 20;
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Minimum = -20;
+                    Measuring_Voltage_Range = Imports.Range.Range_20MV;
+                    break;
+
+                case 2://50 mV
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Maximum = 50;
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Minimum = -50;
+                    Measuring_Voltage_Range = Imports.Range.Range_50MV;
+                    break;
+
+                case 3://100 mV
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Maximum = 100;
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Minimum = -100;
+                    Measuring_Voltage_Range = Imports.Range.Range_100MV;
+                    break;
+
+                case 4://200 mV
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Maximum = 200;
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Minimum = -200;
+                    Measuring_Voltage_Range = Imports.Range.Range_200MV;
+                    break;
+
+                case 5://500 mV
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Maximum = 500;
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Minimum = -500;
+                    Measuring_Voltage_Range = Imports.Range.Range_500MV;
+                    break;
+
+                case 6://1 V
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Maximum = 1000;
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Minimum = -1000;
+                    Measuring_Voltage_Range = Imports.Range.Range_1V;
+                    break;
+
+                case 7://2 V
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Maximum = 2000;
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Minimum = -2000;
+                    Measuring_Voltage_Range = Imports.Range.Range_2V;
+                    break;
+
+                case 8://5 V
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Maximum = 5000;
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Minimum = -5000;
+                    Measuring_Voltage_Range = Imports.Range.Range_5V;
+                    break;
+
+                case 9://10 V
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Maximum = 10000;
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Minimum = -10000;
+                    Measuring_Voltage_Range = Imports.Range.Range_10V;
+                    break;
+
+                case 10://20 V
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Maximum = 20000;
+                    oscillo_form.chart_Oscilloscope.ChartAreas[0].AxisY.Minimum = -20000;
+                    Measuring_Voltage_Range = Imports.Range.Range_20V;
+                    break;
+            }
+        }
+
+        public void Channel_Selector(int index)
+        {
+            if (index == 1)
+            {
+                Selected_Channel = Imports.Channel.ChannelB;
+            }
+            else
+            {
+                Selected_Channel = Imports.Channel.ChannelA;
+            }
+        }
+
+        void AnalyzeTimeBlock()
+        {
+            float totalTestTime = Set_Time_Base * 10;
+            float elapsedSamples = 0;
+            bool edgeFound = false;
+
+            for (int i = 0; i < Sample_Count; i++)
+            {
+                if (Pico_Output_B[i] < Trigger_Threshold)
+                {
+                    elapsedSamples++;
+                }
+                else
+                {
+                    edgeFound = true;
+                    break;
+                }
+            }
+
+            float elapsedTime;
+
+            if (edgeFound)
+            {
+                elapsedTime = elapsedSamples / Sample_Count * totalTestTime;
+
+                this.Invoke((MethodInvoker)delegate//Calling form from another thread
+                {
+                    oscillo_form.label_Time.Text = elapsedTime + "ns";
+                });
+
+                System.Diagnostics.Debug.Print("Elapsed time= " + elapsedTime + "ns");
+            }
+            else
+            {
+                elapsedTime = -1;
+
+                this.Invoke((MethodInvoker)delegate//Calling form from another thread
+                {
+                    oscillo_form.label_Time.Text = "N/A";
+                });
+
+                System.Diagnostics.Debug.Print("No signal change after trigger");
+            }
+        }
+
+        public void Cancel_Oscilloscope_Teset()
+        {
+            Imports.Stop(handle);
+            Canceling_Process = true;
+        }
+
+        private void button_Oscilloscope_Test_Click(object sender, EventArgs e)
+        {
+            oscillo_form.Show();
+        }
+
+        private void button_Cancel_Oscilloscope_Click(object sender, EventArgs e)
+        {
+            Cancel_Oscilloscope_Teset();
+            oscillo_form.Hide();
+        }
+
+        #endregion
 
         protected override void OnHandleCreated(EventArgs e)
         {
@@ -1268,13 +1897,13 @@ namespace ArtiluxEOL
             if (SerPorts[OSCIL_PORT].port_active)
             {
                 //ijungiam mikrovaldiklis urasas zaliai
-                lbl_osc.BackColor = Color.SpringGreen;
+                //lbl_osc.BackColor = Color.SpringGreen; <-- Valdymas is Main.cs > PicoThread()
 
             }
             else
             {
                 //isjungiam mikrovaldiklis uzrasa zaliai
-                lbl_osc.BackColor = Color.LightCoral;
+                //lbl_osc.BackColor = Color.LightCoral; <-- Valdymas is Main.cs > PicoThread()
                 /*Tara[PORT_SVARST_A1].reset_temp();
                 Tara[PORT_SVARST_A2].reset_temp();
                 Tara[PORT_SVARST_B1].reset_temp();
@@ -1679,46 +2308,9 @@ namespace ArtiluxEOL
                 {
                     string tempstring = c.Substring(2, (c.Length - 2)).Trim();
                     float temp;
-                    /*if (float.TryParse(tempstring, System.Globalization.NumberStyles.Any, CultureInfo.InvariantCulture, out temp))
-                    {
-                        display_weight(xprt, temp);
-                    }*/
-                    // display_weight(xprt, (double) double.Parse(c)); // butinai per isorini callback nes luztam atskiru thread
                 }
-                //Tara[PORT_SVARST_A1].parse_command(c);
-                //Tara[PORT_SVARST_A1].svr_command_handler(xprt);
             }
-
         }
-
-
-
-        /*private void serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            dbg_print("cmd:");
-            string cmd;
-            SerialPort sp = (SerialPort)sender;
-            if (sp.IsOpen)
-            {
-                try
-                {
-                    uart_data = new byte[sp.BytesToWrite];
-
-                    sp.Read(uart_data, 0, uart_data.Length);
-
-                    cmd = System.Text.Encoding.UTF8.GetString(uart_data);
-
-                    //cmd = sp.ReadLine();
-
-                    //uart_buff_circl[command_wp++] = cmd.Trim().ToString();
-                    uart_buff.Add(cmd.Trim().ToString());
-
-                }
-                catch (TimeoutException) { }
-
-
-            }
-        }*/
 
         #endregion
 
@@ -2359,12 +2951,8 @@ namespace ArtiluxEOL
             NetworkThreads.ITECH_LOAD_handle_get_params();
         }
 
-
-
         private void dataGrid_Load_load_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-
-
             if (load_param_enable_edit)
             {
                 load_param_enable_edit = false;
@@ -2386,7 +2974,7 @@ namespace ArtiluxEOL
                     }
                     else
                     {
-                        show_msg("Blogi parametrai, galimos vertes 1-40A", Color.LightCoral);
+                        //show_msg("Blogi parametrai, galimos vertes 1-40A", Color.LightCoral);
                     }
                 }
             }
@@ -2438,6 +3026,9 @@ namespace ArtiluxEOL
             Main_Board_DIODE_SH(0);
             Main_Board_PE_OP(0);
             Main_Board_CP_SH(0);
+            CP_Selector_Set(0);
+            PP_Selector_Set(0);
+            TP_Selector_Set(0);
 
             Update_data_grid();
 
@@ -2503,9 +3094,6 @@ namespace ArtiluxEOL
             Row0.Cells[0].Value = "RELAY ON";
             dataGrid_Barcode1.Rows.Add(Row0);
             Row0 = (DataGridViewRow)dataGrid_Barcode1.Rows[0].Clone();
-            Row0.Cells[0].Value = "RELAY OFF";
-            dataGrid_Barcode1.Rows.Add(Row0);
-            Row0 = (DataGridViewRow)dataGrid_Barcode1.Rows[0].Clone();
             Row0.Cells[0].Value = "METER DATA";
             dataGrid_Barcode1.Rows.Add(Row0);
             Row0 = (DataGridViewRow)dataGrid_Barcode1.Rows[0].Clone();
@@ -2531,9 +3119,6 @@ namespace ArtiluxEOL
             Row0.Cells[0].Value = "RELAY ON";
             dataGrid_Barcode2.Rows.Add(Row0);
             Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
-            Row0.Cells[0].Value = "RELAY OFF";
-            dataGrid_Barcode2.Rows.Add(Row0);
-            Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
             Row0.Cells[0].Value = "METER DATA";
             dataGrid_Barcode2.Rows.Add(Row0);
             Row0 = (DataGridViewRow)dataGrid_Barcode2.Rows[0].Clone();
@@ -2551,9 +3136,6 @@ namespace ArtiluxEOL
             dataGrid_Barcode3.Rows.Add(Row0);
             Row0 = (DataGridViewRow)dataGrid_Barcode3.Rows[0].Clone();
             Row0.Cells[0].Value = "RELAY ON";
-            dataGrid_Barcode3.Rows.Add(Row0);
-            Row0 = (DataGridViewRow)dataGrid_Barcode3.Rows[0].Clone();
-            Row0.Cells[0].Value = "RELAY OFF";
             dataGrid_Barcode3.Rows.Add(Row0);
             Row0 = (DataGridViewRow)dataGrid_Barcode3.Rows[0].Clone();
             Row0.Cells[0].Value = "METER DATA";
@@ -2590,6 +3172,7 @@ namespace ArtiluxEOL
                 range = stop;
             }
 
+            System.Diagnostics.Debug.Print($"range: = {range}");
             net_dev.device_param[Siglent_param.X_RANGE] = Convert.ToString(range);
 
             chart1.ChartAreas[0].AxisX.Minimum = start;
@@ -2603,7 +3186,7 @@ namespace ArtiluxEOL
 
             net_dev.State = NetDev_State.START_TEST;//prasom grafiko duomenu
             net_dev.SubState = NetDev_Test.GET_CHART_DATA;
-            NetworkThreads.Sprectroscope_handle_get_params();
+            NetworkThreads.Spectroscope_handle_get_params();
         }
 
         public string get_siglent_unit(string val)
@@ -2658,11 +3241,13 @@ namespace ArtiluxEOL
             var net_dev = network_dev[DevType.ANALYSER_SIGLENT];
 
             double start = Convert.ToDouble(net_dev.device_param[Siglent_param.START_X]);
+            System.Diagnostics.Debug.Print($"START_X: = {Siglent_param.START_X}");
 
             split = netdev.Resp.Split(',');//subs[0]=ip,subs[1]=port_0,subs[2]=port_1,
             int points_cnt = split.Length;
 
             Double range = Convert.ToDouble(netdev.device_param[Siglent_param.X_RANGE]);
+            System.Diagnostics.Debug.Print($"X_RANGE: = {Siglent_param.X_RANGE}");
             Double interval = range / points_cnt;
 
             int i = 0;
@@ -2688,15 +3273,15 @@ namespace ArtiluxEOL
                             }
                         )
                     );
-
-                    y_min = Convert.ToDouble(split[i].Replace('.', ','));
-                    y_max = Convert.ToDouble(split[i].Replace('.', ','));
+                    //y_min = Convert.ToDouble(split[i].Replace('.', ','));
+                    y_min = Convert.ToDouble(split[i]);
+                    y_max = Convert.ToDouble(split[i]);
                 }
                 else
                 {
                     point_x = chart1.Series["spectrum"].Points[i - 1].XValue;
                     chart1.Invoke((MethodInvoker)(() => chart1.Series["spectrum"].Points.AddXY(point_x + interval, split[i])));
-                    point = Convert.ToDouble(split[i].Replace('.', ','));
+                    point = Convert.ToDouble(split[i]);
                     if (point < y_min)
                     {
                         y_min = point;
@@ -2778,7 +3363,7 @@ namespace ArtiluxEOL
                     network_dev[DevType.ANALYSER_SIGLENT].State = NetDev_State.GET_PARAM_ALL;
                     network_dev[DevType.ANALYSER_SIGLENT].GetSetParamLeft = 3;
                     network_dev[DevType.ANALYSER_SIGLENT].GetSetParamCount = 3;
-                    NetworkThreads.Sprectroscope_handle_get_params();
+                    NetworkThreads.Spectroscope_handle_get_params();
                     break;
                 case NetDev_Tab.ITECH_LOAD:
                     break;
@@ -3319,11 +3904,168 @@ namespace ArtiluxEOL
             TP_Selector.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
         }
 
-
-
         #endregion
 
+        private void button_load_test_start_Click(object sender, EventArgs e)
+        {
+            Load_Test_State = 1;
+        }
 
+        public void Update_Progress_Bar_Load_Test()
+        {
+            if (Load_Test_State > 0)
+            {
+                if (Load_Test_State > Load_Test_State_Last)
+                {
+                    Load_Test_State_Last = Load_Test_State;
+
+                    if (Load_Test_State < progressBar_load_test.Maximum)
+                    {
+                        this.Invoke(new Action(() => { this.progressBar_load_test.Value = Load_Test_State; }));
+                    }
+                    else
+                    {
+                        this.Invoke(new Action(() => { this.progressBar_load_test.Value = progressBar_load_test.Maximum; }));
+                    }
+                }
+            }
+            else
+            {
+                this.Invoke(new Action(() => { this.progressBar_load_test.Value = 0; }));
+                Load_Test_State_Last = 0;
+            }
+        }
+
+        private void button_load_test_cancel_Click(object sender, EventArgs e)
+        {
+            Load_Test_Cancel = true;
+        }
+
+        private void button_HV_Test_Start_Click(object sender, EventArgs e)
+        {
+            HV_Test_State = 1;
+        }
+
+        public void Update_Progress_Bar_HV_Test()
+        {
+            if (HV_Test_State > 0)
+            {
+                if (HV_Test_State > HV_Test_State_Last)
+                {
+                    HV_Test_State_Last = HV_Test_State;
+
+                    if (HV_Test_State < progressBar_HV_Test.Maximum)
+                    {
+                        this.Invoke(new Action(() => { this.progressBar_HV_Test.Value = HV_Test_State; }));
+                    }
+                    else
+                    {
+                        this.Invoke(new Action(() => { this.progressBar_HV_Test.Value = progressBar_HV_Test.Maximum; }));
+                    }
+                }
+            }
+            else
+            {
+                this.Invoke(new Action(() => { this.progressBar_HV_Test.Value = 0; }));
+                HV_Test_State_Last = 0;
+            }
+        }
+
+        private void button_HV_Test_Cancel_Click(object sender, EventArgs e)
+        {
+            HV_Test_Cancel = true;
+        }
+
+        private void button_Spectroscope_Test_Start(object sender, EventArgs e)
+        {
+            Spectroscope_Test_State = 1;
+        }
+
+        public void Update_Progress_Bar_Spectroscope_Test()
+        {
+            if (Spectroscope_Test_State > 0)
+            {
+                if (Spectroscope_Test_State > Spectroscope_Test_State_Last)
+                {
+                    Spectroscope_Test_State_Last = Spectroscope_Test_State;
+
+                    if (Spectroscope_Test_State < progressBar_Spectroscope_Test.Maximum)
+                    {
+                        this.Invoke(new Action(() => { this.progressBar_Spectroscope_Test.Value = Spectroscope_Test_State; }));
+                    }
+                    else
+                    {
+                        this.Invoke(new Action(() => { this.progressBar_Spectroscope_Test.Value = progressBar_Spectroscope_Test.Maximum; }));
+                    }
+                }
+            }
+            else
+            {
+                this.Invoke(new Action(() => { this.progressBar_Spectroscope_Test.Value = 0; }));
+                Spectroscope_Test_State_Last = 0;
+            }
+        }
+
+        public void Spectroscope_Analyze_Data()
+        {
+            bool isStable = true;
+            this.Invoke(new Action(() => { spectro_form.Show(); }));
+
+            spectro_form.Invoke(new Action(() => { spectro_form.someChart.Series[0].Points.DataBindY(Spectroscope_Readings); }));
+
+            for (int i = 0; i < Spectroscope_Readings_Old.Length; i++)
+            {
+                if (isStable)
+                {
+                    if (Math.Abs(1 - (Spectroscope_Readings[i] / Spectroscope_Readings_Old[i])) > (Spectroscope_Max_Sample_Diff / 100.0f))
+                    {
+                        isStable = false;
+                        Spectroscope_Stable_Samples_Confirmed = 0;
+                        //System.Diagnostics.Debug.Print("Sample [" + i + "] diff= " + Math.Abs(1 - (Spectroscope_Readings[i] / Spectroscope_Readings_Old[i])));
+                    }
+                }
+
+                Spectroscope_Readings_Old[i] = Spectroscope_Readings[i];
+            }
+
+            if (isStable)
+            {
+                Spectroscope_Stable_Samples_Confirmed++;
+            }
+
+        }
+
+        public void Spectroscope_Graph_Add_Peaks()
+        {
+            float[] peakArray = new float[Spectroscope_Readings_Count];
+            int peakSample = 0;
+
+            for (int i = 0; i < Spectroscope_Readings_Count; i++)
+            {
+                peakArray[i] = 0;
+            }
+
+            for (int i = 0; i < Spectroscope_Peaks.Length; i++)
+            {
+                peakSample = Spectroscope_Peaks[i].SAMPLE;
+                peakArray[peakSample] = Spectroscope_Readings[peakSample];
+                System.Diagnostics.Debug.Print("Peak [" + i + "] at " + Spectroscope_Peaks[i].FREQUENCY + "Hz");
+            }
+
+            this.Invoke(new Action(() => { spectro_form.someChart.Series[1].Points.DataBindY(peakArray); }));
+        }
+
+        public void Spectroscope_Graph_Reset()
+        {
+            float[] emptyArray = new float[Spectroscope_Readings_Count];
+            this.Invoke(new Action(() => { spectro_form.someChart.Series[0].Points.DataBindY(emptyArray); }));
+            this.Invoke(new Action(() => { spectro_form.someChart.Series[1].Points.DataBindY(emptyArray); }));
+        }
+
+        private void button_Spectroscope_Test_Cancel_Click(object sender, EventArgs e)
+        {
+            Spectroscope_Test_Cancel = true;
+        }
 
     }
 }

@@ -109,10 +109,10 @@ namespace ArtiluxEOL
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.groupBox_evse_state = new System.Windows.Forms.GroupBox();
-            this.groupBox_checks = new System.Windows.Forms.GroupBox();
             this.groupBox_main_relay = new System.Windows.Forms.GroupBox();
             this.groupBox_pp_select = new System.Windows.Forms.GroupBox();
             this.groupBox_tp_select = new System.Windows.Forms.GroupBox();
+            this.groupBox_checks = new System.Windows.Forms.GroupBox();
             this.data_grid_main_board = new System.Windows.Forms.DataGridView();
             this.CMD = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column23 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -210,6 +210,18 @@ namespace ArtiluxEOL
             this.cbAdmin = new System.Windows.Forms.CheckBox();
             this.panelTestResult = new System.Windows.Forms.Panel();
             this.btnStart = new System.Windows.Forms.Button();
+            this.button_load_test_start = new System.Windows.Forms.Button();
+            this.progressBar_load_test = new System.Windows.Forms.ProgressBar();
+            this.button_load_test_cancel = new System.Windows.Forms.Button();
+            this.progressBar_HV_Test = new System.Windows.Forms.ProgressBar();
+            this.button_HV_Test_Cancel = new System.Windows.Forms.Button();
+            this.button_HV_Test_Start = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button_Spectroscope_Test_Cancel = new System.Windows.Forms.Button();
+            this.progressBar_Spectroscope_Test = new System.Windows.Forms.ProgressBar();
+            this.button_Oscilloscope_Test = new System.Windows.Forms.Button();
+            this.button_Cancel_Oscilloscope = new System.Windows.Forms.Button();
+            this.progressBar_Oscilloscope = new System.Windows.Forms.ProgressBar();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.Test_lizdas_3.SuspendLayout();
@@ -578,7 +590,7 @@ namespace ArtiluxEOL
             // lbl_evse
             // 
             this.lbl_evse.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_evse.Location = new System.Drawing.Point(34, 300);
+            this.lbl_evse.Location = new System.Drawing.Point(32, 271);
             this.lbl_evse.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_evse.Name = "lbl_evse";
             this.lbl_evse.Size = new System.Drawing.Size(176, 56);
@@ -629,7 +641,7 @@ namespace ArtiluxEOL
             // lbl_osc
             // 
             this.lbl_osc.BackColor = System.Drawing.Color.Gainsboro;
-            this.lbl_osc.Location = new System.Drawing.Point(31, 364);
+            this.lbl_osc.Location = new System.Drawing.Point(32, 335);
             this.lbl_osc.Margin = new System.Windows.Forms.Padding(2, 8, 2, 0);
             this.lbl_osc.Name = "lbl_osc";
             this.lbl_osc.Size = new System.Drawing.Size(179, 56);
@@ -1034,17 +1046,6 @@ namespace ArtiluxEOL
             this.groupBox_evse_state.TabStop = false;
             this.groupBox_evse_state.Text = "EV_MODE";
             // 
-            // groupBox_checks
-            // 
-            this.groupBox_checks.Location = new System.Drawing.Point(32, 22);
-            this.groupBox_checks.Margin = new System.Windows.Forms.Padding(2);
-            this.groupBox_checks.Name = "groupBox_checks";
-            this.groupBox_checks.Padding = new System.Windows.Forms.Padding(2);
-            this.groupBox_checks.Size = new System.Drawing.Size(700, 60);
-            this.groupBox_checks.TabIndex = 3;
-            this.groupBox_checks.TabStop = false;
-            this.groupBox_checks.Text = "CHECKS";
-            // 
             // groupBox_main_relay
             // 
             this.groupBox_main_relay.Location = new System.Drawing.Point(32, 256);
@@ -1067,6 +1068,28 @@ namespace ArtiluxEOL
             this.groupBox_pp_select.TabStop = false;
             this.groupBox_pp_select.Text = "CABLE";
             // 
+            // groupBox_tp_select
+            // 
+            this.groupBox_tp_select.Location = new System.Drawing.Point(750, 22);
+            this.groupBox_tp_select.Margin = new System.Windows.Forms.Padding(2);
+            this.groupBox_tp_select.Name = "groupBox_tp_select";
+            this.groupBox_tp_select.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_tp_select.Size = new System.Drawing.Size(170, 216);
+            this.groupBox_tp_select.TabIndex = 2;
+            this.groupBox_tp_select.TabStop = false;
+            this.groupBox_tp_select.Text = "POSITION";
+            // 
+            // groupBox_checks
+            // 
+            this.groupBox_checks.Location = new System.Drawing.Point(32, 22);
+            this.groupBox_checks.Margin = new System.Windows.Forms.Padding(2);
+            this.groupBox_checks.Name = "groupBox_checks";
+            this.groupBox_checks.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox_checks.Size = new System.Drawing.Size(700, 60);
+            this.groupBox_checks.TabIndex = 3;
+            this.groupBox_checks.TabStop = false;
+            this.groupBox_checks.Text = "CHECKS";
+            // 
             // data_grid_main_board
             // 
             this.data_grid_main_board.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -1082,17 +1105,6 @@ namespace ArtiluxEOL
             this.data_grid_main_board.Size = new System.Drawing.Size(700, 150);
             this.data_grid_main_board.TabIndex = 1;
             this.data_grid_main_board.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGrid_main_board_click);
-            // 
-            // groupBox_tp_select
-            // 
-            this.groupBox_tp_select.Location = new System.Drawing.Point(750, 22);
-            this.groupBox_tp_select.Margin = new System.Windows.Forms.Padding(2);
-            this.groupBox_tp_select.Name = "groupBox_tp_select";
-            this.groupBox_tp_select.Padding = new System.Windows.Forms.Padding(2);
-            this.groupBox_tp_select.Size = new System.Drawing.Size(170, 216);
-            this.groupBox_tp_select.TabIndex = 2;
-            this.groupBox_tp_select.TabStop = false;
-            this.groupBox_tp_select.Text = "POSITION";
             // 
             // CMD
             // 
@@ -2071,11 +2083,135 @@ namespace ArtiluxEOL
             this.btnStart.UseVisualStyleBackColor = true;
             this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
+            // button_load_test_start
+            // 
+            this.button_load_test_start.Location = new System.Drawing.Point(289, 677);
+            this.button_load_test_start.Name = "button_load_test_start";
+            this.button_load_test_start.Size = new System.Drawing.Size(117, 23);
+            this.button_load_test_start.TabIndex = 13;
+            this.button_load_test_start.Text = "Start load test";
+            this.button_load_test_start.UseVisualStyleBackColor = true;
+            this.button_load_test_start.Click += new System.EventHandler(this.button_load_test_start_Click);
+            // 
+            // progressBar_load_test
+            // 
+            this.progressBar_load_test.Location = new System.Drawing.Point(473, 677);
+            this.progressBar_load_test.Maximum = 50;
+            this.progressBar_load_test.Name = "progressBar_load_test";
+            this.progressBar_load_test.Size = new System.Drawing.Size(226, 23);
+            this.progressBar_load_test.TabIndex = 14;
+            // 
+            // button_load_test_cancel
+            // 
+            this.button_load_test_cancel.Location = new System.Drawing.Point(412, 677);
+            this.button_load_test_cancel.Name = "button_load_test_cancel";
+            this.button_load_test_cancel.Size = new System.Drawing.Size(55, 23);
+            this.button_load_test_cancel.TabIndex = 15;
+            this.button_load_test_cancel.Text = "Cancel";
+            this.button_load_test_cancel.UseVisualStyleBackColor = true;
+            this.button_load_test_cancel.Click += new System.EventHandler(this.button_load_test_cancel_Click);
+            // 
+            // progressBar_HV_Test
+            // 
+            this.progressBar_HV_Test.Location = new System.Drawing.Point(473, 706);
+            this.progressBar_HV_Test.Maximum = 39;
+            this.progressBar_HV_Test.Name = "progressBar_HV_Test";
+            this.progressBar_HV_Test.Size = new System.Drawing.Size(226, 23);
+            this.progressBar_HV_Test.TabIndex = 17;
+            // 
+            // button_HV_Test_Cancel
+            // 
+            this.button_HV_Test_Cancel.Location = new System.Drawing.Point(412, 706);
+            this.button_HV_Test_Cancel.Name = "button_HV_Test_Cancel";
+            this.button_HV_Test_Cancel.Size = new System.Drawing.Size(55, 23);
+            this.button_HV_Test_Cancel.TabIndex = 18;
+            this.button_HV_Test_Cancel.Text = "Cancel";
+            this.button_HV_Test_Cancel.UseVisualStyleBackColor = true;
+            this.button_HV_Test_Cancel.Click += new System.EventHandler(this.button_HV_Test_Cancel_Click);
+            // 
+            // button_HV_Test_Start
+            // 
+            this.button_HV_Test_Start.Location = new System.Drawing.Point(289, 706);
+            this.button_HV_Test_Start.Name = "button_HV_Test_Start";
+            this.button_HV_Test_Start.Size = new System.Drawing.Size(117, 23);
+            this.button_HV_Test_Start.TabIndex = 19;
+            this.button_HV_Test_Start.Text = "Start HV test";
+            this.button_HV_Test_Start.UseVisualStyleBackColor = true;
+            this.button_HV_Test_Start.Click += new System.EventHandler(this.button_HV_Test_Start_Click);
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(289, 735);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(117, 23);
+            this.button2.TabIndex = 20;
+            this.button2.Text = "Spectroscope test";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button_Spectroscope_Test_Start);
+            // 
+            // button_Spectroscope_Test_Cancel
+            // 
+            this.button_Spectroscope_Test_Cancel.Location = new System.Drawing.Point(412, 735);
+            this.button_Spectroscope_Test_Cancel.Name = "button_Spectroscope_Test_Cancel";
+            this.button_Spectroscope_Test_Cancel.Size = new System.Drawing.Size(55, 23);
+            this.button_Spectroscope_Test_Cancel.TabIndex = 21;
+            this.button_Spectroscope_Test_Cancel.Text = "Cancel";
+            this.button_Spectroscope_Test_Cancel.UseVisualStyleBackColor = true;
+            this.button_Spectroscope_Test_Cancel.Click += new System.EventHandler(this.button_Spectroscope_Test_Cancel_Click);
+            // 
+            // progressBar_Spectroscope_Test
+            // 
+            this.progressBar_Spectroscope_Test.Location = new System.Drawing.Point(473, 735);
+            this.progressBar_Spectroscope_Test.Maximum = 28;
+            this.progressBar_Spectroscope_Test.Name = "progressBar_Spectroscope_Test";
+            this.progressBar_Spectroscope_Test.Size = new System.Drawing.Size(226, 23);
+            this.progressBar_Spectroscope_Test.TabIndex = 22;
+            // 
+            // button_Oscilloscope_Test
+            // 
+            this.button_Oscilloscope_Test.Location = new System.Drawing.Point(289, 764);
+            this.button_Oscilloscope_Test.Name = "button_Oscilloscope_Test";
+            this.button_Oscilloscope_Test.Size = new System.Drawing.Size(117, 23);
+            this.button_Oscilloscope_Test.TabIndex = 23;
+            this.button_Oscilloscope_Test.Text = "Oscilloscope test";
+            this.button_Oscilloscope_Test.UseVisualStyleBackColor = true;
+            this.button_Oscilloscope_Test.Click += new System.EventHandler(this.button_Oscilloscope_Test_Click);
+            // 
+            // button_Cancel_Oscilloscope
+            // 
+            this.button_Cancel_Oscilloscope.Location = new System.Drawing.Point(412, 764);
+            this.button_Cancel_Oscilloscope.Name = "button_Cancel_Oscilloscope";
+            this.button_Cancel_Oscilloscope.Size = new System.Drawing.Size(55, 23);
+            this.button_Cancel_Oscilloscope.TabIndex = 24;
+            this.button_Cancel_Oscilloscope.Text = "Cancel";
+            this.button_Cancel_Oscilloscope.UseVisualStyleBackColor = true;
+            this.button_Cancel_Oscilloscope.Click += new System.EventHandler(this.button_Cancel_Oscilloscope_Click);
+            // 
+            // progressBar_Oscilloscope
+            // 
+            this.progressBar_Oscilloscope.Location = new System.Drawing.Point(473, 764);
+            this.progressBar_Oscilloscope.Maximum = 28;
+            this.progressBar_Oscilloscope.Name = "progressBar_Oscilloscope";
+            this.progressBar_Oscilloscope.Size = new System.Drawing.Size(226, 23);
+            this.progressBar_Oscilloscope.TabIndex = 25;
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1000, 833);
+            this.Controls.Add(this.progressBar_Oscilloscope);
+            this.Controls.Add(this.button_Cancel_Oscilloscope);
+            this.Controls.Add(this.button_Oscilloscope_Test);
+            this.Controls.Add(this.progressBar_Spectroscope_Test);
+            this.Controls.Add(this.button_Spectroscope_Test_Cancel);
+            this.Controls.Add(this.button2);
+            this.Controls.Add(this.button_HV_Test_Start);
+            this.Controls.Add(this.button_HV_Test_Cancel);
+            this.Controls.Add(this.progressBar_HV_Test);
+            this.Controls.Add(this.button_load_test_cancel);
+            this.Controls.Add(this.progressBar_load_test);
+            this.Controls.Add(this.button_load_test_start);
             this.Controls.Add(this.btnStart);
             this.Controls.Add(this.panelTestResult);
             this.Controls.Add(this.tabControl1);
@@ -2308,6 +2444,18 @@ namespace ArtiluxEOL
         private DataGridViewTextBoxColumn Column23;
         private DataGridViewButtonColumn Column24;
         private DataGridViewButtonColumn Column25;
+        private System.Windows.Forms.Button button_load_test_start;
+        private System.Windows.Forms.ProgressBar progressBar_load_test;
+        private System.Windows.Forms.Button button_load_test_cancel;
+        private System.Windows.Forms.ProgressBar progressBar_HV_Test;
+        private System.Windows.Forms.Button button_HV_Test_Cancel;
+        private System.Windows.Forms.Button button_HV_Test_Start;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button_Spectroscope_Test_Cancel;
+        private System.Windows.Forms.ProgressBar progressBar_Spectroscope_Test;
+        private System.Windows.Forms.Button button_Oscilloscope_Test;
+        private System.Windows.Forms.Button button_Cancel_Oscilloscope;
+        private System.Windows.Forms.ProgressBar progressBar_Oscilloscope;
     }
 }
 
