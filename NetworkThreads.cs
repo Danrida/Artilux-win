@@ -276,6 +276,7 @@ namespace ArtiluxEOL
                         net_dev.NewResp = true;
                         net_dev.ReceiveRunning = false;
                         net_dev.SendReceiveState = NetDev_SendState.IDLE;
+                        Socket_.receive_socket(net_dev);
                         //System.Diagnostics.Debug.Print($"MAIN_newCMD:{net_dev.Resp}");
                         //MAIN_Ctrl_handle();
                         break;
@@ -292,8 +293,6 @@ namespace ArtiluxEOL
         public void MAIN_Ctrl_handle()
         {
 
-            //System.Diagnostics.Debug.Print($"RL11: {Main.RL11.STATE}");
-
             var net_dev = Main.main.network_dev[DevType.MAIN_CONTROLLER];
             net_dev.State = MainBoard_State.IDLE;//Main controller idle (unless specified otherwise later in the code)
             string[] sepResps;//Stores the seperate responces from the main board
@@ -307,136 +306,170 @@ namespace ArtiluxEOL
 
             if (net_dev.NewResp)//There is a new responce from the main board
             {
-
                 net_dev.NewResp = false;//Reset new responce flag
-                sepResps = net_dev.Resp.Split('\n');//Split the response
 
-                for (int j = 0; j < (sepResps.Length - 1); j++)
+                if (net_dev.Resp.StartsWith("ESTOP"))
                 {
+                    Main.E_Stop_Signal.STATE = 1;
+                    System.Diagnostics.Debug.Print("STOP");
+                }
+                else
+                {
+                    sepResps = net_dev.Resp.Split('\n');//Split the response
 
-                    System.Diagnostics.Debug.Print($"Received: {sepResps[j]}");
-                    split = sepResps[j].Split(':');//Split the response
-
-                    if (split.Length > 1)//Check responce format
+                    for (int j = 0; j < (sepResps.Length - 1); j++)
                     {
-                        split[1] = split[1].Split('.')[0];//Remove the ending of the responce (everything after and including ".")
+                        System.Diagnostics.Debug.Print($"Received: {sepResps[j]}");
+                        split = sepResps[j].Split(':');//Split the response
 
-                        if (!int.TryParse(split[1], out respID))//Get responce id
+                        if (split.Length > 1)//Check responce format
                         {
-                            System.Diagnostics.Debug.Print($"Could not obtain responce id from responce: {net_dev.Resp}");
-                        }
+                            split[1] = split[1].Split('.')[0];//Remove the ending of the responce (everything after and including ".")
 
-                        if (split[0] == "OK")//Responce OK (comes from any command)
-                        {
-                            for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Find who sent this command id
+                            if (!int.TryParse(split[1], out respID))//Get responce id
                             {
-                                if (Main.Main_Board_Controls[i] is Relay)//Object type relay
-                                {
-                                    Relay tmpRL = (Relay)Main.Main_Board_Controls[i];
+                                System.Diagnostics.Debug.Print($"Could not obtain responce id from responce: {net_dev.Resp}");
+                            }
 
-                                    if (tmpRL.COM_ID == respID)//Found the sender
+                            if (split[0] == "OK")//Responce OK (comes from any command)
+                            {
+                                for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Find who sent this command id
+                                {
+                                    if (Main.Main_Board_Controls[i] is Relay)//Object type relay
                                     {
-                                        if (tmpRL.STATE == 10)//If the sender was waiting for an OK responce- move to next state
+                                        Relay tmpRL = (Relay)Main.Main_Board_Controls[i];
+
+                                        if (tmpRL.COM_ID == respID)//Found the sender
                                         {
-                                            tmpRL.STATE = 11;//Now waiting for ON/OFF state confirmation
-                                            tmpRL.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
-                                            Main.main.Main_Board_Set_Command_ID(tmpRL);//Assign an ID for this command
+                                            if (tmpRL.STATE == 10)//If the sender was waiting for an OK responce- move to next state
+                                            {
+                                                tmpRL.STATE = 11;//Now waiting for ON/OFF state confirmation
+                                                tmpRL.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+                                                Main.main.Main_Board_Set_Command_ID(tmpRL);//Assign an ID for this command
+                                            }
+                                            break;//Exit for loop
                                         }
-                                        break;//Exit for loop
                                     }
-                                }
-                                else if (Main.Main_Board_Controls[i] is NumericStateDevice)//Object type relay
-                                {
-                                    NumericStateDevice tmpNmrc = (NumericStateDevice)Main.Main_Board_Controls[i];
-
-                                    if (tmpNmrc.COM_ID == respID)//Found the sender
+                                    else if (Main.Main_Board_Controls[i] is NumericStateDevice)//Object type relay
                                     {
-                                        if (tmpNmrc.STATE == -10)//If the sender was waiting for an OK responce- move to next state
+                                        NumericStateDevice tmpNmrc = (NumericStateDevice)Main.Main_Board_Controls[i];
+
+                                        if (tmpNmrc.COM_ID == respID)//Found the sender
                                         {
-                                            tmpNmrc.STATE = -11;//Now waiting for 0/1/2/3... state confirmation
-                                            tmpNmrc.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
-                                            Main.main.Main_Board_Set_Command_ID(tmpNmrc);//Assign an ID for this command
+                                            if (tmpNmrc.STATE == -10)//If the sender was waiting for an OK responce- move to next state
+                                            {
+                                                tmpNmrc.STATE = -11;//Now waiting for 0/1/2/3... state confirmation
+                                                tmpNmrc.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+                                                Main.main.Main_Board_Set_Command_ID(tmpNmrc);//Assign an ID for this command
+                                            }
+                                            break;//Exit for loop
                                         }
-                                        break;//Exit for loop
                                     }
                                 }
                             }
-                        }
-                        else if (split[0] == "ON")//State responce ON (comes from a relay)
-                        {
-                            for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Find who sent this command id
+                            else if (split[0] == "ON")//State responce ON (comes from a relay)
                             {
-                                if (Main.Main_Board_Controls[i] is Relay)//Object type relay
+                                for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Find who sent this command id
                                 {
-                                    Relay tmpRL = (Relay)Main.Main_Board_Controls[i];
-
-                                    if (tmpRL.COM_ID == respID)//Found the sender
+                                    if (Main.Main_Board_Controls[i] is Relay)//Object type relay
                                     {
-                                        if (tmpRL.STATE == 11)//If the sender was waiting for an state responce- confirm state
+                                        Relay tmpRL = (Relay)Main.Main_Board_Controls[i];
+
+                                        if (tmpRL.COM_ID == respID)//Found the sender
                                         {
-                                            tmpRL.STATE = 1;//State is ON
-                                            tmpRL.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+                                            if (tmpRL.STATE == 11)//If the sender was waiting for an state responce- confirm state
+                                            {
+                                                tmpRL.STATE = 1;//State is ON
+                                                tmpRL.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+                                            }
+                                            break;//Exit for loop
                                         }
-                                        break;//Exit for loop
+                                    }
+                                    else if (Main.Main_Board_Controls[i] is Signal)
+                                    {
+                                        Signal tmpSG = (Signal)Main.Main_Board_Controls[i];
+
+                                        if (tmpSG.COM_ID == respID)//Found the sender
+                                        {
+                                            tmpSG.STATE = 1;//ON
+                                            break;//Exit for loop
+                                        }
                                     }
                                 }
                             }
-                        }
-                        else if (split[0] == "OFF")//State responce OFF (comes from a relay)
-                        {
-                            for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Find who sent this command id
+                            else if (split[0] == "OFF")//State responce OFF (comes from a relay)
                             {
-                                if (Main.Main_Board_Controls[i] is Relay)//Object type relay
+                                for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Find who sent this command id
                                 {
-                                    Relay tmpRL = (Relay)Main.Main_Board_Controls[i];
-
-                                    if (tmpRL.COM_ID == respID)//Found the sender
+                                    if (Main.Main_Board_Controls[i] is Relay)//Object type relay
                                     {
-                                        if (tmpRL.STATE == 11)//If the sender was waiting for an state responce- confirm state
+                                        Relay tmpRL = (Relay)Main.Main_Board_Controls[i];
+
+                                        if (tmpRL.COM_ID == respID)//Found the sender
                                         {
-                                            tmpRL.STATE = 0;//State is OFF
-                                            tmpRL.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+                                            if (tmpRL.STATE == 11)//If the sender was waiting for an state responce- confirm state
+                                            {
+                                                tmpRL.STATE = 0;//State is OFF
+                                                tmpRL.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+                                            }
+                                            break;//Exit for loop
                                         }
-                                        break;//Exit for loop
+                                    }
+                                    else if (Main.Main_Board_Controls[i] is Signal)
+                                    {
+                                        Signal tmpSG = (Signal)Main.Main_Board_Controls[i];
+
+                                        if (tmpSG.COM_ID == respID)//Found the sender
+                                        {
+                                            tmpSG.STATE = 0;//OFF
+                                            break;//Exit for loop
+                                        }
                                     }
                                 }
                             }
-                        }
-                        else if (int.TryParse(split[0], out nmrcResp))//State responce in mumeric (0/1/2/3...)
-                        {
-                            for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Find who sent this command id
+                            else if (int.TryParse(split[0], out nmrcResp))//State responce in mumeric (0/1/2/3...)
                             {
-                                if (Main.Main_Board_Controls[i] is NumericStateDevice)//Object type numeric state device
+                                for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Find who sent this command id
                                 {
-                                    NumericStateDevice tmpNmrc = (NumericStateDevice)Main.Main_Board_Controls[i];
-
-                                    if (tmpNmrc.COM_ID == respID)//Found the sender
+                                    if (Main.Main_Board_Controls[i] is NumericStateDevice)//Object type numeric state device
                                     {
-                                        if (tmpNmrc.STATE == -11)//If the sender was waiting for an state responce- confirm state
+                                        NumericStateDevice tmpNmrc = (NumericStateDevice)Main.Main_Board_Controls[i];
+
+                                        if (tmpNmrc.COM_ID == respID)//Found the sender
                                         {
-                                            tmpNmrc.STATE = nmrcResp;//State is equal to responce
-                                            tmpNmrc.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+                                            if (tmpNmrc.STATE == -11)//If the sender was waiting for an state responce- confirm state
+                                            {
+                                                tmpNmrc.STATE = nmrcResp;//State is equal to responce
+                                                tmpNmrc.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+                                            }
+                                            break;//Exit for loop
                                         }
-                                        break;//Exit for loop
                                     }
                                 }
                             }
+                            else
+                            {
+                                System.Diagnostics.Debug.Print($"Unhandled responce from main controller: {net_dev.Resp}");
+                            }
+
+                            Main.main.Update_data_grid();
+
                         }
                         else
                         {
-                            System.Diagnostics.Debug.Print($"Unhandled responce from main controller: {net_dev.Resp}");
+                            System.Diagnostics.Debug.Print($"Bad response format: {net_dev.Resp}");
                         }
-
-                        Main.main.Update_data_grid();
-
                     }
-                    else
-                    {
-                        System.Diagnostics.Debug.Print($"Bad response format: {net_dev.Resp}");
-                    }
-
                 }
 
+                if (Main.E_Stop_Signal.STATE == 0)
+                {
+                    if (Main.E_Stop_Previous)//Emergency stop reset
+                    {
+                        Main.main.Emergency_Stop_Reset();
+                        Main.E_Stop_Previous = false;
+                    }
+                }
             }
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -444,95 +477,129 @@ namespace ArtiluxEOL
 
             if ((unixTimeMilliseconds - Main_Controller_TCP_Handler_Timer) > Main_Controller_TCP_Poll_Rate)
             {
-                for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Go trough all main controller objects
+                if (Main.E_Stop_Signal.STATE == 1)
                 {
-                    if (Main.Main_Board_Controls[i] is Relay)//Object type relay
+                    if (!Main.E_Stop_Previous)//New emergency stop received
                     {
-                        Relay tmpRL = (Relay)Main.Main_Board_Controls[i];
-
-                        if (tmpRL.STATE == 10)//Found an object in a waiting state
-                        {
-                            if (tmpRL.ATTEMPTS < Main_Controller_TCP_Max_Poll_Count)//Check for timeout
-                            {
-                                tmpRL.ATTEMPTS++;//Next attempt
-                                net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
-                                net_dev.Cmd = tmpRL.COM_ID + ":" + tmpRL.NAME + ":" + tmpRL.SET;//Generate TCP command (000:RLXX:1/0)
-                                Socket_.send_socket(net_dev, net_dev.Cmd);//#sendit
-                                net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
-                                System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
-                                break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
-                            }
-                            else
-                            {
-                                tmpRL.STATE = -1;//Could not get "OK" response
-                            }
-                        }
-                        else if (tmpRL.STATE == 11)//Found an object in a waiting state
-                        {
-                            if (tmpRL.ATTEMPTS < Main_Controller_TCP_Max_Poll_Count)//Check for timeout
-                            {
-                                tmpRL.ATTEMPTS++;//Next attempt
-                                net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
-                                net_dev.Cmd = tmpRL.COM_ID + ":" + tmpRL.NAME + ":?";//Generate TCP command (000:RLXX:?)
-                                Socket_.send_socket(net_dev, net_dev.Cmd);//#sendit
-                                net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
-                                System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
-                                break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
-                            }
-                            else
-                            {
-                                tmpRL.STATE = -2;//Could not get "ON"/"OFF" confirmation
-                            }
-                        }
+                        Main.main.Main_Board_Set_Command_ID(Main.E_Stop_Signal);
+                        Main.main.Emergency_Stop_Procedure();
+                        Main.E_Stop_Previous = true;
                     }
-                    else if (Main.Main_Board_Controls[i] is NumericStateDevice)//Object type NumericStateDevice
-                    {
-                        NumericStateDevice tmpNmrc = (NumericStateDevice)Main.Main_Board_Controls[i];
 
-                        if (tmpNmrc.STATE == -10)//Found an object in a waiting state
-                        {
-                            if (tmpNmrc.ATTEMPTS < Main_Controller_TCP_Max_Poll_Count)//Check for timeout
-                            {
-                                tmpNmrc.ATTEMPTS++;//Next attempt
-                                net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
-                                net_dev.Cmd = tmpNmrc.COM_ID + ":" + tmpNmrc.NAME + ":" + tmpNmrc.SET;//Generate TCP command (000:XXXX:0/1/2/3...)
-                                Socket_.send_socket(net_dev, net_dev.Cmd);//#sendit
-                                net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
-                                System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
-                                break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
-                            }
-                            else
-                            {
-                                tmpNmrc.STATE = -100;//Could not get "OK" response
-                            }
-                        }
-                        else if (tmpNmrc.STATE == -11)//Found an object in a waiting state
-                        {
-                            if (tmpNmrc.ATTEMPTS < Main_Controller_TCP_Max_Poll_Count)//Check for timeout
-                            {
-                                tmpNmrc.ATTEMPTS++;//Next attempt
-                                net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
-                                net_dev.Cmd = tmpNmrc.COM_ID + ":" + tmpNmrc.NAME + ":?";//Generate TCP command (000:XXXX:?)
-                                Socket_.send_socket(net_dev, net_dev.Cmd);//#sendit
-                                net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
-                                System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
-                                break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
-                            }
-                            else
-                            {
-                                tmpNmrc.STATE = -101;//Could not get 0/1/2/3... confirmation
-                            }
-                        }
-                    }
-                    else
+                    net_dev.State = MainBoard_State.BUSY;
+                    net_dev.Cmd = Main.E_Stop_Signal.COM_ID + ":" + Main.E_Stop_Signal.NAME + "?";//Is it still emergency stop state?
+                    Socket_.send_socket(net_dev, net_dev.Cmd);
+                    net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                    System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
+
+                }
+                else
+                {
+                    for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Go trough all main controller objects
                     {
-                        System.Diagnostics.Debug.Print($"Unknown object type was found");
+                        if (Main.Main_Board_Controls[i] is Relay)//Object type relay
+                        {
+                            Relay tmpRL = (Relay)Main.Main_Board_Controls[i];
+
+                            if (tmpRL.STATE == 10)//Found an object in a waiting state
+                            {
+                                if (tmpRL.ATTEMPTS < Main_Controller_TCP_Max_Poll_Count)//Check for timeout
+                                {
+                                    tmpRL.ATTEMPTS++;//Next attempt
+                                    net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
+                                    net_dev.Cmd = tmpRL.COM_ID + ":" + tmpRL.NAME + ":" + tmpRL.SET;//Generate TCP command (000:RLXX:1/0)
+                                    Socket_.send_socket(net_dev, net_dev.Cmd);//#sendit
+                                    net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
+                                    System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
+                                    break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
+                                }
+                                else
+                                {
+                                    tmpRL.STATE = -1;//Could not get "OK" response
+                                }
+                            }
+                            else if (tmpRL.STATE == 11)//Found an object in a waiting state
+                            {
+                                if (tmpRL.ATTEMPTS < Main_Controller_TCP_Max_Poll_Count)//Check for timeout
+                                {
+                                    tmpRL.ATTEMPTS++;//Next attempt
+                                    net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
+                                    net_dev.Cmd = tmpRL.COM_ID + ":" + tmpRL.NAME + ":?";//Generate TCP command (000:RLXX:?)
+                                    Socket_.send_socket(net_dev, net_dev.Cmd);//#sendit
+                                    net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
+                                    System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
+                                    break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
+                                }
+                                else
+                                {
+                                    tmpRL.STATE = -2;//Could not get "ON"/"OFF" confirmation
+                                }
+                            }
+                        }
+                        else if (Main.Main_Board_Controls[i] is NumericStateDevice)//Object type NumericStateDevice
+                        {
+                            NumericStateDevice tmpNmrc = (NumericStateDevice)Main.Main_Board_Controls[i];
+
+                            if (tmpNmrc.STATE == -10)//Found an object in a waiting state
+                            {
+                                if (tmpNmrc.ATTEMPTS < Main_Controller_TCP_Max_Poll_Count)//Check for timeout
+                                {
+                                    tmpNmrc.ATTEMPTS++;//Next attempt
+                                    net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
+                                    net_dev.Cmd = tmpNmrc.COM_ID + ":" + tmpNmrc.NAME + ":" + tmpNmrc.SET;//Generate TCP command (000:XXXX:0/1/2/3...)
+                                    Socket_.send_socket(net_dev, net_dev.Cmd);//#sendit
+                                    net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
+                                    System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
+                                    break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
+                                }
+                                else
+                                {
+                                    tmpNmrc.STATE = -100;//Could not get "OK" response
+                                }
+                            }
+                            else if (tmpNmrc.STATE == -11)//Found an object in a waiting state
+                            {
+                                if (tmpNmrc.ATTEMPTS < Main_Controller_TCP_Max_Poll_Count)//Check for timeout
+                                {
+                                    tmpNmrc.ATTEMPTS++;//Next attempt
+                                    net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
+                                    net_dev.Cmd = tmpNmrc.COM_ID + ":" + tmpNmrc.NAME + ":?";//Generate TCP command (000:XXXX:?)
+                                    Socket_.send_socket(net_dev, net_dev.Cmd);//#sendit
+                                    net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
+                                    System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
+                                    break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
+                                }
+                                else
+                                {
+                                    tmpNmrc.STATE = -101;//Could not get 0/1/2/3... confirmation
+                                }
+                            }
+                        }
+                        else if (Main.Main_Board_Controls[i] is Signal)//Object type Signal
+                        {
+                            //Signal
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.Print($"Unknown object type was found");
+                        }
                     }
                 }
 
                 Main_Controller_TCP_Handler_Timer = unixTimeMilliseconds;//Reset TCP poll timer
             }
 
+        }
+
+        public void Generate_Test_Pulse(string pulseLength)
+        {
+            var net_dev = Main.main.network_dev[DevType.MAIN_CONTROLLER];
+
+            net_dev.State = MainBoard_State.BUSY;
+            net_dev.Cmd = "123:OSCT:" + pulseLength;
+            Socket_.send_socket(net_dev, net_dev.Cmd);
+            net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
+            System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
         }
         #endregion
 

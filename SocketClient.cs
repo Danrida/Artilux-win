@@ -486,7 +486,7 @@ namespace ArtiluxEOL
 
             public static void start_receive(SocketDevList dev)
             {
-                dev.NewResp = false;
+                //dev.NewResp = false;
 
                 if (!dev.ReceiveRunning)// receiv nepaleistas, tai paleidziam
                 {

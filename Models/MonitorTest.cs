@@ -38,7 +38,7 @@ namespace MonitorsTest.Models
         public int BarcodePort { get; set; }
     }
 
-        public class SocketDevList
+    public class SocketDevList
     {
         public Socket client { get; set; }
         public string Name { get; set; }
@@ -77,7 +77,6 @@ namespace MonitorsTest.Models
         public string[] device_param { get; set; }
     }
 
-
     public static class TestType
     {
         public const int HV_ATSPARUMAS = 0;
@@ -102,7 +101,7 @@ namespace MonitorsTest.Models
         public const int TEST_DONE = 5;
     }
 
-        public static class EvseTestState
+    public static class EvseTestState
     {
         public const int NONE = 0;
         //public const int TEST_STARTING = 1;
@@ -257,7 +256,7 @@ namespace MonitorsTest.Models
     public class Relay
     {
         public int SET = 0;//Do not use directly, call Main_Board_RelayXX (int)
-        public int STATE = 0;//0: OFF, 1: ON, -1: No response, -2: No confirmation, 10: waiting for responce (OK), 11: waiting for confirmation (ON/OFF)
+        public int STATE = 0;//0: OFF, 1: ON, -1: No response, -2: No confirmation, 10: waiting for responce (OK), 11: waiting for confirmation (ON/OFF) - read only
         public int COM_ID = 0;//Main controller TCP command id attached to this relay (changes with new command)
         public int ATTEMPTS = 0;//Number of attempts to execute current command
         public string NAME = "UNDEF";//Command name (used to generate TCP commands)
@@ -266,9 +265,16 @@ namespace MonitorsTest.Models
     public class NumericStateDevice
     {
         public int SET = 0;//Do not use directly,
-        public int STATE = 0;//0, 1, 2, 3..., -100: No response, -101: No confirmation, -10: waiting for responce (OK), -11: waiting for state confirmation (0/1/2/3...)
+        public int STATE = 0;//0, 1, 2, 3..., -100: No response, -101: No confirmation, -10: waiting for responce (OK), -11: waiting for state confirmation (0/1/2/3...) - read only
         public int COM_ID = 0;//Main controller TCP command id attached to this device (changes with new command)
         public int ATTEMPTS = 0;//Number of attempts to execute current command
+        public string NAME = "UNDEF";//Command name (used to generate TCP commands)
+    }
+
+    public class Signal
+    {
+        public int STATE = 0;//0, 1 - read only
+        public int COM_ID = 0;//Main controller TCP command id attached to this device (changes with new command)
         public string NAME = "UNDEF";//Command name (used to generate TCP commands)
     }
 
@@ -317,8 +323,6 @@ namespace MonitorsTest.Models
         public const int EVSE_RELAY_OFF = 14;
     }
 
-    
-
     public static class NetDev_Tab
     {
         public const int MAIN_CONTROLLER = 0;
@@ -352,13 +356,6 @@ namespace MonitorsTest.Models
         public const int Y_UNIT_RAW = 20;
     }
 
-    /* public static class DbgType
-     {
-         public const int MAIN = 0;
-         public const int NETWORK = 1;
-         public const int USB = 2;
-     }*/
-
     public class DbgType
     {
         public static bool MAIN { get; set; }
@@ -381,7 +378,5 @@ namespace MonitorsTest.Models
         public const int BARCODE_2 = 5;
         public const int BARCODE_3 = 6;
     }
-
-    
 
 }

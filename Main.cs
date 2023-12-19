@@ -34,6 +34,7 @@ using PicoStatus;
 using PS2000AImports;
 using PicoPinnedArray;
 using static PS2000AImports.Imports;
+using static Ion.Sdk.Ici.Channel.BlackBox.Message;
 
 
 namespace ArtiluxEOL
@@ -154,6 +155,7 @@ namespace ArtiluxEOL
         private static Mutex mut = new Mutex();//Thread lock
 
         public int MainControlerTcpCommandId = 0;
+        public static bool E_Stop_Previous = false;
 
         /* 
         To assign a main board control:
@@ -179,7 +181,9 @@ namespace ArtiluxEOL
         public static NumericStateDevice CP_Selector = new NumericStateDevice();
         public static NumericStateDevice TP_Selector = new NumericStateDevice();
 
-        public static object[] Main_Board_Controls = new object[] { RL11, RL12, RL13, RL14, PP_Selector, LS_EN, LOAD, SOURCE, LS_Selector, CP_Selector, DIODE_SH, PE_OP, CP_SH, TP_Selector };
+        public static Signal E_Stop_Signal = new Signal();
+
+        public static object[] Main_Board_Controls = new object[] { RL11, RL12, RL13, RL14, PP_Selector, LS_EN, LOAD, SOURCE, LS_Selector, CP_Selector, DIODE_SH, PE_OP, CP_SH, TP_Selector, E_Stop_Signal };
 
         #endregion
 
@@ -322,6 +326,7 @@ namespace ArtiluxEOL
             PE_OP.NAME = "PE_OP";
             CP_SH.NAME = "CP_SH";
             TP_Selector.NAME = "TP_SEL";
+            E_Stop_Signal.NAME = "EMG";
 
             Config_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Configs");
             Workplaces_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Workplaces");
@@ -349,7 +354,7 @@ namespace ArtiluxEOL
             }
             
             Thread thread1 = new Thread(PicoThread); //Create Pocoscope thread
-            //thread1.Start();
+            thread1.Start();
 
             this.groupBox1.Controls.Add(cBoxWplace[0]); //Darbo vietos nr prikyrimas
             this.groupBox1.Controls.Add(cBoxWplace[1]);
@@ -408,6 +413,14 @@ namespace ArtiluxEOL
             wplace = new WorkplaceList { WorplaceMonitorID = 123456789, Enable = true, BarcodePort = 1111 };
             SavedWorkplaces.Add(wplace);
 
+            if (E_Stop_Signal.STATE == 1)
+            {
+                label_Estop.Visible = true;
+            }
+            else
+            {
+                label_Estop.Visible = false;
+            }
         }
 
         #region <<< Picoscope >>>
@@ -3301,11 +3314,6 @@ namespace ArtiluxEOL
         }
         #endregion
 
-        private void button5_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void button5_Click_1(object sender, EventArgs e)
         {
             network_dev[DevType.GWINSTEK_HV_TESTER].Cmd = "MEAS?";
@@ -3388,12 +3396,6 @@ namespace ArtiluxEOL
         private void dataGrid_Barcode3_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            Socket_.send_socket(network_dev[DevType.MAIN_CONTROLLER], "123:RL:MAIN:0");
-            network_dev[DevType.MAIN_CONTROLLER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
         }
 
         #region Main board
@@ -3779,6 +3781,12 @@ namespace ArtiluxEOL
                 tmpNmrc.COM_ID = MainControlerTcpCommandId;
                 targ = tmpNmrc;
             }
+            else if (targ is Signal)
+            {
+                Signal tmpSg = (Signal)targ;
+                tmpSg.COM_ID = MainControlerTcpCommandId;
+                targ = tmpSg;
+            }
 
             if (MainControlerTcpCommandId < 254)//Overflow at 255
             {
@@ -4067,5 +4075,51 @@ namespace ArtiluxEOL
             Spectroscope_Test_Cancel = true;
         }
 
+        private void button_osc_pulse(object sender, EventArgs e)
+        {
+            NetworkThreads.Generate_Test_Pulse(textBox_pulse_length.Text);
+        }
+
+        private void DisableControls(Control con)
+        {
+            foreach (Control c in con.Controls)
+            {
+                DisableControls(c);
+            }
+
+            this.Invoke(new Action(() => { con.Enabled = false; }));
+            
+        }
+
+        private void EnableControls(Control con)
+        {
+            foreach (Control c in con.Controls)
+            {
+                EnableControls(c);
+            }
+            this.Invoke(new Action(() => { con.Enabled = true; }));
+        }
+
+        public void Emergency_Stop_Procedure()//Called once upon receiving a signal from the main controller
+        {
+            DisableControls(this);
+            DisableControls(spectro_form);
+            DisableControls(oscillo_form);
+            this.Invoke(new Action(() => { this.label_Estop.Visible = true; }));
+
+            Load_Test_Cancel = true;
+            HV_Test_Cancel = true;
+            Spectroscope_Test_Cancel = true;
+            Cancel_Oscilloscope_Teset();
+
+        }
+
+        public void Emergency_Stop_Reset()//Called once upon receiving a signal from the main controller
+        {
+            EnableControls(this);
+            EnableControls(spectro_form);
+            EnableControls(oscillo_form);
+            this.Invoke(new Action(() => { this.label_Estop.Visible = false; }));
+        }
     }
 }

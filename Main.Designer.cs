@@ -222,6 +222,10 @@ namespace ArtiluxEOL
             this.button_Oscilloscope_Test = new System.Windows.Forms.Button();
             this.button_Cancel_Oscilloscope = new System.Windows.Forms.Button();
             this.progressBar_Oscilloscope = new System.Windows.Forms.ProgressBar();
+            this.button_oscilloscope_pulse = new System.Windows.Forms.Button();
+            this.textBox_pulse_length = new System.Windows.Forms.TextBox();
+            this.label22 = new System.Windows.Forms.Label();
+            this.label_Estop = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.Test_lizdas_3.SuspendLayout();
@@ -1137,16 +1141,6 @@ namespace ArtiluxEOL
             this.Column25.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.Column25.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             this.Column25.Width = 125;
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(796, 435);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(141, 91);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // tabPage7
             // 
@@ -2195,11 +2189,53 @@ namespace ArtiluxEOL
             this.progressBar_Oscilloscope.Size = new System.Drawing.Size(226, 23);
             this.progressBar_Oscilloscope.TabIndex = 25;
             // 
+            // button_oscilloscope_pulse
+            // 
+            this.button_oscilloscope_pulse.Location = new System.Drawing.Point(289, 793);
+            this.button_oscilloscope_pulse.Name = "button_oscilloscope_pulse";
+            this.button_oscilloscope_pulse.Size = new System.Drawing.Size(327, 23);
+            this.button_oscilloscope_pulse.TabIndex = 26;
+            this.button_oscilloscope_pulse.Text = "Oscilloscope pulse";
+            this.button_oscilloscope_pulse.UseVisualStyleBackColor = true;
+            this.button_oscilloscope_pulse.Click += new System.EventHandler(this.button_osc_pulse);
+            // 
+            // textBox_pulse_length
+            // 
+            this.textBox_pulse_length.Location = new System.Drawing.Point(622, 793);
+            this.textBox_pulse_length.Name = "textBox_pulse_length";
+            this.textBox_pulse_length.Size = new System.Drawing.Size(51, 20);
+            this.textBox_pulse_length.TabIndex = 27;
+            this.textBox_pulse_length.Text = "100000";
+            // 
+            // label22
+            // 
+            this.label22.Location = new System.Drawing.Point(679, 790);
+            this.label22.Name = "label22";
+            this.label22.Size = new System.Drawing.Size(20, 23);
+            this.label22.TabIndex = 28;
+            this.label22.Text = "ns";
+            this.label22.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // label_Estop
+            // 
+            this.label_Estop.BackColor = System.Drawing.Color.Red;
+            this.label_Estop.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_Estop.Location = new System.Drawing.Point(169, 711);
+            this.label_Estop.Name = "label_Estop";
+            this.label_Estop.Size = new System.Drawing.Size(100, 60);
+            this.label_Estop.TabIndex = 29;
+            this.label_Estop.Text = "STOP";
+            this.label_Estop.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1000, 833);
+            this.Controls.Add(this.label_Estop);
+            this.Controls.Add(this.label22);
+            this.Controls.Add(this.textBox_pulse_length);
+            this.Controls.Add(this.button_oscilloscope_pulse);
             this.Controls.Add(this.progressBar_Oscilloscope);
             this.Controls.Add(this.button_Cancel_Oscilloscope);
             this.Controls.Add(this.button_Oscilloscope_Test);
@@ -2274,6 +2310,7 @@ namespace ArtiluxEOL
             this.panelTestResult.ResumeLayout(false);
             this.panelTestResult.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -2456,6 +2493,10 @@ namespace ArtiluxEOL
         private System.Windows.Forms.Button button_Oscilloscope_Test;
         private System.Windows.Forms.Button button_Cancel_Oscilloscope;
         private System.Windows.Forms.ProgressBar progressBar_Oscilloscope;
+        private System.Windows.Forms.Button button_oscilloscope_pulse;
+        private System.Windows.Forms.TextBox textBox_pulse_length;
+        private Label label22;
+        private Label label_Estop;
     }
 }
 
