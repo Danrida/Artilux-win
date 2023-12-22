@@ -35,12 +35,29 @@ using PS2000AImports;
 using PicoPinnedArray;
 using static PS2000AImports.Imports;
 using static Ion.Sdk.Ici.Channel.BlackBox.Message;
+using System.Runtime.InteropServices;//For disabling monitros
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
+using System.Runtime.Remoting.Contexts;
+using System.Security.Policy;
 
 
 namespace ArtiluxEOL
 {
     public partial class Main : Form
     {
+
+        //For disabling monitors
+
+        public int WM_SYSCOMMAND = 0x0112;
+        public int SC_MONITORPOWER = 0xF170;
+
+        [DllImport("user32.dll")]
+        private static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);
+
+        //------------------------
+
+
+
         public static Main main;
         SpectroscopeTestWindow spectro_form;
         OscilloscopeTestWindow oscillo_form;
@@ -107,12 +124,6 @@ namespace ArtiluxEOL
         SocketClient Socket_ = new SocketClient();
         NetworkThreads NetworkThreads = new NetworkThreads();
 
-        public void deb(string str)
-        {
-            //get { return list_debug; }
-            //set { Console.WriteLine($"Port0:{str}"); }
-        }
-
         bool load_param_enable_edit = false;
 
         public class portas // BUTINAI CLASS NES NORIM PRIEITI PRIE VARIABLU
@@ -133,8 +144,6 @@ namespace ArtiluxEOL
         public string[] devices_info = new string[8];
 
         UInt16 WorkplacesCount = 0;
-
-        //UInt64[] SavedWorkplaces;
 
         System.Windows.Forms.ComboBox[] cBoxWplace = new System.Windows.Forms.ComboBox[4];
         System.Windows.Forms.TextBox[] TextBox_dev_info = new System.Windows.Forms.TextBox[13];
@@ -196,7 +205,7 @@ namespace ArtiluxEOL
         public static int Load_Test_State_Last = 0;
         public static int Load_Test_Cmd_Attempts = 0;
         public static long Load_Test_Timer = 0;
-        public static int Load_Test_EVSE_ID = 1;//0 / 1 / 2
+        public static int Load_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
         public static bool Load_Test_One_Call = false;
         public static float Load_Test_Max_Voltage_Diff = 10;//V
         public static float Load_Test_Max_Current_Diff = 0.5f;//A
@@ -216,7 +225,7 @@ namespace ArtiluxEOL
         public static int HV_Test_State_Last = 0;
         public static bool HV_Test_One_Call = false;
         public static int HV_Test_Cmd_Attempts = 0;
-        public static int HV_Test_EVSE_ID = 1;//0 / 1 / 2
+        public static int HV_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
         public static long HV_Test_Step_Timer = 0;
         public static int HV_Test_Step_Delay = 500;//ms
         public static bool HV_Test_Cancel = false;
@@ -231,7 +240,7 @@ namespace ArtiluxEOL
         public static int Spectroscope_Test_State_Last = 0;
         public static bool Spectroscope_Test_One_Call = false;
         public static int Spectroscope_Test_Cmd_Attempts = 0;
-        public static int Spectroscope_Test_EVSE_ID = 1;//0 / 1 / 2
+        public static int Spectroscope_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
         public static long Spectroscope_Test_Step_Timer = 0;
         public static bool Spectroscope_Test_Cancel = false;
         public static long Spectroscope_Test_Timeout_Timer = 0;
@@ -253,6 +262,30 @@ namespace ArtiluxEOL
         public static int Spectroscope_Stable_Samples_Ammount = 3;//How many stable samples needed to receive to carry on with the test
         public static int Spectroscope_Stable_Samples_Confirmed = 0;//How many stable samples received
         public static int Spectroscope_Sample_Request_Delay = 200;//ms - Delay between sample requests when checking for stability of the graph
+
+        //EVSE communication test
+        public static int EVSE_Comm_Test_State = 0;
+        public static int EVSE_Comm_Test_State_Last = 0;
+        public static int EVSE_Comm_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
+
+        //WI-FI test
+        public static int Wifi_Test_State = 0;
+        public static int Wifi_Test_State_Last = 0;
+        public static int Wifi_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
+
+        //RFID test
+        public static int RFID_Test_State = 0;
+        public static int RFID_Test_State_Last = 0;
+        public static int RFID_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
+
+        //RCD test
+        public static int RCD_Test_State = 0;
+        public static int RCD_Test_State_Last = 0;
+        public static int RCD_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
+
+
+        public List<EVSETestState> Test_States = new List<EVSETestState>();
+        public bool[] EVSE_Operational = new bool[3] { false, false, false };
 
         #endregion
 
@@ -309,6 +342,21 @@ namespace ArtiluxEOL
 
         #endregion
 
+        #region <<< Display variables >>>
+
+        int Monitor1_Width = 1920;//pixels
+        int Monitor1_Height = 1080;//pixels
+
+        int Monitor2_Width = 1920;//pixels
+        int Monitor2_Height = 1080;//pixels
+
+        int Monitor3_Width = 1920;//pixels
+        int Monitor3_Height = 1080;//pixels
+
+        string[] DetectedMonitors = new string[0];//Array of serial numbers for all detected monitors. Serials are added if new hardware is detected, never removed. This array is used for detecting new monitors during runtime (in case the application was launched without all monitors present)
+
+        #endregion
+
         public Main()
         {
             //Assign relay names (used to generate TCP commands)
@@ -332,11 +380,10 @@ namespace ArtiluxEOL
             Workplaces_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Workplaces");
             Periphery_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Devices");
 
-            //SavedWorkplaces = new UInt64[5];
             //workplace
             cBoxWplace[0] = new System.Windows.Forms.ComboBox { Enabled = false, Font = new Font("Microsoft Sans Serif", 14), Location = new Point(x: 69, y: 40), Size = new Size(200, 37), DropDownStyle = ComboBoxStyle.DropDownList, DropDownHeight = 106, DropDownWidth = 200 };
             cBoxWplace[1] = new System.Windows.Forms.ComboBox { Enabled = false, Font = new Font("Microsoft Sans Serif", 14), Location = new Point(x: 69, y: 100), Size = new Size(200, 37), DropDownStyle = ComboBoxStyle.DropDownList, DropDownHeight = 106, DropDownWidth = 200 };
-            cBoxWplace[2] = new System.Windows.Forms.ComboBox { Enabled = false, Font = new Font("Microsoft Sans Serif", 14), Location = new Point(x: 69, y: 165), Size = new Size(200, 37), DropDownStyle = ComboBoxStyle.DropDownList, DropDownHeight = 106, DropDownWidth = 200 };
+            cBoxWplace[2] = new System.Windows.Forms.ComboBox { Enabled = false, Font = new Font("Microsoft Sans Serif", 14), Location = new Point(x: 69, y: 160), Size = new Size(200, 37), DropDownStyle = ComboBoxStyle.DropDownList, DropDownHeight = 106, DropDownWidth = 200 };
 
             InitializeComponent();
             main = this;
@@ -421,7 +468,977 @@ namespace ArtiluxEOL
             {
                 label_Estop.Visible = false;
             }
+
+            System.Windows.Forms.Timer aTimer = new System.Windows.Forms.Timer();
+            aTimer.Enabled = true;
+            aTimer.Interval = 500;
+            aTimer.Tick += new System.EventHandler(UpdateFunction);
+
+            Test_States.Add(new EVSETestState());
+            Test_States.Add(new EVSETestState());
+            Test_States.Add(new EVSETestState());
+
+            //Turn monitors off and on
+            //SendMessage(this.Handle.ToInt32(), WM_SYSCOMMAND, SC_MONITORPOWER, 2);
+            //Thread.Sleep(3000);
+            //SendMessage(this.Handle.ToInt32(), WM_SYSCOMMAND, SC_MONITORPOWER, -1);
+
+            /*
+            
+            Nuotekio testas
+            Testu eiga
+            Skaitiklis rodo kai vieta neveikia
+            Wifi testas jei uzsikrovus
+            Ar stotele uzsikrovus
+            Darbo vieta aktyvi/neaktyvi
+
+            */
         }
+
+        private void UpdateFunction(object source, EventArgs e)//Repeat every 500ms
+        {
+            CheckMonitorStatus();
+            UpdateGraphicsOperationalWorkplaces();
+            ManageFormWindowsPositions();
+            TestManager();
+        }
+
+        #region Tests
+
+        public void TestManager()
+        {
+            EVSE_Operational[0] = false;
+            EVSE_Operational[1] = false;
+            EVSE_Operational[2] = false;
+
+            if (mtlist[0].MonitorOnline && CheckBox_lizdai[0].Checked)
+            {
+                EVSE_Operational[0] = true;
+            }
+
+            if (mtlist[1].MonitorOnline && CheckBox_lizdai[1].Checked)
+            {
+                EVSE_Operational[1] = true;
+            }
+
+            if (mtlist[2].MonitorOnline && CheckBox_lizdai[2].Checked)
+            {
+                EVSE_Operational[2] = true;
+            }
+
+            for (int i = 0; i < 3; i++)
+            {
+                if (EVSE_Operational[i] && Test_States[i].Testing_State == TestState.IN_PROGRESS)//If this EVSE is operational and testing has been started
+                {
+                    if (Test_States[i].EVSE_Communication_Test == TestState.PASSED)//Do the rest of the tests only if EVSE communication works
+                    {
+                        bool allTestingComplete = true;
+
+                        if (Test_States[i].Load_Test == TestState.WAITING)
+                        {
+                            allTestingComplete = false;
+
+
+                        }
+                        else if (Test_States[i].Load_Test == TestState.IN_PROGRESS)//Not done yet
+                        {
+                            allTestingComplete = false;
+                        }
+
+                        if (Test_States[i].HV_Test == TestState.WAITING)
+                        {
+                            allTestingComplete = false;
+
+
+                        }
+                        else if (Test_States[i].HV_Test == TestState.IN_PROGRESS)//Not done yet
+                        {
+                            allTestingComplete = false;
+                        }
+
+                        if (Test_States[i].WIFI_Test == TestState.WAITING)
+                        {
+                            allTestingComplete = false;
+
+
+                        }
+                        else if (Test_States[i].WIFI_Test == TestState.IN_PROGRESS)//Not done yet
+                        {
+                            allTestingComplete = false;
+                        }
+
+                        if (Test_States[i].GSM_Test == TestState.WAITING)
+                        {
+                            allTestingComplete = false;
+
+
+                        }
+                        else if (Test_States[i].GSM_Test == TestState.IN_PROGRESS)//Not done yet
+                        {
+                            allTestingComplete = false;
+                        }
+
+                        if (Test_States[i].RFID_Test == TestState.WAITING)
+                        {
+                            allTestingComplete = false;
+
+
+                        }
+                        else if (Test_States[i].RFID_Test == TestState.IN_PROGRESS)//Not done yet
+                        {
+                            allTestingComplete = false;
+                        }
+
+                        if (Test_States[i].RCD_Test == TestState.WAITING)
+                        {
+                            allTestingComplete = false;
+
+
+                        }
+                        else if (Test_States[i].RCD_Test == TestState.IN_PROGRESS)//Not done yet
+                        {
+                            allTestingComplete = false;
+                        }
+
+                        if (allTestingComplete)//Nothing else to test
+                        {
+                            Test_States[i].Testing_State = TestState.PASSED;
+                        }
+
+                    }
+                    else if (Test_States[i].EVSE_Communication_Test == TestState.WAITING)//Start with comunication test if it has not been completed
+                    {
+                        if (EVSE_Comm_Test_EVSE_ID == -1)//If this test is free to use
+                        {
+                            EVSE_Comm_Test_EVSE_ID = i;//Assign the EVSE
+                        }
+                    }
+                }
+            }
+
+            if (EVSE_Comm_Test_EVSE_ID > 0)//Run communication test handler if EVSE was assigned to it
+            {
+                Demo_Test_Sequence_EVSE_Communication();
+            }
+
+        }
+
+        public void Demo_Test_Sequence_EVSE_Communication()
+        {
+
+            if (EVSE_Comm_Test_EVSE_ID > 0 && EVSE_Operational[EVSE_Comm_Test_EVSE_ID])
+            {
+
+                Update_Progress_Bar_EVSE_Comm_Test();
+
+                switch (EVSE_Comm_Test_State)
+                {
+                    case -2://Reset 1/2
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case -1://Reset 2/2
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    default:
+                        EVSE_Comm_Test_State = 0;
+                        break;
+
+                    case 1:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 2:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 3:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 4:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 5:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 6:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 7:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 8:
+                        Test_States[EVSE_Comm_Test_EVSE_ID].EVSE_Communication_Test = TestState.PASSED;//This EVSE passed the communication test
+                        EVSE_Comm_Test_EVSE_ID = -1;//Communication test is now free to be used
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSE_Comm_Test_EVSE_ID + 1) + ": communication test PASSED");
+                        EVSE_Comm_Test_State = 0;
+                        break;
+                }
+
+            }
+            else
+            {
+                Test_States[EVSE_Comm_Test_EVSE_ID].EVSE_Communication_Test = TestState.CANCELED;//Change test state to canceled
+                Test_States[EVSE_Comm_Test_EVSE_ID].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                EVSE_Comm_Test_EVSE_ID = -1;//Communication test is now free to be used
+                System.Diagnostics.Debug.Print("EVSE communication test was CANCELED on work place " + (EVSE_Comm_Test_EVSE_ID + 1) + ", reason: work place no longer operational");
+            }
+        }
+
+        public void Spectroscope_Analyze_Data()
+        {
+            bool isStable = true;
+            this.Invoke(new Action(() => { spectro_form.Show(); }));
+
+            spectro_form.Invoke(new Action(() => { spectro_form.someChart.Series[0].Points.DataBindY(Spectroscope_Readings); }));
+
+            for (int i = 0; i < Spectroscope_Readings_Old.Length; i++)
+            {
+                if (isStable)
+                {
+                    if (Math.Abs(1 - (Spectroscope_Readings[i] / Spectroscope_Readings_Old[i])) > (Spectroscope_Max_Sample_Diff / 100.0f))
+                    {
+                        isStable = false;
+                        Spectroscope_Stable_Samples_Confirmed = 0;
+                        //System.Diagnostics.Debug.Print("Sample [" + i + "] diff= " + Math.Abs(1 - (Spectroscope_Readings[i] / Spectroscope_Readings_Old[i])));
+                    }
+                }
+
+                Spectroscope_Readings_Old[i] = Spectroscope_Readings[i];
+            }
+
+            if (isStable)
+            {
+                Spectroscope_Stable_Samples_Confirmed++;
+            }
+
+        }
+
+        public void Spectroscope_Graph_Add_Peaks()
+        {
+            float[] peakArray = new float[Spectroscope_Readings_Count];
+            int peakSample = 0;
+
+            for (int i = 0; i < Spectroscope_Readings_Count; i++)
+            {
+                peakArray[i] = 0;
+            }
+
+            for (int i = 0; i < Spectroscope_Peaks.Length; i++)
+            {
+                peakSample = Spectroscope_Peaks[i].SAMPLE;
+                peakArray[peakSample] = Spectroscope_Readings[peakSample];
+                System.Diagnostics.Debug.Print("Peak [" + i + "] at " + Spectroscope_Peaks[i].FREQUENCY + "Hz");
+            }
+
+            this.Invoke(new Action(() => { spectro_form.someChart.Series[1].Points.DataBindY(peakArray); }));
+        }
+
+        public void Spectroscope_Graph_Reset()
+        {
+            float[] emptyArray = new float[Spectroscope_Readings_Count];
+            this.Invoke(new Action(() => { spectro_form.someChart.Series[0].Points.DataBindY(emptyArray); }));
+            this.Invoke(new Action(() => { spectro_form.someChart.Series[1].Points.DataBindY(emptyArray); }));
+        }
+
+        #endregion
+
+        #region Monitors and UI
+
+        private void ManageFormWindowsPositions()
+        {
+            int minLeft = 99999;//Minimum X position trough all monitors (can become negative if specific monitor disconnects)
+
+            for (int i = 0; i < Screen.AllScreens.Length; i++)
+            {
+                if (Screen.AllScreens[i].Bounds.Left < minLeft)
+                {
+                    minLeft = Screen.AllScreens[i].Bounds.Left;
+                }
+            }
+
+            //System.Diagnostics.Debug.Print("Minimum X position= " + minLeft);
+
+            float formCenterPosX;//Current WindowModal position from its center (as anchor) 
+            WindowModal currForm;//Current WindowModal
+            float boundsXmin;//Minimum position X for current WindowModal to be in (if WindowModal position X is less than this it is considered to be on the wrong monitor)
+            float boundsXmax;//Maximum position X for current WindowModal to be in (if WindowModal position X is more than this it is considered to be on the wrong monitor)
+            int leftOffset = minLeft;//Position offcet from the left- depends on ammount of operational monitors from the left
+
+            if (mtlist[0].Form != null && mtlist[0].MonitorOnline)//WindowModal [0]: work position 1
+            {
+                currForm = mtlist[0].Form;
+                formCenterPosX = currForm.Left + (currForm.Width / 2);
+                boundsXmin = leftOffset + (Monitor1_Width / 2) - 1;//One pixel from the center
+                boundsXmax = leftOffset + (Monitor1_Width / 2) + 1;//One pixel from the center
+
+                //System.Diagnostics.Debug.Print("Form 1 min: " + boundsXmin + ", max: " + boundsXmax + ", curr: " + formCenterPosX);
+
+                if (formCenterPosX < boundsXmin || formCenterPosX > boundsXmax)//Wrong monitor, move the WindowModal form
+                {
+                    currForm.FormBorderStyle = FormBorderStyle.Sizable;
+                    currForm.WindowState = FormWindowState.Normal;//Exit maximized mode (form window does not move in maximized state)
+                    currForm.StartPosition = FormStartPosition.Manual;//Set start position mode to manual
+                    currForm.Left = leftOffset + (Monitor1_Width / 2) - (currForm.Width / 2);//Move to center of the first screen
+                    currForm.Top = (Monitor1_Height / 2) - (currForm.Height / 2);//Move to center of the first screen
+
+                    if (checkBox_fullscreen.Checked)
+                    {
+                        currForm.FormBorderStyle = FormBorderStyle.None;
+                    }
+                    else
+                    {
+                        currForm.FormBorderStyle = FormBorderStyle.Sizable;
+                    }
+
+                    currForm.WindowState = FormWindowState.Maximized;//Maximize the screen
+                    currForm.SetupUI();
+                }
+            }
+
+            if (mtlist[0].MonitorOnline)//If the first monitor is working offset X position by its width
+            {
+                leftOffset += Monitor1_Width;
+            }
+
+            if (mtlist[1].Form != null && mtlist[1].MonitorOnline)//WindowModal [1]: work position 2
+            {
+                currForm = mtlist[1].Form;
+                formCenterPosX = currForm.Left + (currForm.Width / 2);
+                boundsXmin = leftOffset + (Monitor2_Width / 2) - 1;//One pixel from the center
+                boundsXmax = leftOffset + (Monitor2_Width / 2) + 1;//One pixel from the center
+
+                //System.Diagnostics.Debug.Print("Form 2 min: " + boundsXmin + ", max: " + boundsXmax + ", curr: " + formCenterPosX);
+
+                if (formCenterPosX < boundsXmin || formCenterPosX > boundsXmax)//Wrong monitor, move the WindowModal form
+                {
+                    currForm.FormBorderStyle = FormBorderStyle.Sizable;
+                    currForm.WindowState = FormWindowState.Normal;//Exit maximized mode (form window does not move in maximized state)
+                    currForm.StartPosition = FormStartPosition.Manual;//Set start position mode to manual
+                    currForm.Left = leftOffset + ((Monitor2_Width / 2) - (currForm.Width / 2));//Move to center of the second screen
+                    currForm.Top = (Monitor2_Height / 2) - (currForm.Height / 2);//Move to center of the second screen
+
+                    if (checkBox_fullscreen.Checked)
+                    {
+                        currForm.FormBorderStyle = FormBorderStyle.None;
+                    }
+                    else
+                    {
+                        currForm.FormBorderStyle = FormBorderStyle.Sizable;
+                    }
+
+                    currForm.WindowState = FormWindowState.Maximized;//Maximize the screen
+                    currForm.SetupUI();
+                }
+            }
+
+            if (mtlist[1].MonitorOnline)//If the second monitor is working offset X position by its width
+            {
+                leftOffset += Monitor2_Width;
+            }
+
+            if (mtlist[2].Form != null && mtlist[2].MonitorOnline)//WindowModal [2]: work position 3
+            {
+                currForm = mtlist[2].Form;
+                formCenterPosX = currForm.Left + (currForm.Width / 2);
+                boundsXmin = leftOffset + (Monitor3_Width / 2) - 1;//One pixel from the center
+                boundsXmax = leftOffset + (Monitor3_Width / 2) + 1;//One pixel from the center
+
+                //System.Diagnostics.Debug.Print("Form 3 min: " + boundsXmin + ", max: " + boundsXmax + ", curr: " + formCenterPosX);
+
+                if (formCenterPosX < boundsXmin || formCenterPosX > boundsXmax)//Wrong monitor, move the WindowModal form
+                {
+                    currForm.FormBorderStyle = FormBorderStyle.Sizable;
+                    currForm.WindowState = FormWindowState.Normal;//Exit maximized mode (form window does not move in maximized state)
+                    currForm.StartPosition = FormStartPosition.Manual;//Set start position mode to manual
+                    currForm.Left = leftOffset + ((Monitor3_Width / 2) - (currForm.Width / 2));//Move to center of the third screen
+                    currForm.Top = (Monitor3_Height / 2) - (currForm.Height / 2);//Move to center of the third screen
+
+                    if (checkBox_fullscreen.Checked)
+                    {
+                        currForm.FormBorderStyle = FormBorderStyle.None;
+                    }
+                    else
+                    {
+                        currForm.FormBorderStyle = FormBorderStyle.Sizable;
+                    }
+
+                    currForm.WindowState = FormWindowState.Maximized;//Maximize the screen
+                    currForm.SetupUI();
+                }
+            }
+
+            //System.Diagnostics.Debug.Print("Main is on= " + Screen.FromControl(this));
+            //System.Diagnostics.Debug.Print("Main location X= " + this.Location.X);
+
+        }
+
+        private void UpdateGraphicsOperationalWorkplaces()
+        {
+            if (mtlist.Count >= 3)
+            {
+                if (mtlist[0].MonitorOnline)
+                {
+                    Test_lizdas_1.BackColor = Color.Transparent;
+                }
+                else
+                {
+                    Test_lizdas_1.BackColor = Color.IndianRed;
+                }
+
+                if (mtlist[1].MonitorOnline)
+                {
+                    Test_lizdas_2.BackColor = Color.Transparent;
+                }
+                else
+                {
+                    Test_lizdas_2.BackColor = Color.IndianRed;
+                }
+
+                if (mtlist[2].MonitorOnline)
+                {
+                    Test_lizdas_3.BackColor = Color.Transparent;
+                }
+                else
+                {
+                    Test_lizdas_3.BackColor = Color.IndianRed;
+                }
+            }
+        }
+
+        private void CheckMonitorStatus()//Check if any monitors are down, correct work positions display, detect new monitors
+        {
+            bool NewMonitorDetected = false;
+
+            for (int i = 0; i < mtlist.Count; i++)
+            {
+                mtlist[i].MonitorOnline = false;
+            }
+
+            try
+            {
+                ManagementClass oClass = new ManagementClass("\\\\.\\ROOT\\WMI:WmiMonitorID");
+
+                if (oClass != null && oClass.GetInstances().Count > 0)
+                {
+                    foreach (ManagementObject oObject in oClass.GetInstances())
+                    {
+                        dynamic serial_nr = oObject["SerialNumberID"];
+                        string instance = (String)oObject["InstanceName"];
+                        string id = string.Join("", serial_nr);
+                        id = id.Substring(0, 16);
+
+                        for (int i = 0; i < mtlist.Count; i++)
+                        {
+                            if (id == mtlist[i].MonitorIds)
+                            {
+                                mtlist[i].MonitorOnline = true;
+                            }
+                        }
+
+                        foreach (string existingID in DetectedMonitors)
+                        {
+                            NewMonitorDetected = true;
+
+                            if (id == existingID)
+                            {
+                                NewMonitorDetected = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        if (!mtlist[i].MonitorOnline && !mtlist[i].FormHidden)
+                        {
+                            mtlist[i].Form.Hide();
+                            mtlist[i].FormHidden = true;
+                            System.Diagnostics.Debug.Print("Workplace " + (i + 1) + " was disabled");
+                        }
+                        else if (mtlist[i].MonitorOnline && mtlist[i].FormHidden)
+                        {
+                            mtlist[i].Form.Show();
+                            mtlist[i].FormHidden = false;
+                            System.Diagnostics.Debug.Print("Workplace " + (i + 1) + " was enabled");
+                        }
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            if (NewMonitorDetected)
+            {
+                System.Diagnostics.Debug.Print("New monitor detected");
+                get_all_monitors();
+                regReadWplace();
+                MonitorSetup();
+            }
+
+            foreach (MonitorTest monTest in mtlist)//Maximize open forms if they are not
+            {
+                if (monTest.Form != null && monTest.MonitorOnline && !monTest.FormHidden && monTest.Form.WindowState != FormWindowState.Maximized)
+                {
+                    monTest.Form.WindowState = FormWindowState.Maximized;
+
+                    if (checkBox_fullscreen.Checked)
+                    {
+                        monTest.Form.FormBorderStyle = FormBorderStyle.None;
+                    }
+                    else
+                    {
+                        monTest.Form.FormBorderStyle = FormBorderStyle.Sizable;
+                    }
+                }
+            }
+        }
+
+        private void MonitorSetup()//Paleidziam monitorius, paruosiam testavimo langus
+        {
+            int i = 0;
+            int id = 0;
+            int py = 10;
+
+            int w = 0;
+            int h = 0;
+            Point loc;
+            bool monOnline;
+
+            if (mtlist.Count() > 0)//Close old form windows before creating new ones
+            {
+                foreach (MonitorTest mntt in mtlist)
+                {
+                    if (mntt.Form != null)
+                    {
+                        mntt.Form.Close();
+                    }
+                }
+            }
+
+            mtlist.Clear();
+
+            foreach (var wp in SavedWorkplaces)//pridedam reikiamus atributus ir kiekvinam monitoriuje atverciam TESTAVIMO langa
+            {
+                if (wp.WorplaceMonitorID > 0)
+                {
+                    bool foundIt = false;
+
+                    //imam is eiles is reg saugomu monitoriu listo, ir iskom tokio monitoriaus detectuotu mon liste
+                    for (int a = 0; a < ml.Count; a++)
+                    {
+                        if (wp.WorplaceMonitorID == Convert.ToUInt64(ml[a].MonitorIds))
+                        {
+                            i = a;
+                            foundIt = true;
+                            break;
+                        }
+                    }
+
+                    if (foundIt)
+                    {
+                        string labelName = "label" + i;
+
+                        Label label = new Label { Name = labelName, AutoSize = true, Text = ml[i].MonitorIds, Location = new Point(x: 5, y: py) };
+                        System.Windows.Forms.ProgressBar progress = new System.Windows.Forms.ProgressBar();
+                        progress.Name = Name = "progres" + i;
+                        progress.Style = ProgressBarStyle.Continuous;
+                        progress.Location = new Point(x: 150, y: py);
+                        panelTestResult.Controls.Add(label);
+                        panelTestResult.Controls.Add(progress);
+                        py = py + 35;
+
+                        if (i < Screen.AllScreens.Count())//Prijungus papildoma (programavimo) monitoriu tam tikrose kombinacijose ekranai gali but ne "Extend" rezime. Tokiu atveju, jei monitoriu rezoliucijos nesutampa, Windows atjungia netinkamus ekranus ir neprideda ju prie Screen.AllScreens[] (nors irenginys lieka matomas, tuomet sita vieta luzta)
+                        {
+                            w = Screen.AllScreens[i].WorkingArea.Width;
+                            h = Screen.AllScreens[i].WorkingArea.Height;
+                            loc = Screen.AllScreens[i].WorkingArea.Location;
+                            monOnline = true;
+                        }
+                        else
+                        {
+                            w = 0;
+                            h = 0;
+                            loc = new Point(0, 0);
+                            monOnline = false;
+                        }
+
+                        MonitorTest mt = new MonitorTest { Id = id, MonitorIds = ml[i].MonitorIds, WorkPlaceNr = (id + 1), /*testList = new List<TestList>(),*/ MonitorOnline = monOnline, FormHidden = true };
+                        mtlist.Add(mt);
+
+                        WindowModal tm = new WindowModal(mt);
+                        mt.Form = tm;
+
+                        progress.Visible = true;
+                        id++;
+                        tm.FormClosing += Tm_FormClosing;
+                    }
+                    else//Create empty
+                    {
+                        MonitorTest mt = new MonitorTest { Id = -1, MonitorIds = "-1", WorkPlaceNr = -1, /*testList = new List<TestList>(),*/ MonitorOnline = false, FormHidden = true };
+                        mtlist.Add(mt);
+                    }
+                }
+            }
+        }
+
+        public void get_all_monitors()//Iskom prijungtu monitoriu
+        {
+            //set the class name and namespace
+            string NamespacePath = "\\\\.\\ROOT\\WMI";
+            string ClassName = "WmiMonitorID";
+            //Create ManagementClass
+            ManagementClass oClass = new ManagementClass(NamespacePath + ":" + ClassName);
+
+            foreach (ManagementObject oObject in oClass.GetInstances())
+            {
+                bool idIsNew = true;
+                dynamic serial_nr = oObject["SerialNumberID"];
+                string instance = (String)oObject["InstanceName"];
+                string id = string.Join("", serial_nr);
+                id = id.Substring(0, 16);
+
+                if (DetectedMonitors.Length > 0)//Check if new monitor is detected
+                {
+                    foreach (string existingID in DetectedMonitors)
+                    {
+                        if (id == existingID)
+                        {
+                            idIsNew = false;
+                        }
+                    }
+                }
+
+                if (idIsNew)//Add new id to DetectedMonitors array
+                {
+                    dbg_print(DbgType.MAIN, "MONITOR--" + id, Color.MediumPurple);
+
+                    string[] tmpArr = new string[(DetectedMonitors.Length + 1)];
+
+                    for (int i = 0; i < DetectedMonitors.Length; i++)
+                    {
+                        tmpArr[i] = DetectedMonitors[i];
+                    }
+
+                    tmpArr[(tmpArr.Length - 1)] = id;
+                    DetectedMonitors = tmpArr;
+                }
+            }
+
+            //Clear the monitor list and dropdown lists
+            ml.Clear();
+            cBoxWplace[0].Items.Clear();
+            cBoxWplace[1].Items.Clear();
+            cBoxWplace[2].Items.Clear();
+
+            //Assign monitor list and dropdown lists
+            for (int i = 0; i < DetectedMonitors.Length; i++)
+            {
+                MonitorTest mt = new MonitorTest { Id = i, MonitorIds = DetectedMonitors[i] };
+                ml.Add(mt);
+                cBoxWplace[0].Items.Add(DetectedMonitors[i]);
+                cBoxWplace[1].Items.Add(DetectedMonitors[i]);
+                cBoxWplace[2].Items.Add(DetectedMonitors[i]);
+
+                cBoxWplace[0].Enabled = true;
+                cBoxWplace[1].Enabled = true;
+                cBoxWplace[2].Enabled = true;
+            }
+
+            panelTestResult.Controls.Clear();
+        }
+
+        private void Tm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            string x = ((Form)sender).Text;
+            var mt = mtlist.FirstOrDefault(it => it.MonitorIds.Contains(x.Substring(5)));
+            if (mt != null)
+            {
+
+                Label lbl_text = this.Controls.Find("label" + mt.Id, true).FirstOrDefault() as Label;
+                lbl_text.Text = lbl_text.Text + " " + x.Substring(0, 4);
+            }
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+
+            get_all_monitors();
+            regReadWplace();
+            MonitorSetup();
+
+            ip_texbox_show();//irenginiu IP adresu nustatymas
+            //serial port init
+            load_dev_control();
+
+            devList.DevEvse = new DevEvse_struc[3];//label pointeris
+
+
+            /*  PWR relay, EVSE mode, EVSE fault  */
+            int x_point = 70;
+            int y_point = 35;
+            string[] name = { "EVSE 1", "EVSE 2", "EVSE 3" };
+            string[] name_ev_state = { "A", "B", "C", "D" };
+            string[] name_ev_fault = { "DIODE SH", "PE OPEN", "CP SH" };
+            string[] name_pp_select = { "NC", "13A", "20A", "32A", "63A" };
+            string[] name_ls_cntr = { "LOAD", "SOURCE", "ENABLE" };
+            string[] name_tp_select = { "EVSE 1", "EVSE 2", "EVSE 3" };
+
+            for (int j = 0; j < 3; j++)//DIODEsh, PEop, CPsh
+            {
+                evse_fault_checkbox[j] = new CheckBox { Name = "chbox_ev_fault_" + j, Text = name_ev_fault[j], Location = new Point(x: x_point, y: 22), AutoSize = true };
+                evse_fault_checkbox[j].CheckedChanged += new EventHandler(ev_fault_checbox_change);
+                this.groupBox_checks.Controls.Add(evse_fault_checkbox[j]);
+
+                x_point = x_point + 260;
+            }
+
+            x_point = 70;
+
+            for (int j = 0; j < 4; j++)//CP
+            {
+                ev_mode_select_radio_btn[j] = new RadioButton { Name = "radBtn_ev_" + j, Text = name_ev_state[j], Location = new Point(x: x_point, y: 22), AutoSize = true };
+                ev_mode_select_radio_btn[j].CheckedChanged += new EventHandler(CheckEvseRadioBtn);
+                this.groupBox_evse_state.Controls.Add(ev_mode_select_radio_btn[j]);
+
+                x_point = x_point + 174;
+            }
+
+            x_point = 70;
+
+            for (int j = 0; j < 3; j++)//LS select
+            {
+                pwr_select_radio_btn[j] = new RadioButton { Name = "radioButton_" + j, Text = name[j], Location = new Point(x: x_point, y: 22) };
+                pwr_select_radio_btn[j].CheckedChanged += new EventHandler(CheckRelayRadioBtn);
+                this.groupBox_main_relay.Controls.Add(pwr_select_radio_btn[j]);
+
+                x_point = x_point + 130;
+            }
+
+            for (int j = 0; j < 3; j++)//LOAD, SOURCE, LSen
+            {
+                ls_checkbox[j] = new CheckBox { Name = "chbox_ls_" + j, Text = name_ls_cntr[j], Location = new Point(x: x_point, y: 22), AutoSize = true };
+                ls_checkbox[j].CheckedChanged += new EventHandler(ls_ctrl_checbox_change);
+                this.groupBox_main_relay.Controls.Add(ls_checkbox[j]);
+
+                x_point = x_point + 130;
+            }
+
+            x_point = 70;
+
+            for (int j = 0; j < 5; j++)//PP
+            {
+                pp_select_radio_btn[j] = new RadioButton { Name = "radBtn_pp_" + j, Text = name_pp_select[j], Location = new Point(x: x_point, y: 22) };
+                pp_select_radio_btn[j].CheckedChanged += new EventHandler(CheckPPSelRadioBtn);
+                this.groupBox_pp_select.Controls.Add(pp_select_radio_btn[j]);
+
+                x_point = x_point + 130;
+            }
+
+            for (int j = 0; j < 3; j++)//Position select
+            {
+                tp_select_radio_btn[j] = new RadioButton { Name = "radBtn_tp_" + j, Text = name_tp_select[j], Location = new Point(x: 40, y: y_point) };
+                tp_select_radio_btn[j].CheckedChanged += new EventHandler(CheckTPSelRadioBtn);
+                this.groupBox_tp_select.Controls.Add(tp_select_radio_btn[j]);
+
+                y_point = y_point + 65;
+            }
+            //////////////////////////
+
+            for (int a = 0; a < 3; a++)//initinam structuras
+            {
+                Test[a].test_type = new TestType_struc[9];
+                Test[a].evse_barcode = "-";
+                for (int x = 0; x < 9; x++)
+                {
+                    Test[a].test_type[x].name = "a";
+                }
+                devList.DevEvse[a].barcode = "- - *** - -";
+                devList.DevEvse[a].voltage = new UInt32[3];
+                devList.DevEvse[a].current = new UInt32[3];
+            }
+        }
+
+        public void device_state_indication(int dev_nr, Color color)
+        {
+            switch (dev_nr)
+            {
+                case 0:
+                    lbl_vald.BackColor = color;
+                    break;
+                case 1:
+                    lbl_hvgen.BackColor = color;
+                    break;
+                case 2:
+                    lbl_specrum.BackColor = color;
+                    break;
+                case 3:
+                    lbl_load.BackColor = color;
+                    break;
+                case 4:
+                    lbl_barcode_1.BackColor = color;
+                    break;
+                case 5:
+                    lbl_barcode_2.BackColor = color;
+                    break;
+                case 6:
+                    lbl_barcode_3.BackColor = color;
+                    break;
+                case 7:
+                    lbl_rfid_1.BackColor = color;
+                    break;
+                case 8:
+                    lbl_rfid_2.BackColor = color;
+                    break;
+                case 9:
+                    lbl_rfid_3.BackColor = color;
+                    break;
+                case 10:
+                    lbl_evse.BackColor = color;
+                    break;
+                case 11:
+                    lbl_osc.BackColor = color;
+                    break;
+            }
+        }
+
+        public void Update_Progress_Bar_Load_Test()
+        {
+            if (Load_Test_State > 0)
+            {
+                if (Load_Test_State > Load_Test_State_Last)
+                {
+                    Load_Test_State_Last = Load_Test_State;
+
+                    if (Load_Test_State < progressBar_load_test.Maximum)
+                    {
+                        this.Invoke(new Action(() => { this.progressBar_load_test.Value = Load_Test_State; }));
+                    }
+                    else
+                    {
+                        this.Invoke(new Action(() => { this.progressBar_load_test.Value = progressBar_load_test.Maximum; }));
+                    }
+                }
+            }
+            else
+            {
+                this.Invoke(new Action(() => { this.progressBar_load_test.Value = 0; }));
+                Load_Test_State_Last = 0;
+            }
+        }
+
+        public void Update_Progress_Bar_HV_Test()
+        {
+            if (HV_Test_State > 0)
+            {
+                if (HV_Test_State > HV_Test_State_Last)
+                {
+                    HV_Test_State_Last = HV_Test_State;
+
+                    if (HV_Test_State < progressBar_HV_Test.Maximum)
+                    {
+                        this.Invoke(new Action(() => { this.progressBar_HV_Test.Value = HV_Test_State; }));
+                    }
+                    else
+                    {
+                        this.Invoke(new Action(() => { this.progressBar_HV_Test.Value = progressBar_HV_Test.Maximum; }));
+                    }
+                }
+            }
+            else
+            {
+                this.Invoke(new Action(() => { this.progressBar_HV_Test.Value = 0; }));
+                HV_Test_State_Last = 0;
+            }
+        }
+
+        public void Update_Progress_Bar_Spectroscope_Test()
+        {
+            if (Spectroscope_Test_State > 0)
+            {
+                if (Spectroscope_Test_State > Spectroscope_Test_State_Last)
+                {
+                    Spectroscope_Test_State_Last = Spectroscope_Test_State;
+
+                    if (Spectroscope_Test_State < progressBar_Spectroscope_Test.Maximum)
+                    {
+                        this.Invoke(new Action(() => { this.progressBar_Spectroscope_Test.Value = Spectroscope_Test_State; }));
+                    }
+                    else
+                    {
+                        this.Invoke(new Action(() => { this.progressBar_Spectroscope_Test.Value = progressBar_Spectroscope_Test.Maximum; }));
+                    }
+                }
+            }
+            else
+            {
+                this.Invoke(new Action(() => { this.progressBar_Spectroscope_Test.Value = 0; }));
+                Spectroscope_Test_State_Last = 0;
+            }
+        }
+
+        private void DisableControls(Control con)
+        {
+            foreach (Control c in con.Controls)
+            {
+                DisableControls(c);
+            }
+
+            this.Invoke(new Action(() => { con.Enabled = false; }));
+
+        }
+
+        private void EnableControls(Control con)
+        {
+            foreach (Control c in con.Controls)
+            {
+                EnableControls(c);
+            }
+            this.Invoke(new Action(() => { con.Enabled = true; }));
+        }
+
+        public void show_msg(string msg, Color _color)
+        {
+            Popup_msg popup = new Popup_msg("", msg, _color, 2);
+            popup.Show();
+        }
+
+        public void Update_Progress_Bar_EVSE_Comm_Test()
+        {
+            System.Windows.Forms.ProgressBar progBar = mtlist[EVSE_Comm_Test_EVSE_ID].Form.progressBar_evse_communication;
+
+            if (EVSE_Comm_Test_State > 0)
+            {
+                if (EVSE_Comm_Test_State > EVSE_Comm_Test_State_Last)
+                {
+                    EVSE_Comm_Test_State_Last = EVSE_Comm_Test_State;
+
+                    if (EVSE_Comm_Test_State < progBar.Maximum)
+                    {
+                        this.Invoke(new Action(() => { progBar.Value = EVSE_Comm_Test_State; }));
+                    }
+                    else
+                    {
+                        this.Invoke(new Action(() => { progBar.Value = progBar.Maximum; }));
+                    }
+                }
+            }
+            else
+            {
+                this.Invoke(new Action(() => { progBar.Value = 0; }));
+                EVSE_Comm_Test_State_Last = 0;
+            }
+        }
+
+        #endregion
 
         #region <<< Picoscope >>>
 
@@ -919,107 +1936,6 @@ namespace ArtiluxEOL
         }
 
         #endregion
-
-        protected override void OnHandleCreated(EventArgs e)
-        {
-            base.OnHandleCreated(e);
-
-            get_all_monitors();
-            //if (Workplaces_reg != null)
-            //{
-            regReadWplace();
-            //}
-            ip_texbox_show();//irenginiu IP adresu nustatymas
-            //serial port init
-            load_dev_control();
-
-            devList.DevEvse = new DevEvse_struc[3];//label pointeris
-
-
-            /*  PWR relay, EVSE mode, EVSE fault  */
-            int x_point = 70;
-            int y_point = 35;
-            string[] name = { "EVSE 1", "EVSE 2", "EVSE 3" };
-            string[] name_ev_state = { "A", "B", "C", "D" };
-            string[] name_ev_fault = { "DIODE SH", "PE OPEN", "CP SH" };
-            string[] name_pp_select = { "NC", "13A", "20A", "32A", "63A" };
-            string[] name_ls_cntr = { "LOAD", "SOURCE", "ENABLE" };
-            string[] name_tp_select = { "EVSE 1", "EVSE 2", "EVSE 3" };
-
-            for (int j = 0; j < 3; j++)//DIODEsh, PEop, CPsh
-            {
-                evse_fault_checkbox[j] = new CheckBox { Name = "chbox_ev_fault_" + j, Text = name_ev_fault[j], Location = new Point(x: x_point, y: 22), AutoSize = true };
-                evse_fault_checkbox[j].CheckedChanged += new EventHandler(ev_fault_checbox_change);
-                this.groupBox_checks.Controls.Add(evse_fault_checkbox[j]);
-
-                x_point = x_point + 260;
-            }
-
-            x_point = 70;
-
-            for (int j = 0; j < 4; j++)//CP
-            {
-                ev_mode_select_radio_btn[j] = new RadioButton { Name = "radBtn_ev_" + j, Text = name_ev_state[j], Location = new Point(x: x_point, y: 22), AutoSize = true };
-                ev_mode_select_radio_btn[j].CheckedChanged += new EventHandler(CheckEvseRadioBtn);
-                this.groupBox_evse_state.Controls.Add(ev_mode_select_radio_btn[j]);
-
-                x_point = x_point + 174;
-            }
-
-            x_point = 70;
-
-            for (int j = 0; j < 3; j++)//LS select
-            {
-                pwr_select_radio_btn[j] = new RadioButton { Name = "radioButton_" + j, Text = name[j], Location = new Point(x: x_point, y: 22) };
-                pwr_select_radio_btn[j].CheckedChanged += new EventHandler(CheckRelayRadioBtn);
-                this.groupBox_main_relay.Controls.Add(pwr_select_radio_btn[j]);
-
-                x_point = x_point + 130;
-            }
-
-            for (int j = 0; j < 3; j++)//LOAD, SOURCE, LSen
-            {
-                ls_checkbox[j] = new CheckBox { Name = "chbox_ls_" + j, Text = name_ls_cntr[j], Location = new Point(x: x_point, y: 22), AutoSize = true };
-                ls_checkbox[j].CheckedChanged += new EventHandler(ls_ctrl_checbox_change);
-                this.groupBox_main_relay.Controls.Add(ls_checkbox[j]);
-
-                x_point = x_point + 130;
-            }
-
-            x_point = 70;
-
-            for (int j = 0; j < 5; j++)//PP
-            {
-                pp_select_radio_btn[j] = new RadioButton { Name = "radBtn_pp_" + j, Text = name_pp_select[j], Location = new Point(x: x_point, y: 22) };
-                pp_select_radio_btn[j].CheckedChanged += new EventHandler(CheckPPSelRadioBtn);
-                this.groupBox_pp_select.Controls.Add(pp_select_radio_btn[j]);
-
-                x_point = x_point + 130;
-            }
-
-            for (int j = 0; j < 3; j++)//Position select
-            {
-                tp_select_radio_btn[j] = new RadioButton { Name = "radBtn_tp_" + j, Text = name_tp_select[j], Location = new Point(x: 40, y: y_point) };
-                tp_select_radio_btn[j].CheckedChanged += new EventHandler(CheckTPSelRadioBtn);
-                this.groupBox_tp_select.Controls.Add(tp_select_radio_btn[j]);
-
-                y_point = y_point + 65;
-            }
-            //////////////////////////
-
-            for (int a = 0; a < 3; a++)//initinam structuras
-            {
-                Test[a].test_type = new TestType_struc[9];
-                Test[a].evse_barcode = "-";
-                for (int x = 0; x < 9; x++)
-                {
-                    Test[a].test_type[x].name = "a";
-                }
-                devList.DevEvse[a].barcode = "- - *** - -";
-                devList.DevEvse[a].voltage = new UInt32[3];
-                devList.DevEvse[a].current = new UInt32[3];
-            }
-        }
 
         #region Debug list
         public void dbg_print(bool dbg_type, string str, Color color)
@@ -1654,50 +2570,6 @@ namespace ArtiluxEOL
         }
         #endregion
 
-        public void device_state_indication(int dev_nr, Color color)
-        {
-            switch (dev_nr)
-            {
-                case 0:
-                    lbl_vald.BackColor = color;
-                    break;
-                case 1:
-                    lbl_hvgen.BackColor = color;
-                    break;
-                case 2:
-                    lbl_specrum.BackColor = color;
-                    break;
-                case 3:
-                    lbl_load.BackColor = color;
-                    break;
-                case 4:
-                    lbl_barcode_1.BackColor = color;
-                    break;
-                case 5:
-                    lbl_barcode_2.BackColor = color;
-                    break;
-                case 6:
-                    lbl_barcode_3.BackColor = color;
-                    break;
-                case 7:
-                    lbl_rfid_1.BackColor = color;
-                    break;
-                case 8:
-                    lbl_rfid_2.BackColor = color;
-                    break;
-                case 9:
-                    lbl_rfid_3.BackColor = color;
-                    break;
-                case 10:
-                    lbl_evse.BackColor = color;
-                    break;
-                case 11:
-                    lbl_osc.BackColor = color;
-                    break;
-            }
-        }
-
-
         #region ---SERIAL PORTS ROUTINES---
 
         // tikrinam/handlinam serial portus
@@ -2327,141 +3199,6 @@ namespace ArtiluxEOL
 
         #endregion
 
-        /* PALEIDZIAM TESTAVIMO LANGUS VISIEMS I VISUS MONITORIUS*/
-        private void btnStart_Click(object sender, EventArgs e)
-        {
-            //get_all_monitors();
-
-            try
-            {
-                int i = 0;
-                int id = 0;
-                int py = 10;
-
-                int w = 0;
-                int h = 0;
-                foreach (var wp in SavedWorkplaces)//pridedam reikiamus atributus ir kiekvinam monitoriuje atverciam TESTAVIMO langa
-                {
-                    if (wp.WorplaceMonitorID > 0)
-                    {
-                        //imam is eiles is reg saugomu monitoriu listo, ir iskom tokio monitoriaus detectuotu mon liste
-                        for (int a = 0; a < 3; a++)
-                        {
-                            if (wp.WorplaceMonitorID == Convert.ToUInt64(ml[a].MonitorIds))
-                            {
-                                i = a;
-                                //System.Diagnostics.Debug.Print($"ID: = {i}" + $" RES: = {w}");
-                            }
-                        }
-
-                        string labelName = "label" + i;
-
-                        Label label = new Label { Name = labelName, AutoSize = true, Text = ml[i].MonitorIds, Location = new Point(x: 5, y: py) };
-                        System.Windows.Forms.ProgressBar progress = new System.Windows.Forms.ProgressBar();
-                        progress.Name = Name = "progres" + i;
-                        progress.Style = ProgressBarStyle.Continuous;
-                        progress.Location = new Point(x: 150, y: py);
-                        panelTestResult.Controls.Add(label);
-                        panelTestResult.Controls.Add(progress);
-                        py = py + 35;
-
-                        w = Screen.AllScreens[i].WorkingArea.Width;
-                        h = Screen.AllScreens[i].WorkingArea.Height;
-
-                        MonitorTest mt = new MonitorTest { Id = id, MonitorIds = ml[i].MonitorIds, Width = w, Height = h, WorkPlaceNr = 0, Location = Screen.AllScreens[i].WorkingArea.Location, testList = new List<TestList>() };
-                        //System.Diagnostics.Debug.Print($"IDDD: = {mt.Id}" + $" RES: = {w} {h}");
-                        mtlist.Add(mt);
-                        WindowModal tm = new WindowModal(mt);
-                        tm.Show(this);
-                        progress.Visible = true;
-                        id++;
-                        tm.FormClosing += Tm_FormClosing;
-
-                    }
-
-                }
-
-                /*foreach (MonitorTest ids in ml)//pridedam reikiamus atributus ir kiekvinam monitoriuje atverciam TESTAVIMO langa
-                {
-                    string labelName = "label" + i;
-
-                    Label label = new Label { Name = labelName, AutoSize = true, Text = ids.MonitorIds, Location = new Point(x: 5, y: py) };
-                    System.Windows.Forms.ProgressBar progress = new System.Windows.Forms.ProgressBar();
-                    progress.Name = Name = "progres" + i;
-                    progress.Style = ProgressBarStyle.Continuous;
-                    progress.Location = new Point(x: 150, y: py);
-                    panelTestResult.Controls.Add(label);
-                    panelTestResult.Controls.Add(progress);
-                    py = py + 35;
-
-                    w = Screen.AllScreens[i].WorkingArea.Width;
-                    h = Screen.AllScreens[i].WorkingArea.Height;
-
-
-
-                    for (int a = 0; a < 3; a++)
-                    {
-                        if (SavedWorkplaces[a].WorplaceMonitorID != Convert.ToUInt64(ids.MonitorIds))
-                        {
-                            i = a;
-                        }
-                    }
-
-                    MonitorTest mt = new MonitorTest { Id = i, MonitorIds = ids.MonitorIds, Width = w, Height = h, WorkPlaceNr = 0, testList = new List<TestList>() };
-                    //System.Diagnostics.Debug.Print($"ID: = {mt.Id}" + $" RES: = {w}");
-                    mtlist.Add(mt);
-                    WindowModal tm = new WindowModal(mt);
-                    tm.Show(this);
-                    progress.Visible = true;
-                    i++;
-                    tm.FormClosing += Tm_FormClosing;
-                }*/
-            }
-            catch (Exception err)
-            {
-                //DialogResult dialog = MessageBox.Show(err.Message, err.InnerException.Message, MessageBoxButtons.OK);
-                foreach (MonitorTest mtx in mtlist)
-                {
-                    //key.SetValue("Workplace" + mtl.Id, mtl.MonitorIds);
-                }
-            }
-
-            if (mtlist.Count > 0)
-            {
-                regReadWplace();
-            }
-
-        }
-
-        private void Tm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            string x = ((Form)sender).Text;
-            var mt = mtlist.FirstOrDefault(it => it.MonitorIds.Contains(x.Substring(5)));
-            if (mt != null)
-            {
-
-                Label lbl_text = this.Controls.Find("label" + mt.Id, true).FirstOrDefault() as Label;
-                lbl_text.Text = lbl_text.Text + " " + x.Substring(0, 4);
-            }
-        }
-
-        private string ParseUid(string str)
-        {
-            string prs = "unknow";
-            try
-            {
-                int fsl = str.IndexOf("\\");
-                prs = str.Substring(fsl + 1);
-                int fsl2 = prs.IndexOf("\\");
-                prs = prs.Substring(0, fsl2);
-            }
-            catch (Exception err)
-            {
-                var msg = err;
-            }
-            return prs;
-        }
-
         #region -=Param save/load from reg=-
         private void regUpdateWplace()
         {
@@ -2527,7 +3264,6 @@ namespace ArtiluxEOL
                         dbg_print(DbgType.MAIN, "Read_work_place_exception", Color.LightCoral);
                     }
 
-
                 }
 
                 Workplaces_reg.Close();
@@ -2541,7 +3277,6 @@ namespace ArtiluxEOL
                 //System.Diagnostics.Debug.Print($"wp_count: = {wp_count}");
                 Workplaces_reg.SetValue("NumWorkPlaces", wp_count);
                 for (int a = 0; a < 3; a++)
-                //foreach (MonitorTest mtx in ml)
                 {
                     try
                     {
@@ -2560,26 +3295,10 @@ namespace ArtiluxEOL
                     }
 
                 }
-                //System.Diagnostics.Debug.Print($"REG_not_found: = {"create"}");
                 dbg_print(DbgType.MAIN, "REG_not_found: Create", Color.Violet);
                 Workplaces_reg.Close();
-
-                //cBoxWplace[0].Text = SavedWorkplaces[0].WorplaceMonitorID.ToString();
-                //cBoxWplace[1].Text = SavedWorkplaces[1].WorplaceMonitorID.ToString();
-                //cBoxWplace[2].Text = SavedWorkplaces[2].WorplaceMonitorID.ToString();
             }
         }
-
-        private void get_reg_Click(object sender, EventArgs e)
-        {
-            regReadWplace();
-        }
-
-        private void cBoxWplace_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            System.Diagnostics.Debug.Print($"sel1: = {cBoxWplace[0].SelectedItem}");
-        }
-
 
         private void saveWplace_Click(object sender, EventArgs e)
         {
@@ -2639,7 +3358,6 @@ namespace ArtiluxEOL
             }
         }
         #endregion
-
 
         #region -=Periphery save/load=-
         private void regReadPeriphery()
@@ -2729,52 +3447,6 @@ namespace ArtiluxEOL
 
         #endregion
 
-
-        /* IESKOM PRIJUNGTU MONITORIU */
-        public void get_all_monitors()
-        {
-
-            //set the class name and namespace
-            string NamespacePath = "\\\\.\\ROOT\\WMI";
-            string ClassName = "WmiMonitorID";
-            //Create ManagementClass
-            ManagementClass oClass = new ManagementClass(NamespacePath + ":" + ClassName);
-            int a = 0;
-            //Get all instances of the class and enumerate them
-            foreach (ManagementObject oObject in oClass.GetInstances())
-            {
-                //access a property of the Management object
-                //String MonitorId = oObject["SerialNumberID"].ToString();
-                UInt16[] idd = new UInt16[24];
-                dynamic serial_nr = oObject["SerialNumberID"];
-                string instance = (String)oObject["InstanceName"];
-                string id = string.Join("", serial_nr);
-
-                System.Diagnostics.Debug.Print($"MONITORe: = {id}");
-                dbg_print(DbgType.MAIN, "MONITOR--" + id, Color.MediumPurple);
-                id = id.Substring(0, 16);
-                //Console.WriteLine("Active : {0}", oObject["SerialNumberID"].ToString());
-                MonitorTest mt = new MonitorTest { Id = a, MonitorIds = id };
-                ml.Add(mt);
-                cBoxWplace[0].Items.Add(id);
-                cBoxWplace[1].Items.Add(id);
-                cBoxWplace[2].Items.Add(id);
-
-                cBoxWplace[a].Enabled = true;
-                a++;
-            }
-            if (a < 3)
-            {
-                cBoxWplace[2].Enabled = true;
-                MonitorTest mt = new MonitorTest { Id = 2, MonitorIds = "0" };
-                cBoxWplace[2].Items.Add("0");
-                ml.Add(mt);
-            }
-
-            panelTestResult.Controls.Clear();
-        }
-
-
         #region -=Metrel test btn=-
 
         private void mtrelTest_Click(object sender, EventArgs e)
@@ -2812,45 +3484,6 @@ namespace ArtiluxEOL
             //Met_bbox_test.ExecuteAction("Skip");
         }
         #endregion
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-
-            Socket_.start_socket(network_dev[DevType.GWINSTEK_HV_TESTER], 0);
-            //Socket_.socket_ping(network_dev[DevType.GWINSTEK_HV_TESTER]);
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], "SYSTEM:TIME?");
-
-            //network_dev[DevType.GWINSTEK_HV_TESTER].NewSendData = true;
-            network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
-        }
-        private void button4_Click(object sender, EventArgs e)
-        {
-            Socket_.close_socket(network_dev[DevType.GWINSTEK_HV_TESTER]);
-        }
-
-        public void show_msg(string msg, Color _color)
-        {
-            Popup_msg popup = new Popup_msg("", msg, _color, 2);
-            popup.Show();
-        }
-
-        private void btn_popup_Click(object sender, EventArgs e)
-        {
-
-            dbg_print(DbgType.MAIN, "TEST", Color.MediumPurple);
-
-            Popup_msg popup = new Popup_msg("TEST", "asdsd", Color.SpringGreen, 2);
-            popup.Show();
-        }
-
-        private void button1_Click_1(object sender, EventArgs e)
-        {
-            Socket_.send_socket(network_dev[DevType.MAIN_CONTROLLER], "A");
-        }
 
         #region GWinstek HV tester
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -2999,7 +3632,6 @@ namespace ArtiluxEOL
         }
         #endregion
 
-        /* VISU IRENGINIU VALDYMO LENTELES */
         #region Device control tab
 
         DataGridViewComboBoxColumn CreateComboBoxWithEnums()
@@ -3314,90 +3946,6 @@ namespace ArtiluxEOL
         }
         #endregion
 
-        private void button5_Click_1(object sender, EventArgs e)
-        {
-            network_dev[DevType.GWINSTEK_HV_TESTER].Cmd = "MEAS?";
-            Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], network_dev[DevType.GWINSTEK_HV_TESTER].Cmd);
-            network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
-        }
-
-        private void btn_stop_Click(object sender, EventArgs e)
-        {
-            network_dev[DevType.GWINSTEK_HV_TESTER].Cmd = "FUNC:TEST OFF";
-            Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], network_dev[DevType.GWINSTEK_HV_TESTER].Cmd);
-            network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
-
-            show_msg("TEST STOP", Color.LightSalmon);
-        }
-
-        private void button6_Click(object sender, EventArgs e)
-        {
-            /*network_dev[DevType.ITECH_LOAD].Cmd = "MEAS?";//test select komandos formavimas
-            Socket_.send_socket(network_dev[DevType.ITECH_LOAD], network_dev[DevType.ITECH_LOAD].Cmd);
-            network_dev[DevType.ITECH_LOAD].SendReceiveState = NetDev_SendState.SEND_BEGIN;*/
-
-            network_dev[DevType.ITECH_LOAD].State = NetDev_State.GET_PARAM_ALL;
-            network_dev[DevType.ITECH_LOAD].GetSetParamLeft = NetworkThreads.Itech_load_param_get_type.Length;
-            NetworkThreads.ITECH_LOAD_handle_get_params();
-        }
-
-        private void button9_Click(object sender, EventArgs e)
-        {
-            network_dev[DevType.ANALYSER_SIGLENT].Cmd = "FREQ:START?";
-
-            Socket_.send_socket(network_dev[DevType.ANALYSER_SIGLENT], network_dev[DevType.ANALYSER_SIGLENT].Cmd);
-            network_dev[DevType.ANALYSER_SIGLENT].SendReceiveState = NetDev_SendState.SEND_BEGIN;
-        }
-
-        private void button10_Click(object sender, EventArgs e)
-        {
-            network_dev[DevType.ANALYSER_SIGLENT].Cmd = "FREQ:STOP?";
-
-            Socket_.send_socket(network_dev[DevType.ANALYSER_SIGLENT], network_dev[DevType.ANALYSER_SIGLENT].Cmd);
-            network_dev[DevType.ANALYSER_SIGLENT].SendReceiveState = NetDev_SendState.SEND_BEGIN;
-        }
-
-        private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-            //System.Diagnostics.Debug.Print($"index: = {tabControl2.SelectedIndex}");
-            switch (tabControl2.SelectedIndex)
-            {
-                case NetDev_Tab.MAIN_CONTROLLER:
-                    break;
-                case NetDev_Tab.HW_TESTER:
-                    break;
-                case NetDev_Tab.SIGLENT:
-                    network_dev[DevType.ANALYSER_SIGLENT].State = NetDev_State.GET_PARAM_ALL;
-                    network_dev[DevType.ANALYSER_SIGLENT].GetSetParamLeft = 3;
-                    network_dev[DevType.ANALYSER_SIGLENT].GetSetParamCount = 3;
-                    NetworkThreads.Spectroscope_handle_get_params();
-                    break;
-                case NetDev_Tab.ITECH_LOAD:
-                    break;
-            }
-        }
-
-        private void dataGrid_Barcode2_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            System.Diagnostics.Debug.Print($"e.RowIndex: = {e.RowIndex} e.ColumnIndex: = {e.ColumnIndex}");
-
-            network_dev[DevType.BARCODE_2].SubState = e.RowIndex + 1;//setinam state pagal paspausyta table btn
-
-            NetworkThreads.Barcode2_handle_get_params();
-            evse2_params.Text = "---";
-        }
-
-        private void dataGrid_Barcode1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void dataGrid_Barcode3_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
         #region Main board
 
         private void dataGrid_main_board_click(object sender, DataGridViewCellEventArgs e)
@@ -3461,7 +4009,7 @@ namespace ArtiluxEOL
                                             {Color.Transparent, Color.Transparent, Color.Transparent, Color.LightGreen, Color.Transparent },//PP_Selector = 3
                                             {Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent, Color.LightGreen },//PP_Selector = 4
                                             {Color.Orange, Color.Orange, Color.Orange, Color.Orange, Color.Orange },                        //PP_Selector = -10/-11
-                                            {Color.Red, Color.Red, Color.Red, Color.Red, Color.Red }                                        //PP_Selector = -100/-101
+                                            {Color.IndianRed, Color.IndianRed, Color.IndianRed, Color.IndianRed, Color.IndianRed }                                        //PP_Selector = -100/-101
             };
 
             Color[,] LS_sel_btn_colors = {//LS selector button colors depending on LS selector state
@@ -3470,7 +4018,7 @@ namespace ArtiluxEOL
                                             {Color.Transparent, Color.LightGreen, Color.Transparent },  //LS_Selector = 2
                                             {Color.Transparent, Color.Transparent, Color.LightGreen },  //LS_Selector = 3
                                             {Color.Orange, Color.Orange, Color.Orange },                //LS_Selector = -10/-11
-                                            {Color.Red, Color.Red, Color.Red }                          //LS_Selector = -100/-101
+                                            {Color.IndianRed, Color.IndianRed, Color.IndianRed }                          //LS_Selector = -100/-101
             };
 
             Color[,] CP_sel_btn_colors = {//CP selector button colors depending on CP selector state
@@ -3479,7 +4027,7 @@ namespace ArtiluxEOL
                                             {Color.Transparent, Color.Transparent, Color.LightGreen, Color.Transparent },   //CP_Selector = 2
                                             {Color.Transparent, Color.Transparent, Color.Transparent, Color.LightGreen },   //CP_Selector = 3
                                             {Color.Orange, Color.Orange, Color.Orange, Color.Orange },                      //CP_Selector = -10/-11
-                                            {Color.Red, Color.Red, Color.Red, Color.Red }                                   //CP_Selector = -100/-101
+                                            {Color.IndianRed, Color.IndianRed, Color.IndianRed, Color.IndianRed }                                   //CP_Selector = -100/-101
             };
 
             Color[,] TP_sel_btn_colors = {//TP selector button colors depending on CP selector state
@@ -3487,7 +4035,7 @@ namespace ArtiluxEOL
                                             {Color.Transparent, Color.LightGreen, Color.Transparent, Color.Transparent },   //TP_Selector = 1
                                             {Color.Transparent, Color.Transparent, Color.LightGreen, Color.Transparent },   //TP_Selector = 2
                                             {Color.Orange, Color.Orange, Color.Orange, Color.Orange },                      //CP_Selector = -10/-11
-                                            {Color.Red, Color.Red, Color.Red, Color.Red }                                   //CP_Selector = -100/-101
+                                            {Color.IndianRed, Color.IndianRed, Color.IndianRed, Color.IndianRed }                                   //CP_Selector = -100/-101
             };
 
             if (PP_Selector.STATE >= 0 && PP_Selector.STATE < 5)//Color array selector depending on PP selector state
@@ -3578,7 +4126,8 @@ namespace ArtiluxEOL
 
                 if (ctrl.Name == "chbox_ls_0")//LOAD
                 {
-                    if (LOAD.STATE == 0) {
+                    if (LOAD.STATE == 0)
+                    {
                         ctrl.BackColor = Color.LightBlue;
                     }
                     else if (LOAD.STATE == 1)
@@ -3587,7 +4136,7 @@ namespace ArtiluxEOL
                     }
                     else if (LOAD.STATE < 0)
                     {
-                        ctrl.BackColor = Color.Red;
+                        ctrl.BackColor = Color.IndianRed;
                     }
                     else
                     {
@@ -3606,7 +4155,7 @@ namespace ArtiluxEOL
                     }
                     else if (SOURCE.STATE < 0)
                     {
-                        ctrl.BackColor = Color.Red;
+                        ctrl.BackColor = Color.IndianRed;
                     }
                     else
                     {
@@ -3625,7 +4174,7 @@ namespace ArtiluxEOL
                     }
                     else if (LS_EN.STATE < 0)
                     {
-                        ctrl.BackColor = Color.Red;
+                        ctrl.BackColor = Color.IndianRed;
                     }
                     else
                     {
@@ -3644,7 +4193,7 @@ namespace ArtiluxEOL
                     }
                     else if (DIODE_SH.STATE < 0)
                     {
-                        ctrl.BackColor = Color.Red;
+                        ctrl.BackColor = Color.IndianRed;
                     }
                     else
                     {
@@ -3663,7 +4212,7 @@ namespace ArtiluxEOL
                     }
                     else if (PE_OP.STATE < 0)
                     {
-                        ctrl.BackColor = Color.Red;
+                        ctrl.BackColor = Color.IndianRed;
                     }
                     else
                     {
@@ -3682,7 +4231,7 @@ namespace ArtiluxEOL
                     }
                     else if (CP_SH.STATE < 0)
                     {
-                        ctrl.BackColor = Color.Red;
+                        ctrl.BackColor = Color.IndianRed;
                     }
                     else
                     {
@@ -3754,7 +4303,7 @@ namespace ArtiluxEOL
                     else if (RL.STATE < 0)
                     {
                         Row.Cells[1].Value = "ERROR";
-                        Row.Cells[1].Style.BackColor = Color.Red;
+                        Row.Cells[1].Style.BackColor = Color.IndianRed;
                     }
                     else
                     {
@@ -3914,191 +4463,7 @@ namespace ArtiluxEOL
 
         #endregion
 
-        private void button_load_test_start_Click(object sender, EventArgs e)
-        {
-            Load_Test_State = 1;
-        }
-
-        public void Update_Progress_Bar_Load_Test()
-        {
-            if (Load_Test_State > 0)
-            {
-                if (Load_Test_State > Load_Test_State_Last)
-                {
-                    Load_Test_State_Last = Load_Test_State;
-
-                    if (Load_Test_State < progressBar_load_test.Maximum)
-                    {
-                        this.Invoke(new Action(() => { this.progressBar_load_test.Value = Load_Test_State; }));
-                    }
-                    else
-                    {
-                        this.Invoke(new Action(() => { this.progressBar_load_test.Value = progressBar_load_test.Maximum; }));
-                    }
-                }
-            }
-            else
-            {
-                this.Invoke(new Action(() => { this.progressBar_load_test.Value = 0; }));
-                Load_Test_State_Last = 0;
-            }
-        }
-
-        private void button_load_test_cancel_Click(object sender, EventArgs e)
-        {
-            Load_Test_Cancel = true;
-        }
-
-        private void button_HV_Test_Start_Click(object sender, EventArgs e)
-        {
-            HV_Test_State = 1;
-        }
-
-        public void Update_Progress_Bar_HV_Test()
-        {
-            if (HV_Test_State > 0)
-            {
-                if (HV_Test_State > HV_Test_State_Last)
-                {
-                    HV_Test_State_Last = HV_Test_State;
-
-                    if (HV_Test_State < progressBar_HV_Test.Maximum)
-                    {
-                        this.Invoke(new Action(() => { this.progressBar_HV_Test.Value = HV_Test_State; }));
-                    }
-                    else
-                    {
-                        this.Invoke(new Action(() => { this.progressBar_HV_Test.Value = progressBar_HV_Test.Maximum; }));
-                    }
-                }
-            }
-            else
-            {
-                this.Invoke(new Action(() => { this.progressBar_HV_Test.Value = 0; }));
-                HV_Test_State_Last = 0;
-            }
-        }
-
-        private void button_HV_Test_Cancel_Click(object sender, EventArgs e)
-        {
-            HV_Test_Cancel = true;
-        }
-
-        private void button_Spectroscope_Test_Start(object sender, EventArgs e)
-        {
-            Spectroscope_Test_State = 1;
-        }
-
-        public void Update_Progress_Bar_Spectroscope_Test()
-        {
-            if (Spectroscope_Test_State > 0)
-            {
-                if (Spectroscope_Test_State > Spectroscope_Test_State_Last)
-                {
-                    Spectroscope_Test_State_Last = Spectroscope_Test_State;
-
-                    if (Spectroscope_Test_State < progressBar_Spectroscope_Test.Maximum)
-                    {
-                        this.Invoke(new Action(() => { this.progressBar_Spectroscope_Test.Value = Spectroscope_Test_State; }));
-                    }
-                    else
-                    {
-                        this.Invoke(new Action(() => { this.progressBar_Spectroscope_Test.Value = progressBar_Spectroscope_Test.Maximum; }));
-                    }
-                }
-            }
-            else
-            {
-                this.Invoke(new Action(() => { this.progressBar_Spectroscope_Test.Value = 0; }));
-                Spectroscope_Test_State_Last = 0;
-            }
-        }
-
-        public void Spectroscope_Analyze_Data()
-        {
-            bool isStable = true;
-            this.Invoke(new Action(() => { spectro_form.Show(); }));
-
-            spectro_form.Invoke(new Action(() => { spectro_form.someChart.Series[0].Points.DataBindY(Spectroscope_Readings); }));
-
-            for (int i = 0; i < Spectroscope_Readings_Old.Length; i++)
-            {
-                if (isStable)
-                {
-                    if (Math.Abs(1 - (Spectroscope_Readings[i] / Spectroscope_Readings_Old[i])) > (Spectroscope_Max_Sample_Diff / 100.0f))
-                    {
-                        isStable = false;
-                        Spectroscope_Stable_Samples_Confirmed = 0;
-                        //System.Diagnostics.Debug.Print("Sample [" + i + "] diff= " + Math.Abs(1 - (Spectroscope_Readings[i] / Spectroscope_Readings_Old[i])));
-                    }
-                }
-
-                Spectroscope_Readings_Old[i] = Spectroscope_Readings[i];
-            }
-
-            if (isStable)
-            {
-                Spectroscope_Stable_Samples_Confirmed++;
-            }
-
-        }
-
-        public void Spectroscope_Graph_Add_Peaks()
-        {
-            float[] peakArray = new float[Spectroscope_Readings_Count];
-            int peakSample = 0;
-
-            for (int i = 0; i < Spectroscope_Readings_Count; i++)
-            {
-                peakArray[i] = 0;
-            }
-
-            for (int i = 0; i < Spectroscope_Peaks.Length; i++)
-            {
-                peakSample = Spectroscope_Peaks[i].SAMPLE;
-                peakArray[peakSample] = Spectroscope_Readings[peakSample];
-                System.Diagnostics.Debug.Print("Peak [" + i + "] at " + Spectroscope_Peaks[i].FREQUENCY + "Hz");
-            }
-
-            this.Invoke(new Action(() => { spectro_form.someChart.Series[1].Points.DataBindY(peakArray); }));
-        }
-
-        public void Spectroscope_Graph_Reset()
-        {
-            float[] emptyArray = new float[Spectroscope_Readings_Count];
-            this.Invoke(new Action(() => { spectro_form.someChart.Series[0].Points.DataBindY(emptyArray); }));
-            this.Invoke(new Action(() => { spectro_form.someChart.Series[1].Points.DataBindY(emptyArray); }));
-        }
-
-        private void button_Spectroscope_Test_Cancel_Click(object sender, EventArgs e)
-        {
-            Spectroscope_Test_Cancel = true;
-        }
-
-        private void button_osc_pulse(object sender, EventArgs e)
-        {
-            NetworkThreads.Generate_Test_Pulse(textBox_pulse_length.Text);
-        }
-
-        private void DisableControls(Control con)
-        {
-            foreach (Control c in con.Controls)
-            {
-                DisableControls(c);
-            }
-
-            this.Invoke(new Action(() => { con.Enabled = false; }));
-            
-        }
-
-        private void EnableControls(Control con)
-        {
-            foreach (Control c in con.Controls)
-            {
-                EnableControls(c);
-            }
-            this.Invoke(new Action(() => { con.Enabled = true; }));
-        }
+        #region Emergency stop
 
         public void Emergency_Stop_Procedure()//Called once upon receiving a signal from the main controller
         {
@@ -4121,5 +4486,191 @@ namespace ArtiluxEOL
             EnableControls(oscillo_form);
             this.Invoke(new Action(() => { this.label_Estop.Visible = false; }));
         }
+
+        #endregion
+
+        #region Buttons
+
+        private void btnStart_Click(object sender, EventArgs e)//Ijungti testavimo langus
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (mtlist[i].MonitorOnline)
+                {
+                    mtlist[i].Form.Show();
+                    mtlist[i].FormHidden = false;
+                }
+            }
+        }
+
+        private void button5_Click_1(object sender, EventArgs e)
+        {
+            network_dev[DevType.GWINSTEK_HV_TESTER].Cmd = "MEAS?";
+            Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], network_dev[DevType.GWINSTEK_HV_TESTER].Cmd);
+            network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+        }
+
+        private void btn_stop_Click(object sender, EventArgs e)
+        {
+            network_dev[DevType.GWINSTEK_HV_TESTER].Cmd = "FUNC:TEST OFF";
+            Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], network_dev[DevType.GWINSTEK_HV_TESTER].Cmd);
+            network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+
+            show_msg("TEST STOP", Color.LightSalmon);
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            /*network_dev[DevType.ITECH_LOAD].Cmd = "MEAS?";//test select komandos formavimas
+            Socket_.send_socket(network_dev[DevType.ITECH_LOAD], network_dev[DevType.ITECH_LOAD].Cmd);
+            network_dev[DevType.ITECH_LOAD].SendReceiveState = NetDev_SendState.SEND_BEGIN;*/
+
+            network_dev[DevType.ITECH_LOAD].State = NetDev_State.GET_PARAM_ALL;
+            network_dev[DevType.ITECH_LOAD].GetSetParamLeft = NetworkThreads.Itech_load_param_get_type.Length;
+            NetworkThreads.ITECH_LOAD_handle_get_params();
+        }
+
+        private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+            //System.Diagnostics.Debug.Print($"index: = {tabControl2.SelectedIndex}");
+            switch (tabControl2.SelectedIndex)
+            {
+                case NetDev_Tab.MAIN_CONTROLLER:
+                    break;
+                case NetDev_Tab.HW_TESTER:
+                    break;
+                case NetDev_Tab.SIGLENT:
+                    network_dev[DevType.ANALYSER_SIGLENT].State = NetDev_State.GET_PARAM_ALL;
+                    network_dev[DevType.ANALYSER_SIGLENT].GetSetParamLeft = 3;
+                    network_dev[DevType.ANALYSER_SIGLENT].GetSetParamCount = 3;
+                    NetworkThreads.Spectroscope_handle_get_params();
+                    break;
+                case NetDev_Tab.ITECH_LOAD:
+                    break;
+            }
+        }
+
+        private void dataGrid_Barcode2_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            System.Diagnostics.Debug.Print($"e.RowIndex: = {e.RowIndex} e.ColumnIndex: = {e.ColumnIndex}");
+
+            network_dev[DevType.BARCODE_2].SubState = e.RowIndex + 1;//setinam state pagal paspausyta table btn
+
+            NetworkThreads.Barcode2_handle_get_params();
+            evse2_params.Text = "---";
+        }
+
+        private void dataGrid_Barcode1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void dataGrid_Barcode3_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void button_load_test_start_Click(object sender, EventArgs e)
+        {
+            Load_Test_State = 1;
+        }
+
+        private void button_load_test_cancel_Click(object sender, EventArgs e)
+        {
+            Load_Test_Cancel = true;
+        }
+
+        private void button_HV_Test_Start_Click(object sender, EventArgs e)
+        {
+            HV_Test_State = 1;
+        }
+
+        private void button_HV_Test_Cancel_Click(object sender, EventArgs e)
+        {
+            HV_Test_Cancel = true;
+        }
+
+        private void button_Spectroscope_Test_Start(object sender, EventArgs e)
+        {
+            Spectroscope_Test_State = 1;
+        }
+
+        private void button_Spectroscope_Test_Cancel_Click(object sender, EventArgs e)
+        {
+            Spectroscope_Test_Cancel = true;
+        }
+
+        private void button_osc_pulse(object sender, EventArgs e)
+        {
+            NetworkThreads.Generate_Test_Pulse(textBox_pulse_length.Text);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            int nr = 0;
+
+            foreach (string existingID in DetectedMonitors)
+            {
+                System.Diagnostics.Debug.Print("[" + nr + "] ID= " + existingID);
+                nr++;
+            }
+        }
+
+        private void btn_popup_Click(object sender, EventArgs e)
+        {
+
+            dbg_print(DbgType.MAIN, "TEST", Color.MediumPurple);
+
+            Popup_msg popup = new Popup_msg("TEST", "asdsd", Color.SpringGreen, 2);
+            popup.Show();
+        }
+
+        /*
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+
+            Socket_.start_socket(network_dev[DevType.GWINSTEK_HV_TESTER], 0);
+            //Socket_.socket_ping(network_dev[DevType.GWINSTEK_HV_TESTER]);
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], "SYSTEM:TIME?");
+
+            //network_dev[DevType.GWINSTEK_HV_TESTER].NewSendData = true;
+            network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            Socket_.close_socket(network_dev[DevType.GWINSTEK_HV_TESTER]);
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            Socket_.send_socket(network_dev[DevType.MAIN_CONTROLLER], "A");
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            network_dev[DevType.ANALYSER_SIGLENT].Cmd = "FREQ:START?";
+
+            Socket_.send_socket(network_dev[DevType.ANALYSER_SIGLENT], network_dev[DevType.ANALYSER_SIGLENT].Cmd);
+            network_dev[DevType.ANALYSER_SIGLENT].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+            network_dev[DevType.ANALYSER_SIGLENT].Cmd = "FREQ:STOP?";
+
+            Socket_.send_socket(network_dev[DevType.ANALYSER_SIGLENT], network_dev[DevType.ANALYSER_SIGLENT].Cmd);
+            network_dev[DevType.ANALYSER_SIGLENT].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+        }
+
+        */
+
+        #endregion
     }
 }

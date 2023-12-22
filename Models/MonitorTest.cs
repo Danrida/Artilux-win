@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ArtiluxEOL;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -8,20 +9,50 @@ using System.Threading.Tasks;
 
 namespace MonitorsTest.Models
 {
-  public class MonitorTest
+    public class TestState
+    {
+        public const int FAILED = -2;
+        public const int CANCELED = -1;
+        public const int WAITING = 0;
+        public const int IN_PROGRESS = 1;
+        public const int PASSED = 2;
+    }
+
+    public class EVSETestState
+    {
+        public int Testing_State { get; set; }//State of all tests for this EVSE- TestState class
+
+        public int EVSE_Communication_Test { get; set; }//TestState class
+
+        public int Load_Test { get; set; }//TestState class
+
+        public int HV_Test { get; set; }//TestState class
+
+        public int WIFI_Test { get; set; }//TestState class
+
+        public int GSM_Test { get; set; }//TestState class
+
+        public int RFID_Test { get; set; }//TestState class
+
+        public int RCD_Test { get; set; }//TestState class
+
+    }
+
+    public class MonitorTest
     {
         public int Id { get; set; }
         public string MonitorIds { get; set; }
-
-        public int Width { get; set; }
-        public int Height { get; set; }
-
+        //public int Width { get; set; }
+        //public int Height { get; set; }
         public int WorkPlaceNr { get; set; }
-        public Point Location { get; set; }
-        public List<TestList> testList { get; set; }
+        //public Point Location { get; set; }
+        //public List<TestList> testList { get; set; }
+        public bool MonitorOnline { get; set; }//Is this monitor currently operational (detected by OS)
+        public WindowModal Form { get; set; }//Form window assigned to this monitor
+        public bool FormHidden { get; set; }
     }
 
-    public class TestList
+    /*public class TestList
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -29,7 +60,7 @@ namespace MonitorsTest.Models
         public int TestLong { get; set; }
 
         public bool TestResult { get; set; }
-    }
+    }*/
 
     public class WorkplaceList
     {

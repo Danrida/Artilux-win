@@ -9,7 +9,7 @@ namespace MonitorsTest.Services
 {
   public class Helper
     {
-        public static List<TestList> GettestLists()
+        /*public static List<TestList> GettestLists()
         {
             List < TestList > tl=  new List<TestList> { 
                 new TestList { Id=1, Name = "HV Atsparumo Testas" },
@@ -32,7 +32,7 @@ namespace MonitorsTest.Services
 
 
             return tl;
-        }
+        }*/
 
         public static int GetTestLong()
         {
