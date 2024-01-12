@@ -28,7 +28,7 @@ namespace ArtiluxEOL
 
         SocketClient Socket_ = new SocketClient();
 
-        public void hv_pramusimo_testas(int work_place_nr)
+        /*public void hv_pramusimo_testas(int work_place_nr)
         {
             var net_dev = Main.main.network_dev[DevType.GWINSTEK_HV_TESTER];
             long time;
@@ -62,6 +62,6 @@ namespace ArtiluxEOL
             net_dev.TestType = 0;
             net_dev.State = NetDev_State.SELECT_TEST;
            
-        }
+        }*/
     }
 }

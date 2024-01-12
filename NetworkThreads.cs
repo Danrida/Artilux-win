@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using static Ion.Sdk.Ici.Channel.BlackBox.Message;
 using static Ion.Tools.Models.XmlDataExport.Graph;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
@@ -27,7 +28,7 @@ namespace ArtiluxEOL
 
         UInt16 PING_TMR_CNT_VALUE = 20;
 
-        long unixTimeMilliseconds;
+        public long unixTimeMilliseconds;
         long Main_Controller_TCP_Handler_Timer;
         long Main_Controller_TCP_Poll_Rate = 200;//(ms) How often should request be sent to the main controller
         int Main_Controller_TCP_Max_Poll_Count = 10;//Maximum ammount of attempts for a single command
@@ -77,7 +78,7 @@ namespace ArtiluxEOL
 
         public DevList dev_list;
 
-        public NetworkThreads(IContainer container)
+        /*public NetworkThreads(IContainer container)
         {
             container.Add(this);
 
@@ -86,7 +87,7 @@ namespace ArtiluxEOL
             //dev_list = Main.main.devList;
 
             
-        }
+        }*/
 
         #region <ieskom tinklo devaisu>
 
@@ -245,8 +246,7 @@ namespace ArtiluxEOL
         {
             int result = 0;
             bool connection_closed = false;
-            long timestamp_now = 0;
-            int ptr = 0;
+            //int ptr = 0;
 
             var net_dev = Main.main.network_dev[DevType.MAIN_CONTROLLER];
             var main_func = Main.main;
@@ -269,8 +269,6 @@ namespace ArtiluxEOL
                         System.Diagnostics.Debug.Print($"SEND_FAIL:{0}");
                         break;
                      case NetDev_SendState.RECEIVE_WAIT:
-                         //timestamp_now = Socket_.UnixTimeNow();
-                         //System.Diagnostics.Debug.Print($"RECEIVE_WAIT:{timestamp_now}");
                          break;
                     case NetDev_SendState.RECEIVE_OK:
                         net_dev.NewResp = true;
@@ -303,7 +301,6 @@ namespace ArtiluxEOL
             Main.main.Update_data_grid();
             Main.main.Update_controls();
 
-
             if (net_dev.NewResp)//There is a new responce from the main board
             {
                 net_dev.NewResp = false;//Reset new responce flag
@@ -319,7 +316,8 @@ namespace ArtiluxEOL
 
                     for (int j = 0; j < (sepResps.Length - 1); j++)
                     {
-                        if (sepResps[j].StartsWith("TEST_START:"))//Commands without command id
+                        //Commands without command id
+                        if (sepResps[j].StartsWith("TEST_START:"))//Test start request
                         {
                             split = sepResps[j].Split(':');//Split the response
                             bool parseFail = false;
@@ -339,7 +337,47 @@ namespace ArtiluxEOL
                                 }
                             }
 
-                            //reqPos -> relay device (change to binary)
+                            if (!parseFail)
+                            {
+                                if (reqPos[0])
+                                {
+                                    Main.main.Requesting_Test_Start_I = true;
+                                    System.Diagnostics.Debug.Print("Test start request I");
+                                }
+                                else if (reqPos[1])
+                                {
+                                    Main.main.Requesting_Test_Start_II = true;
+                                    System.Diagnostics.Debug.Print("Test start request II");
+                                }
+                                else if (reqPos[2])
+                                {
+                                    Main.main.Requesting_Test_Start_III = true;
+                                    System.Diagnostics.Debug.Print("Test start request III");
+                                }
+                            }
+                        }
+                        else if (sepResps[j].StartsWith("WORK_POS:?"))//Which work positions are operational?
+                        {
+                            //Responce: WORK_POS:101 - operational work positions are 1 and 3
+                            //Responce: WORK_POS:010 - operational work position 2
+
+                            string extraText = ":";
+
+                            for (int i = 0; i < 3; i++)
+                            {
+                                if (Main.main.EVSE_Operational[i])
+                                {
+                                    extraText += "1";
+                                }
+                                else
+                                {
+                                    extraText += "0";
+                                }
+                            }
+
+                            Main.Work_Pos_Signal.EXTRA = extraText;//Assign extra text at the end of the command
+                            Main.Work_Pos_Signal.ONE_SHOT = true;//Send this signal one time
+                            Main.Work_Pos_Signal.STATE = 1;//Signal needs to be sent
 
                         }
                         else//Commands with command id
@@ -360,9 +398,9 @@ namespace ArtiluxEOL
                                 {
                                     for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Find who sent this command id
                                     {
-                                        if (Main.Main_Board_Controls[i] is Relay)//Object type relay
+                                        if (Main.Main_Board_Controls[i] is BinaryComponent)//Object type relay
                                         {
-                                            Relay tmpRL = (Relay)Main.Main_Board_Controls[i];
+                                            BinaryComponent tmpRL = (BinaryComponent)Main.Main_Board_Controls[i];
 
                                             if (tmpRL.COM_ID == respID)//Found the sender
                                             {
@@ -375,9 +413,9 @@ namespace ArtiluxEOL
                                                 break;//Exit for loop
                                             }
                                         }
-                                        else if (Main.Main_Board_Controls[i] is NumericStateDevice)//Object type relay
+                                        else if (Main.Main_Board_Controls[i] is NumericComponent)//Object type NumericComponent
                                         {
-                                            NumericStateDevice tmpNmrc = (NumericStateDevice)Main.Main_Board_Controls[i];
+                                            NumericComponent tmpNmrc = (NumericComponent)Main.Main_Board_Controls[i];
 
                                             if (tmpNmrc.COM_ID == respID)//Found the sender
                                             {
@@ -396,9 +434,9 @@ namespace ArtiluxEOL
                                 {
                                     for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Find who sent this command id
                                     {
-                                        if (Main.Main_Board_Controls[i] is Relay)//Object type relay
+                                        if (Main.Main_Board_Controls[i] is BinaryComponent)//Object type BinaryComponent
                                         {
-                                            Relay tmpRL = (Relay)Main.Main_Board_Controls[i];
+                                            BinaryComponent tmpRL = (BinaryComponent)Main.Main_Board_Controls[i];
 
                                             if (tmpRL.COM_ID == respID)//Found the sender
                                             {
@@ -426,9 +464,9 @@ namespace ArtiluxEOL
                                 {
                                     for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Find who sent this command id
                                     {
-                                        if (Main.Main_Board_Controls[i] is Relay)//Object type relay
+                                        if (Main.Main_Board_Controls[i] is BinaryComponent)//Object type relay
                                         {
-                                            Relay tmpRL = (Relay)Main.Main_Board_Controls[i];
+                                            BinaryComponent tmpRL = (BinaryComponent)Main.Main_Board_Controls[i];
 
                                             if (tmpRL.COM_ID == respID)//Found the sender
                                             {
@@ -456,9 +494,9 @@ namespace ArtiluxEOL
                                 {
                                     for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Find who sent this command id
                                     {
-                                        if (Main.Main_Board_Controls[i] is NumericStateDevice)//Object type numeric state device
+                                        if (Main.Main_Board_Controls[i] is NumericComponent)//Object type numeric state device
                                         {
-                                            NumericStateDevice tmpNmrc = (NumericStateDevice)Main.Main_Board_Controls[i];
+                                            NumericComponent tmpNmrc = (NumericComponent)Main.Main_Board_Controls[i];
 
                                             if (tmpNmrc.COM_ID == respID)//Found the sender
                                             {
@@ -523,9 +561,9 @@ namespace ArtiluxEOL
                 {
                     for (int i = 0; i < Main.Main_Board_Controls.Length; i++)//Go trough all main controller objects
                     {
-                        if (Main.Main_Board_Controls[i] is Relay)//Object type relay
+                        if (Main.Main_Board_Controls[i] is BinaryComponent)//Object type relay
                         {
-                            Relay tmpRL = (Relay)Main.Main_Board_Controls[i];
+                            BinaryComponent tmpRL = (BinaryComponent)Main.Main_Board_Controls[i];
 
                             if (tmpRL.STATE == 10)//Found an object in a waiting state
                             {
@@ -562,9 +600,9 @@ namespace ArtiluxEOL
                                 }
                             }
                         }
-                        else if (Main.Main_Board_Controls[i] is NumericStateDevice)//Object type NumericStateDevice
+                        else if (Main.Main_Board_Controls[i] is NumericComponent)//Object type NumericStateDevice
                         {
-                            NumericStateDevice tmpNmrc = (NumericStateDevice)Main.Main_Board_Controls[i];
+                            NumericComponent tmpNmrc = (NumericComponent)Main.Main_Board_Controls[i];
 
                             if (tmpNmrc.STATE == -10)//Found an object in a waiting state
                             {
@@ -603,7 +641,27 @@ namespace ArtiluxEOL
                         }
                         else if (Main.Main_Board_Controls[i] is Signal)//Object type Signal
                         {
-                            //Signal
+                            Signal tmpSgnl = (Signal)Main.Main_Board_Controls[i];
+
+                            if (tmpSgnl.STATE == 1)
+                            {
+                                Main.main.Main_Board_Set_Command_ID(tmpSgnl);
+                                net_dev.State = MainBoard_State.BUSY;
+                                net_dev.Cmd = tmpSgnl.COM_ID + ":" + tmpSgnl.NAME + tmpSgnl.EXTRA;
+                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
+
+                                if (tmpSgnl != Main.Ping_Signal)//Do not show ping messages
+                                {
+                                    System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
+                                }
+
+                                if (tmpSgnl.ONE_SHOT)
+                                {
+                                    tmpSgnl.STATE = 0;
+                                }
+                                break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
+                            }
                         }
                         else
                         {
@@ -654,8 +712,7 @@ namespace ArtiluxEOL
         {
             int result = 0;
             bool connection_closed = false;
-            long timestamp_now = 0;
-            int ptr = 0;
+            //int ptr = 0;
             var net_dev = Main.main.network_dev[DevType.ITECH_LOAD];
             var main_func = Main.main;
 
@@ -700,8 +757,6 @@ namespace ArtiluxEOL
                         System.Diagnostics.Debug.Print($"SEND_FAIL:{0}");
                         break;
                     case NetDev_SendState.RECEIVE_WAIT:
-                        //timestamp_now = Socket_.UnixTimeNow();
-                        //System.Diagnostics.Debug.Print($"RECEIVE_WAIT:{timestamp_now}");
                         break;
                     case NetDev_SendState.RECEIVE_OK:
                         net_dev.NewResp = true;
@@ -745,7 +800,7 @@ namespace ArtiluxEOL
             var dev_struct = Main.main.devList;
             int phase = 0;
             int param_type_nr = net_dev.GetSetParamLeft; //parametro nr kuri norim set/get. Itech_hv_test_list[]
-            int param = 0;
+            //int param = 0;
 
             string[] split;
             string[,] load_param = new string[3, 19];
@@ -3544,10 +3599,7 @@ namespace ArtiluxEOL
             int result = 0;
             int len = 0;
             bool connection_closed = false;
-
-            long timestamp_now = 0;
-
-            int ptr = 0;
+            //int ptr = 0;
 
             var net_dev = Main.main.network_dev[DevType.ANALYSER_SIGLENT];
 
@@ -3558,28 +3610,8 @@ namespace ArtiluxEOL
                 switch (net_dev.SendReceiveState)
                 {
                     case NetDev_SendState.IDLE:
-                        /*if(net_dev.State == NetDev_State.READY && net_dev.Connected)
-                        {
-                            if (net_dev.NewResp)
-                            {
-                                Spectroscope_handle_get_params();
-                            }
-                            else
-                            {
-                                if (net_dev.PingPktTmrCnt > PING_TMR_CNT_VALUE)
-                                {
-                                    net_dev.PingPktTmrCnt = 0;
-                                    net_dev.Cmd = "SYST:TIME?";//ping cmd, uzklausiam laiko
-                                    Socket_.send_socket(net_dev, net_dev.Cmd);
-                                }
-                            }
-
-                            net_dev.PingPktTmrCnt++;
-                        }*/
                         break;
                     case NetDev_SendState.SEND_BEGIN:
-                        //string data = network_dev[DevType.GWINSTEK_HV_TESTER].Cmd;
-                        //Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], data);
                         break;
                     case NetDev_SendState.SEND_WAIT:
                         break;
@@ -3608,7 +3640,6 @@ namespace ArtiluxEOL
                         System.Diagnostics.Debug.Print($"SEND_FAIL:{0}");
                         break;
                     case NetDev_SendState.RECEIVE_WAIT:
-                        //timestamp_now = Socket_.UnixTimeNow();
                         if(net_dev.CmdRetransmitCnt > CMD_RETRANSMIT_L)//negavom responso, persiunciam viska dar karta
                         {
                             net_dev.CmdRetransmitCnt = 0;
@@ -3618,7 +3649,6 @@ namespace ArtiluxEOL
                         }
 
                         net_dev.CmdRetransmitCnt++;
-                        //System.Diagnostics.Debug.Print($"RECEIVE_WAIT:{timestamp_now}");
                         break;
                     case NetDev_SendState.RECEIVE_OK:
                         net_dev.NewResp = true;
@@ -3693,7 +3723,7 @@ namespace ArtiluxEOL
             float start;
             float stop;
 
-            int param = 0;
+            //int param = 0;
 
             DataGridViewRow Row;
             int Row_cnt = Main.main.dataGrid_Spectrum.Rows.Count;//get table row by test type
@@ -5075,10 +5105,7 @@ namespace ArtiluxEOL
         {
             int result = 0;
             bool connection_closed = false;
-
-            long timestamp_now = 0;
-
-            int ptr = 0;
+            //int ptr = 0;
 
             var net_dev = Main.main.network_dev[DevType.GWINSTEK_HV_TESTER];
 
@@ -5148,10 +5175,8 @@ namespace ArtiluxEOL
                         net_dev.SendReceiveState = NetDev_SendState.IDLE;
                         System.Diagnostics.Debug.Print($"SEND_FAIL:{0}");
                         break;
-                    /* case NetDev_SendState.RECEIVE_WAIT:
-                         timestamp_now = Socket_.UnixTimeNow();
-                         System.Diagnostics.Debug.Print($"RECEIVE_WAIT:{timestamp_now}");
-                         break;*/
+                    case NetDev_SendState.RECEIVE_WAIT:
+                         break;
                     case NetDev_SendState.RECEIVE_OK:
                         net_dev.NewResp = true;
                         net_dev.ReceiveRunning = false;
@@ -5190,7 +5215,7 @@ namespace ArtiluxEOL
             int test_type = net_dev.TestType;
             int param_type_nr = net_dev.GetSetParamLeft; //parametro nr kuri norim set/get. Itech_hv_test_list[]
 
-            int param = 0;
+            //int param = 0;
 
             DataGridViewRow Row;
 
@@ -7205,10 +7230,7 @@ namespace ArtiluxEOL
         {
             int result = 0;
             bool connection_closed = false;
-
-            long timestamp_now = 0;
-
-            int ptr = 0;
+            //int ptr = 0;
 
             var net_dev = Main.main.network_dev[DevType.BARCODE_2];
 
@@ -7255,10 +7277,8 @@ namespace ArtiluxEOL
                         System.Diagnostics.Debug.Print($"SEND_FAIL:{0}");
                         break;
 
-                    /* case NetDev_SendState.RECEIVE_WAIT:
-                         timestamp_now = Socket_.UnixTimeNow();
-                         System.Diagnostics.Debug.Print($"RECEIVE_WAIT:{timestamp_now}");
-                         break;*/
+                    case NetDev_SendState.RECEIVE_WAIT:
+                         break;
                     case NetDev_SendState.RECEIVE_OK:
                         net_dev.NewResp = true;
                         net_dev.ReceiveRunning = false;
@@ -7285,11 +7305,11 @@ namespace ArtiluxEOL
 
             string[] split_raw;//kapojam pagal ;
             string[] split;
-            int param = 0;
-            string temp = "";
-            int ptr = 0;
-            Int32 rssi_constant = -113;
-            DataGridViewRow Row;
+            //int param = 0;
+            //string temp = "";
+            //int ptr = 0;
+            //Int32 rssi_constant = -113;
+            //DataGridViewRow Row;
 
             net_dev.PingPktTmrCnt = 0;//resetinam ping tmr
 
@@ -7420,11 +7440,11 @@ namespace ArtiluxEOL
 
             string[] split_raw;//kapojam pagal ;
             string[] split;
-            int param = 0;
+            //int param = 0;
             string temp = "";
-            int ptr = 0;
+            //int ptr = 0;
             Int32 rssi_constant = -113;
-            DataGridViewRow Row;
+            //DataGridViewRow Row;
 
             DevList dev_list = Main.main.devList;
 

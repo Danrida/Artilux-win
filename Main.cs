@@ -35,7 +35,7 @@ using PS2000AImports;
 using PicoPinnedArray;
 using static PS2000AImports.Imports;
 using static Ion.Sdk.Ici.Channel.BlackBox.Message;
-using System.Runtime.InteropServices;//For disabling monitros
+using System.Runtime.InteropServices;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using System.Runtime.Remoting.Contexts;
 using System.Security.Policy;
@@ -55,6 +55,13 @@ namespace ArtiluxEOL
         private static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);
 
         //------------------------
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = false)]
+        static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr w, IntPtr l);
+        public static void SetState(System.Windows.Forms.ProgressBar pBar, int state)
+        {
+            SendMessage(pBar.Handle, 1040, (IntPtr)state, IntPtr.Zero);
+        }
 
 
 
@@ -165,47 +172,64 @@ namespace ArtiluxEOL
 
         public int MainControlerTcpCommandId = 0;
         public static bool E_Stop_Previous = false;
+        long Main_Board_Ping_Timer;
+        long Main_Board_Ping_Delay = 1000;
+        long TCP_Comm_Timer1;
+        long TCP_Comm_Timer1_Delay = 1000;//Delay between sending TCP commands to the main controller to stop the test process when the test has failed / been canceled
+        long TCP_Comm_Timer2;
+        long TCP_Comm_Timer2_Delay = 1000;//Delay between sending TCP commands to the main controller for operational work positions
 
         /* 
         To assign a main board control:
 
-        1) create the variable: public static Relay DEVICE = new Relay(); / public static NumericStateDevice DEVICE = new NumericStateDevice();
+        1) create the variable: public static BinaryComponent DEVICE = new BinaryComponent(); / public static NumericComponent DEVICE = new NumericComponent();
         2) add that variable to "Main_Board_Controls" object array
         3) assign device name (that will be used to generate TCP commands) in public Main()
          */
 
-        public static Relay RL11 = new Relay();
-        public static Relay RL12 = new Relay();
-        public static Relay RL13 = new Relay();
-        public static Relay RL14 = new Relay();
-        public static Relay LS_EN = new Relay();
-        public static Relay LOAD = new Relay();
-        public static Relay SOURCE = new Relay();
-        public static Relay DIODE_SH = new Relay();
-        public static Relay PE_OP = new Relay();
-        public static Relay CP_SH = new Relay();
+        public static BinaryComponent RL11 = new BinaryComponent();
+        public static BinaryComponent RL12 = new BinaryComponent();
+        public static BinaryComponent RL13 = new BinaryComponent();
+        public static BinaryComponent RL14 = new BinaryComponent();
+        public static BinaryComponent LS_EN = new BinaryComponent();
+        public static BinaryComponent LOAD = new BinaryComponent();
+        public static BinaryComponent SOURCE = new BinaryComponent();
+        public static BinaryComponent DIODE_SH = new BinaryComponent();
+        public static BinaryComponent PE_OP = new BinaryComponent();
+        public static BinaryComponent CP_SH = new BinaryComponent();
+        public static BinaryComponent Test_Running_I = new BinaryComponent();
+        public static BinaryComponent Test_Running_II = new BinaryComponent();
+        public static BinaryComponent Test_Running_III = new BinaryComponent();
+        public static BinaryComponent Work_Place_Operational_I = new BinaryComponent();
+        public static BinaryComponent Work_Place_Operational_II = new BinaryComponent();
+        public static BinaryComponent Work_Place_Operational_III = new BinaryComponent();
 
-        public static NumericStateDevice PP_Selector = new NumericStateDevice();
-        public static NumericStateDevice LS_Selector = new NumericStateDevice();
-        public static NumericStateDevice CP_Selector = new NumericStateDevice();
-        public static NumericStateDevice TP_Selector = new NumericStateDevice();
+        public static NumericComponent PP_Selector = new NumericComponent();
+        public static NumericComponent LS_Selector = new NumericComponent();
+        public static NumericComponent CP_Selector = new NumericComponent();
+        public static NumericComponent TP_Selector = new NumericComponent();
 
         public static Signal E_Stop_Signal = new Signal();
+        public static Signal Work_Pos_Signal = new Signal();
+        public static Signal Ping_Signal = new Signal();
 
-        public static object[] Main_Board_Controls = new object[] { RL11, RL12, RL13, RL14, PP_Selector, LS_EN, LOAD, SOURCE, LS_Selector, CP_Selector, DIODE_SH, PE_OP, CP_SH, TP_Selector, E_Stop_Signal };
+        public static object[] Main_Board_Controls = new object[] { RL11, RL12, RL13, RL14, PP_Selector, LS_EN, LOAD, SOURCE, LS_Selector, CP_Selector, DIODE_SH, PE_OP, CP_SH, TP_Selector, E_Stop_Signal, Test_Running_I, Test_Running_II, Test_Running_III, Work_Pos_Signal, Work_Place_Operational_I, Work_Place_Operational_II, Work_Place_Operational_III, Ping_Signal };
 
         #endregion
 
         #region <<< Test sequence variables >>>
 
         public static int Max_TCP_Cmd_Attempts = 20;
+        private bool Work_Pos_Oper_Previous_I = false;//Work place is operational previous value
+        private bool Work_Pos_Oper_Previous_II = false;//Work place is operational previous value
+        private bool Work_Pos_Oper_Previous_III = false;//Work place is operational previous value
 
         //Load test variables
         public static int Load_Test_State = 0;
         public static int Load_Test_State_Last = 0;
         public static int Load_Test_Cmd_Attempts = 0;
         public static long Load_Test_Timer = 0;
-        public static int Load_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
+        public static int Load_Test_EVSE_ID = -1;//EVSE currently assigned to this test - 0 / 1 / 2 / -1 - free
         public static bool Load_Test_One_Call = false;
         public static float Load_Test_Max_Voltage_Diff = 10;//V
         public static float Load_Test_Max_Current_Diff = 0.5f;//A
@@ -225,7 +249,7 @@ namespace ArtiluxEOL
         public static int HV_Test_State_Last = 0;
         public static bool HV_Test_One_Call = false;
         public static int HV_Test_Cmd_Attempts = 0;
-        public static int HV_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
+        public static int HV_Test_EVSE_ID = -1;//EVSE currently assigned to this test - 0 / 1 / 2 / -1 - free
         public static long HV_Test_Step_Timer = 0;
         public static int HV_Test_Step_Delay = 500;//ms
         public static bool HV_Test_Cancel = false;
@@ -240,7 +264,7 @@ namespace ArtiluxEOL
         public static int Spectroscope_Test_State_Last = 0;
         public static bool Spectroscope_Test_One_Call = false;
         public static int Spectroscope_Test_Cmd_Attempts = 0;
-        public static int Spectroscope_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
+        public static int Spectroscope_Test_EVSE_ID = -1;//EVSE currently assigned to this test - 0 / 1 / 2 / -1 - free
         public static long Spectroscope_Test_Step_Timer = 0;
         public static bool Spectroscope_Test_Cancel = false;
         public static long Spectroscope_Test_Timeout_Timer = 0;
@@ -263,29 +287,75 @@ namespace ArtiluxEOL
         public static int Spectroscope_Stable_Samples_Confirmed = 0;//How many stable samples received
         public static int Spectroscope_Sample_Request_Delay = 200;//ms - Delay between sample requests when checking for stability of the graph
 
+        //Load test demo
+        public static int Load_Demo_Test_State = 0;
+        public static int Load_Demo_Test_State_Last = 0;
+        public static int Load_Demo_Test_EVSE_ID = -1;//EVSE currently assigned to this test - 0 / 1 / 2 / -1 - free
+        public static long Load_Demo_Test_Step_Timer;
+        public static int Load_Demo_Test_Step_Delay = 1000;
+        public static bool Load_Demo_Test_Failed = false;
+        public static bool Load_Demo_Test_Cancel = false;
+
+        //HV test demo
+        public static int HV_Demo_Test_State = 0;
+        public static int HV_Demo_Test_State_Last = 0;
+        public static int HV_Demo_Test_EVSE_ID = -1;//EVSE currently assigned to this test - 0 / 1 / 2 / -1 - free
+        public static long HV_Demo_Test_Step_Timer;
+        public static int HV_Demo_Test_Step_Delay = 1000;
+        public static bool HV_Demo_Test_Failed = false;
+        public static bool HV_Demo_Test_Cancel = false;
+
+        //GSM test demo
+        public static int GSM_Test_State = 0;
+        public static int GSM_Test_State_Last = 0;
+        public static int GSM_Test_EVSE_ID = -1;//EVSE currently assigned to this test - 0 / 1 / 2 / -1 - free
+        public static long GSM_Test_Step_Timer;
+        public static int GSM_Test_Step_Delay = 1000;
+        public static bool GSM_Test_Failed = false;
+        public static bool GSM_Test_Cancel = false;
+
         //EVSE communication test
         public static int EVSE_Comm_Test_State = 0;
         public static int EVSE_Comm_Test_State_Last = 0;
-        public static int EVSE_Comm_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
+        public static int EVSE_Comm_Test_EVSE_ID = -1;//EVSE currently assigned to this test - 0 / 1 / 2 / -1 - free
+        public static long EVSE_Comm_Test_Step_Timer;
+        public static int EVSE_Comm_Test_Step_Delay = 1000;
+        public static bool EVSE_Comm_Test_Failed = false;
+        public static bool EVSE_Comm_Test_Cancel = false;
 
         //WI-FI test
         public static int Wifi_Test_State = 0;
         public static int Wifi_Test_State_Last = 0;
-        public static int Wifi_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
+        public static int Wifi_Test_EVSE_ID = -1;//EVSE currently assigned to this test - 0 / 1 / 2 / -1 - free
+        public static long Wifi_Test_Step_Timer;
+        public static int Wifi_Test_Step_Delay = 1000;
+        public static bool Wifi_Test_Failed = false;
+        public static bool Wifi_Test_Cancel = false;
 
         //RFID test
         public static int RFID_Test_State = 0;
         public static int RFID_Test_State_Last = 0;
-        public static int RFID_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
+        public static int RFID_Test_EVSE_ID = -1;//EVSE currently assigned to this test - 0 / 1 / 2 / -1 - free
+        public static long RFID_Test_Step_Timer;
+        public static int RFID_Test_Step_Delay = 1000;
+        public static bool RFID_Test_Failed = false;
+        public static bool RFID_Test_Cancel = false;
 
         //RCD test
         public static int RCD_Test_State = 0;
         public static int RCD_Test_State_Last = 0;
-        public static int RCD_Test_EVSE_ID = 1;//0 / 1 / 2 / -1 - free
+        public static int RCD_Test_EVSE_ID = -1;//EVSE currently assigned to this test - 0 / 1 / 2 / -1 - free
+        public static long RCD_Test_Step_Timer;
+        public static int RCD_Test_Step_Delay = 1000;
+        public static bool RCD_Test_Failed = false;
+        public static bool RCD_Test_Cancel = false;
 
 
-        public List<EVSETestState> Test_States = new List<EVSETestState>();
+        public List<EVSETestState> Test_States = new List<EVSETestState>();//Testing state of each EVSE / work position
         public bool[] EVSE_Operational = new bool[3] { false, false, false };
+        public bool Requesting_Test_Start_I = false;
+        public bool Requesting_Test_Start_II = false;
+        public bool Requesting_Test_Start_III = false;
 
         #endregion
 
@@ -355,10 +425,16 @@ namespace ArtiluxEOL
 
         string[] DetectedMonitors = new string[0];//Array of serial numbers for all detected monitors. Serials are added if new hardware is detected, never removed. This array is used for detecting new monitors during runtime (in case the application was launched without all monitors present)
 
+        Color Original_Modal_Form_Background;
+        Color Modal_Form_Color_Pass = Color.FromArgb(190, 255, 190);
+        Color Modal_Form_Color_Fail = Color.FromArgb(255, 190, 190);
+
         #endregion
 
         public Main()
         {
+            System.Diagnostics.Debug.Print("==================== Program start ====================");
+
             //Assign relay names (used to generate TCP commands)
             RL11.NAME = "RL:11";
             RL12.NAME = "RL:12";
@@ -375,6 +451,14 @@ namespace ArtiluxEOL
             CP_SH.NAME = "CP_SH";
             TP_Selector.NAME = "TP_SEL";
             E_Stop_Signal.NAME = "EMG";
+            Test_Running_I.NAME = "TEST:POS:1";
+            Test_Running_II.NAME = "TEST:POS:2";
+            Test_Running_III.NAME = "TEST:POS:3";
+            Work_Pos_Signal.NAME = "WORK_POS";
+            Work_Place_Operational_I.NAME = "WP_OP:1";
+            Work_Place_Operational_II.NAME = "WP_OP:2";
+            Work_Place_Operational_III.NAME = "WP_OP:3";
+            Ping_Signal.NAME = "BOARD_PING";
 
             Config_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Configs");
             Workplaces_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Workplaces");
@@ -485,14 +569,16 @@ namespace ArtiluxEOL
 
             /*
             
-            Nuotekio testas
-            Testu eiga
+            Skaitiklis
             Skaitiklis rodo kai vieta neveikia
-            Wifi testas jei uzsikrovus
-            Ar stotele uzsikrovus
-            Darbo vieta aktyvi/neaktyvi
+            EVSE Done_Loading
 
             */
+
+            //For testing
+            Test_States[0].Done_Loading = true;
+            Test_States[1].Done_Loading = true;
+            Test_States[2].Done_Loading = true;
         }
 
         private void UpdateFunction(object source, EventArgs e)//Repeat every 500ms
@@ -500,6 +586,7 @@ namespace ArtiluxEOL
             CheckMonitorStatus();
             UpdateGraphicsOperationalWorkplaces();
             ManageFormWindowsPositions();
+            PingMainBoard();
             TestManager();
         }
 
@@ -507,142 +594,1227 @@ namespace ArtiluxEOL
 
         public void TestManager()
         {
-            EVSE_Operational[0] = false;
-            EVSE_Operational[1] = false;
-            EVSE_Operational[2] = false;
-
-            if (mtlist[0].MonitorOnline && CheckBox_lizdai[0].Checked)
+            if((NetworkThreads.unixTimeMilliseconds - TCP_Comm_Timer2) > TCP_Comm_Timer2_Delay)
             {
-                EVSE_Operational[0] = true;
+                bool wpopI = false;
+                bool wpopII = false;
+                bool wpopIII = false;
+
+                if (Work_Place_Operational_I.STATE == 1)
+                {
+                    wpopI = true;
+                }
+
+                if (Work_Place_Operational_II.STATE == 1)
+                {
+                    wpopII = true;
+                }
+
+                if (Work_Place_Operational_III.STATE == 1)
+                {
+                    wpopIII = true;
+                }
+
+                if (wpopI != EVSE_Operational[0])//Update the main board if its work place state differs from the actuall state
+                {
+                    if (EVSE_Operational[0])
+                    {
+                        Main_Board_Work_Place_Oper_I(1);
+                    }
+                    else
+                    {
+                        Main_Board_Work_Place_Oper_I(0);
+                    }
+
+                    Work_Pos_Oper_Previous_I = EVSE_Operational[0];
+                    TCP_Comm_Timer2 = NetworkThreads.unixTimeMilliseconds;//Reset timer only if something was sent
+                }
+
+                if (wpopII != EVSE_Operational[1])//Update the main board if its work place state differs from the actuall state
+                {
+                    if (EVSE_Operational[1])
+                    {
+                        Main_Board_Work_Place_Oper_II(1);
+                    }
+                    else
+                    {
+                        Main_Board_Work_Place_Oper_II(0);
+                    }
+
+                    Work_Pos_Oper_Previous_II = EVSE_Operational[1];
+                    TCP_Comm_Timer2 = NetworkThreads.unixTimeMilliseconds;//Reset timer only if something was sent
+                }
+
+                if (wpopIII != EVSE_Operational[2])//Update the main board if its work place state differs from the actuall state
+                {
+                    if (EVSE_Operational[2])
+                    {
+                        Main_Board_Work_Place_Oper_III(1);
+                    }
+                    else
+                    {
+                        Main_Board_Work_Place_Oper_III(0);
+                    }
+
+                    Work_Pos_Oper_Previous_III = EVSE_Operational[2];
+                    TCP_Comm_Timer2 = NetworkThreads.unixTimeMilliseconds;//Reset timer only if something was sent
+                }
             }
 
-            if (mtlist[1].MonitorOnline && CheckBox_lizdai[1].Checked)
+            if (Requesting_Test_Start_I)//Got request from main board to start a test on work position 1
             {
-                EVSE_Operational[1] = true;
+                Requesting_Test_Start_I = false;
+
+                if (EVSE_Operational[0])
+                {
+                    Reset_Work_Position(0);//Reset test states and graphics
+                    UpdateFormsInfo();//Update graphics
+                    Main_Board_Test_Run_I(1);
+                    Test_States[0].Testing_State = TestState.IN_PROGRESS;//Test start on work position 1
+                    Test_States[0].Test_Start_Time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                }
+                else
+                {
+                    Main_Board_Test_Run_I(0);
+                }
             }
 
-            if (mtlist[2].MonitorOnline && CheckBox_lizdai[2].Checked)
+            if (Requesting_Test_Start_II)//Got request from main board to start a test on work position 2
             {
-                EVSE_Operational[2] = true;
+                Requesting_Test_Start_II = false;
+
+                if (EVSE_Operational[1])
+                {
+                    Reset_Work_Position(1);//Reset test states and graphics
+                    UpdateFormsInfo();//Update graphics
+                    Main_Board_Test_Run_II(1);
+                    Test_States[1].Testing_State = TestState.IN_PROGRESS;//Test start on work position 2
+                    Test_States[1].Test_Start_Time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                }
+                else
+                {
+                    Main_Board_Test_Run_II(0);
+                }
+            }
+
+            if (Requesting_Test_Start_III)//Got request from main board to start a test on work position 3
+            {
+                Requesting_Test_Start_III = false;
+
+                if (EVSE_Operational[2])
+                {
+                    Reset_Work_Position(2);//Reset test states and graphics
+                    UpdateFormsInfo();//Update graphics
+                    Main_Board_Test_Run_III(1);
+                    Test_States[2].Testing_State = TestState.IN_PROGRESS;//Test start on work position 3
+                    Test_States[2].Test_Start_Time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                }
+                else
+                {
+                    Main_Board_Test_Run_III(0);
+                }
             }
 
             for (int i = 0; i < 3; i++)
             {
-                if (EVSE_Operational[i] && Test_States[i].Testing_State == TestState.IN_PROGRESS)//If this EVSE is operational and testing has been started
+                if (mtlist[i].MonitorOnline && CheckBox_lizdai[i].Checked)
                 {
-                    if (Test_States[i].EVSE_Communication_Test == TestState.PASSED)//Do the rest of the tests only if EVSE communication works
+                    EVSE_Operational[i] = true;
+                }
+                else
+                {
+                    EVSE_Operational[i] = false;
+                }
+
+                if(EVSE_Operational[i])//If this EVSE is operational
+                {
+                    if (Test_States[i].Testing_State == TestState.FAILED)//If this EVSE has failed a test / testing was canceled
                     {
-                        bool allTestingComplete = true;
-
-                        if (Test_States[i].Load_Test == TestState.WAITING)
+                        if ((NetworkThreads.unixTimeMilliseconds - TCP_Comm_Timer1) > TCP_Comm_Timer1_Delay)//Timer for sending TCP commands
                         {
-                            allTestingComplete = false;
-
-
+                            if (i == 0)
+                            {
+                                if (Test_Running_I.STATE != 0)
+                                {
+                                    Main_Board_Test_Run_I(0);
+                                    TCP_Comm_Timer1 = NetworkThreads.unixTimeMilliseconds;//Reset timer only if something was sent
+                                }
+                            }
+                            else if (i == 1)
+                            {
+                                if (Test_Running_II.STATE != 0)
+                                {
+                                    Main_Board_Test_Run_II(0);
+                                    TCP_Comm_Timer1 = NetworkThreads.unixTimeMilliseconds;//Reset timer only if something was sent
+                                }
+                            }
+                            else if (i == 2)
+                            {
+                                if (Test_Running_III.STATE != 0)
+                                {
+                                    Main_Board_Test_Run_III(0);
+                                    TCP_Comm_Timer1 = NetworkThreads.unixTimeMilliseconds;//Reset timer only if something was sent
+                                }
+                            }
                         }
-                        else if (Test_States[i].Load_Test == TestState.IN_PROGRESS)//Not done yet
-                        {
-                            allTestingComplete = false;
-                        }
+                    }
 
-                        if (Test_States[i].HV_Test == TestState.WAITING)
-                        {
-                            allTestingComplete = false;
-
-
-                        }
-                        else if (Test_States[i].HV_Test == TestState.IN_PROGRESS)//Not done yet
-                        {
-                            allTestingComplete = false;
-                        }
-
-                        if (Test_States[i].WIFI_Test == TestState.WAITING)
-                        {
-                            allTestingComplete = false;
-
-
-                        }
-                        else if (Test_States[i].WIFI_Test == TestState.IN_PROGRESS)//Not done yet
-                        {
-                            allTestingComplete = false;
-                        }
-
-                        if (Test_States[i].GSM_Test == TestState.WAITING)
-                        {
-                            allTestingComplete = false;
-
-
-                        }
-                        else if (Test_States[i].GSM_Test == TestState.IN_PROGRESS)//Not done yet
-                        {
-                            allTestingComplete = false;
-                        }
-
-                        if (Test_States[i].RFID_Test == TestState.WAITING)
-                        {
-                            allTestingComplete = false;
-
-
-                        }
-                        else if (Test_States[i].RFID_Test == TestState.IN_PROGRESS)//Not done yet
-                        {
-                            allTestingComplete = false;
-                        }
-
-                        if (Test_States[i].RCD_Test == TestState.WAITING)
-                        {
-                            allTestingComplete = false;
-
-
-                        }
-                        else if (Test_States[i].RCD_Test == TestState.IN_PROGRESS)//Not done yet
-                        {
-                            allTestingComplete = false;
-                        }
-
-                        if (allTestingComplete)//Nothing else to test
+                    if (Test_States[i].Testing_State == TestState.IN_PROGRESS)//If this EVSE testing is in progress
+                    {
+                        if (Test_States[i].EVSE_Communication_Test == TestState.PASSED &&
+                           Test_States[i].Load_Test == TestState.PASSED &&
+                           Test_States[i].HV_Test == TestState.PASSED &&
+                           Test_States[i].WIFI_Test == TestState.PASSED &&
+                           Test_States[i].GSM_Test == TestState.PASSED &&
+                           Test_States[i].RFID_Test == TestState.PASSED &&
+                           Test_States[i].RCD_Test == TestState.PASSED)//Check if all tests passed
                         {
                             Test_States[i].Testing_State = TestState.PASSED;
+                            System.Diagnostics.Debug.Print("EVSE " + (i + 1) + " passed all tests");
+
+                            if (i == 0)
+                            {
+                                Main_Board_Test_Run_I(0);
+                            }
+                            else if (i == 1)
+                            {
+                                Main_Board_Test_Run_II(0);
+                            }
+                            else if (i == 2)
+                            {
+                                Main_Board_Test_Run_III(0);
+                            }
                         }
 
-                    }
-                    else if (Test_States[i].EVSE_Communication_Test == TestState.WAITING)//Start with comunication test if it has not been completed
-                    {
-                        if (EVSE_Comm_Test_EVSE_ID == -1)//If this test is free to use
+                        if (Test_States[i].EVSE_Communication_Test != TestState.IN_PROGRESS &&
+                            Test_States[i].Load_Test != TestState.IN_PROGRESS &&
+                            Test_States[i].HV_Test != TestState.IN_PROGRESS &&
+                            Test_States[i].WIFI_Test != TestState.IN_PROGRESS &&
+                            Test_States[i].GSM_Test != TestState.IN_PROGRESS &&
+                            Test_States[i].RFID_Test != TestState.IN_PROGRESS &&
+                            Test_States[i].RCD_Test != TestState.IN_PROGRESS)//Check if no test is running now
                         {
-                            EVSE_Comm_Test_EVSE_ID = i;//Assign the EVSE
+                            if (Test_States[i].Done_Loading && Test_States[i].EVSE_Communication_Test == TestState.PASSED)//Start next test if EVSE has finished booting and the communication works
+                            {
+                                if (Test_States[i].Load_Test == TestState.WAITING && Load_Demo_Test_EVSE_ID == -1)//If load test has not been completed and is free
+                                {
+                                    Load_Demo_Test_EVSE_ID = i;//Assign this EVSE to the test
+                                    Test_States[i].Load_Test = TestState.IN_PROGRESS;//This test is now in progress
+                                    System.Diagnostics.Debug.Print("EVSE " + (i + 1) + " starting load test");
+                                }
+                                else if (Test_States[i].WIFI_Test == TestState.WAITING && Wifi_Test_EVSE_ID == -1)//If wifi test has not been completed and is free
+                                {
+                                    Wifi_Test_EVSE_ID = i;//Assign this EVSE to the test
+                                    Test_States[i].WIFI_Test = TestState.IN_PROGRESS;//This test is now in progress
+                                    System.Diagnostics.Debug.Print("EVSE " + (i + 1) + " starting wifi test");
+                                }
+                                else if (Test_States[i].GSM_Test == TestState.WAITING && GSM_Test_EVSE_ID == -1)//If GSM test has not been completed and is free
+                                {
+                                    GSM_Test_EVSE_ID = i;//Assign this EVSE to the test
+                                    Test_States[i].GSM_Test = TestState.IN_PROGRESS;//This test is now in progress
+                                    System.Diagnostics.Debug.Print("EVSE " + (i + 1) + " starting GSM test");
+                                }
+                                else if (Test_States[i].RFID_Test == TestState.WAITING && RFID_Test_EVSE_ID == -1)//If RFID test has not been completed and is free
+                                {
+                                    RFID_Test_EVSE_ID = i;//Assign this EVSE to the test
+                                    Test_States[i].RFID_Test = TestState.IN_PROGRESS;//This test is now in progress
+                                    System.Diagnostics.Debug.Print("EVSE " + (i + 1) + " starting RFID test");
+                                }
+                                else if (Test_States[i].RCD_Test == TestState.WAITING && RCD_Test_EVSE_ID == -1)//If RCD test has not been completed and is free
+                                {
+                                    RCD_Test_EVSE_ID = i;//Assign this EVSE to the test
+                                    Test_States[i].RCD_Test = TestState.IN_PROGRESS;//This test is now in progress
+                                    System.Diagnostics.Debug.Print("EVSE " + (i + 1) + " starting RCD test");
+                                }
+                                else if (Test_States[i].HV_Test == TestState.WAITING && HV_Demo_Test_EVSE_ID == -1)//If HV test has not been completed and is free
+                                {
+                                    HV_Demo_Test_EVSE_ID = i;//Assign this EVSE to the test
+                                    Test_States[i].HV_Test = TestState.IN_PROGRESS;//This test is now in progress
+                                    System.Diagnostics.Debug.Print("EVSE " + (i + 1) + " starting HV test");
+                                }
+
+                            }
+                            else//While EVSE is booting
+                            {
+                                if (Test_States[i].HV_Test == TestState.WAITING && HV_Demo_Test_EVSE_ID == -1)//If HV test has not been completed and is free
+                                {
+                                    HV_Demo_Test_EVSE_ID = i;//Assign this EVSE to the test
+                                    Test_States[i].HV_Test = TestState.IN_PROGRESS;//This test is now in progress
+                                    System.Diagnostics.Debug.Print("EVSE " + (i + 1) + " starting HV test");
+                                }
+                                else if (Test_States[i].Done_Loading && Test_States[i].EVSE_Communication_Test == TestState.WAITING && EVSE_Comm_Test_EVSE_ID == -1)//If EVSE has finished booting and comunication test has not been completed and is free
+                                {
+                                    EVSE_Comm_Test_EVSE_ID = i;//Assign this EVSE to the test
+                                    Test_States[i].EVSE_Communication_Test = TestState.IN_PROGRESS;//This test is now in progress
+                                    System.Diagnostics.Debug.Print("EVSE " + (i + 1) + " starting communication test");
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            if (EVSE_Comm_Test_EVSE_ID > 0)//Run communication test handler if EVSE was assigned to it
-            {
-                Demo_Test_Sequence_EVSE_Communication();
-            }
+            Demo_Test_Sequence_EVSE_Communication();
+            Demo_Test_Sequence_Load();
+            Demo_Test_Sequence_HV();
+            Test_Sequence_Wifi();
+            Test_Sequence_GSM();
+            Test_Sequence_RFID();
+            Test_Sequence_RCD();
 
+            UpdateFormsInfo();
+
+        }
+
+        public void Test_Sequence_RCD()
+        {
+            int resetStep = -2;//Go to this step to reset the test
+            int EVSEid = RCD_Test_EVSE_ID;
+
+            if ((NetworkThreads.unixTimeMilliseconds - RCD_Test_Step_Timer) > RCD_Test_Step_Delay)
+            {
+                if (RCD_Test_Cancel)
+                {
+                    RCD_Test_Cancel = false;
+
+                    if (EVSEid > -1)
+                    {
+                        Test_States[EVSEid].RCD_Test = TestState.CANCELED;//This test has been canceled
+                        Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                        System.Diagnostics.Debug.Print("RCD test was CANCELED on work place " + (EVSEid + 1));
+                    }
+
+                    if (RCD_Test_State > 0)
+                    {
+                        RCD_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                if (EVSEid > -1 && EVSE_Operational[EVSEid])//Run the test
+                {
+                    Update_Progress_Bar_RCD_Test();
+                }
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                {
+                    Test_States[EVSEid].RCD_Test = TestState.CANCELED;//This test has been canceled
+                    Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                    Test_States[EVSEid].Fail_Reason = "darbo vieta nebeaktyvi.";
+                    RCD_Test_State = resetStep;//Reset this test
+                    System.Diagnostics.Debug.Print("RCD test was CANCELED on work place " + (EVSEid + 1) + ", reason: work place no longer operational");
+                }
+                else//Test is not running
+                {
+                    if (RCD_Test_State > 0)//Did not finish properly, reset
+                    {
+                        RCD_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                switch (RCD_Test_State)
+                {
+                    default:
+                        RCD_Test_State = resetStep;
+                        break;
+
+                    case -2://Reset 1/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": RCD test RESET 1/2");
+                        RCD_Test_Failed = false;
+                        RCD_Test_State++;
+                        break;
+
+                    case -1://Reset 2/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": RCD test RESET 2/2");
+                        RCD_Test_EVSE_ID = -1;//RCD test is now free to be used
+                        RCD_Test_State++;
+                        break;
+
+                    case 0:
+                        if (EVSEid > -1)//Start test if EVSE is assigned
+                        {
+                            RCD_Test_State++;
+                        }
+                        break;
+
+                    case 1:
+                        RCD_Test_State++;
+                        break;
+
+                    case 2:
+                        RCD_Test_State++;
+                        break;
+
+                    case 3:
+                        RCD_Test_State++;
+                        break;
+
+                    case 4:
+                        RCD_Test_State++;
+                        break;
+
+                    case 5:
+                        RCD_Test_State++;
+                        break;
+
+                    case 6:
+                        RCD_Test_State++;
+                        break;
+
+                    case 7:
+                        RCD_Test_State++;
+                        break;
+
+                    case 8:
+                        RCD_Test_State++;
+                        break;
+
+                    case 9:
+                        RCD_Test_State++;
+                        break;
+
+                    case 10:
+                        RCD_Test_State++;
+                        break;
+
+                    case 11:
+                        RCD_Test_State++;
+                        break;
+
+                    case 12:
+                        RCD_Test_State++;
+                        break;
+
+                    case 13:
+                        RCD_Test_State++;
+                        break;
+
+                    case 14:
+                        RCD_Test_State++;
+                        break;
+
+                    case 15:
+                        Test_States[EVSEid].RCD_Test = TestState.PASSED;//This EVSE passed the RCD test
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": RCD test PASSED");
+                        RCD_Test_State = resetStep;//Reset this test
+                        break;
+                }
+
+                if (RCD_Test_Failed)
+                {
+                    Test_States[EVSEid].RCD_Test = TestState.FAILED;//This test has failed
+                    Test_States[EVSEid].Testing_State = TestState.FAILED;//Stop testing this EVSE
+                    Test_States[EVSEid].Fail_Reason = "RCD bandymas neišlaikytas.";
+                    System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": RCD test FAILED");
+                    RCD_Test_State = resetStep;//Reset this test
+                }
+
+                RCD_Test_Step_Timer = NetworkThreads.unixTimeMilliseconds;
+                Random rnd = new Random();
+                RCD_Test_Step_Delay = rnd.Next(700, 2000);
+            }
+        }
+
+        public void Test_Sequence_RFID()
+        {
+            int resetStep = -2;//Go to this step to reset the test
+            int EVSEid = RFID_Test_EVSE_ID;
+
+            if ((NetworkThreads.unixTimeMilliseconds - RFID_Test_Step_Timer) > RFID_Test_Step_Delay)
+            {
+                if (RFID_Test_Cancel)
+                {
+                    RFID_Test_Cancel = false;
+
+                    if (EVSEid > -1)
+                    {
+                        Test_States[EVSEid].RFID_Test = TestState.CANCELED;//This test has been canceled
+                        Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                        System.Diagnostics.Debug.Print("RFID test was CANCELED on work place " + (EVSEid + 1));
+                    }
+
+                    if (RFID_Test_State > 0)
+                    {
+                        RFID_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                if (EVSEid > -1 && EVSE_Operational[EVSEid])//Run the test
+                {
+                    Update_Progress_Bar_RFID_Test();
+                }
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                {
+                    Test_States[EVSEid].RFID_Test = TestState.CANCELED;//This test has been canceled
+                    Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                    Test_States[EVSEid].Fail_Reason = "darbo vieta nebeaktyvi.";
+                    RFID_Test_State = resetStep;//Reset this test
+                    System.Diagnostics.Debug.Print("RFID test was CANCELED on work place " + (EVSEid + 1) + ", reason: work place no longer operational");
+                }
+                else//Test is not running
+                {
+                    if (RFID_Test_State > 0)//Did not finish properly, reset
+                    {
+                        RFID_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                switch (RFID_Test_State)
+                {
+                    default:
+                        RFID_Test_State = resetStep;
+                        break;
+
+                    case -2://Reset 1/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": RFID test RESET 1/2");
+                        RFID_Test_Failed = false;
+                        RFID_Test_State++;
+                        break;
+
+                    case -1://Reset 2/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": RFID test RESET 2/2");
+                        RFID_Test_EVSE_ID = -1;//RFID test is now free to be used
+                        RFID_Test_State++;
+                        break;
+
+                    case 0:
+                        if (EVSEid > -1)//Start test if EVSE is assigned
+                        {
+                            RFID_Test_State++;
+                        }
+                        break;
+
+                    case 1:
+                        RFID_Test_State++;
+                        break;
+
+                    case 2:
+                        RFID_Test_State++;
+                        break;
+
+                    case 3:
+                        RFID_Test_State++;
+                        break;
+
+                    case 4:
+                        RFID_Test_State++;
+                        break;
+
+                    case 5:
+                        RFID_Test_State++;
+                        break;
+
+                    case 6:
+                        RFID_Test_State++;
+                        break;
+
+                    case 7:
+                        RFID_Test_State++;
+                        break;
+
+                    case 8:
+                        RFID_Test_State++;
+                        break;
+
+                    case 9:
+                        RFID_Test_State++;
+                        break;
+
+                    case 10:
+                        RFID_Test_State++;
+                        break;
+
+                    case 11:
+                        RFID_Test_State++;
+                        break;
+
+                    case 12:
+                        RFID_Test_State++;
+                        break;
+
+                    case 13:
+                        RFID_Test_State++;
+                        break;
+
+                    case 14:
+                        RFID_Test_State++;
+                        break;
+
+                    case 15:
+                        Test_States[EVSEid].RFID_Test = TestState.PASSED;//This EVSE passed the RFID test
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": RFID test PASSED");
+                        RFID_Test_State = resetStep;//Reset this test
+                        break;
+                }
+
+                if (RFID_Test_Failed)
+                {
+                    Test_States[EVSEid].RFID_Test = TestState.FAILED;//This test has failed
+                    Test_States[EVSEid].Testing_State = TestState.FAILED;//Stop testing this EVSE
+                    Test_States[EVSEid].Fail_Reason = "RFID bandymas neišlaikytas.";
+                    System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": RFID test FAILED");
+                    RFID_Test_State = resetStep;//Reset this test
+                }
+
+                RFID_Test_Step_Timer = NetworkThreads.unixTimeMilliseconds;
+                Random rnd = new Random();
+                RFID_Test_Step_Delay = rnd.Next(700, 2000);
+            }
+        }
+
+        public void Test_Sequence_GSM()
+        {
+            int resetStep = -2;//Go to this step to reset the test
+            int EVSEid = GSM_Test_EVSE_ID;
+
+            if ((NetworkThreads.unixTimeMilliseconds - GSM_Test_Step_Timer) > GSM_Test_Step_Delay)
+            {
+                if (GSM_Test_Cancel)
+                {
+                    GSM_Test_Cancel = false;
+
+                    if (EVSEid > -1)
+                    {
+                        Test_States[EVSEid].GSM_Test = TestState.CANCELED;//This test has been canceled
+                        Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                        System.Diagnostics.Debug.Print("GSM test was CANCELED on work place " + (EVSEid + 1));
+                    }
+
+                    if (GSM_Test_State > 0)
+                    {
+                        GSM_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                if (EVSEid > -1 && EVSE_Operational[EVSEid])//Run the test
+                {
+                    Update_Progress_Bar_GSM_Test();
+                }
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                {
+                    Test_States[EVSEid].GSM_Test = TestState.CANCELED;//This test has been canceled
+                    Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                    Test_States[EVSEid].Fail_Reason = "darbo vieta nebeaktyvi.";
+                    GSM_Test_State = resetStep;//Reset this test
+                    System.Diagnostics.Debug.Print("GSM test was CANCELED on work place " + (EVSEid + 1) + ", reason: work place no longer operational");
+                }
+                else//Test is not running
+                {
+                    if (GSM_Test_State > 0)//Did not finish properly, reset
+                    {
+                        GSM_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                switch (GSM_Test_State)
+                {
+                    default:
+                        GSM_Test_State = resetStep;
+                        break;
+
+                    case -2://Reset 1/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": GSM test RESET 1/2");
+                        GSM_Test_Failed = false;
+                        GSM_Test_State++;
+                        break;
+
+                    case -1://Reset 2/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": GSM test RESET 2/2");
+                        GSM_Test_EVSE_ID = -1;//GSM test is now free to be used
+                        GSM_Test_State++;
+                        break;
+
+                    case 0:
+                        if (EVSEid > -1)//Start test if EVSE is assigned
+                        {
+                            GSM_Test_State++;
+                        }
+                        break;
+
+                    case 1:
+                        GSM_Test_State++;
+                        break;
+
+                    case 2:
+                        GSM_Test_State++;
+                        break;
+
+                    case 3:
+                        GSM_Test_State++;
+                        break;
+
+                    case 4:
+                        GSM_Test_State++;
+                        break;
+
+                    case 5:
+                        GSM_Test_State++;
+                        break;
+
+                    case 6:
+                        GSM_Test_State++;
+                        break;
+
+                    case 7:
+                        GSM_Test_State++;
+                        break;
+
+                    case 8:
+                        GSM_Test_State++;
+                        break;
+
+                    case 9:
+                        GSM_Test_State++;
+                        break;
+
+                    case 10:
+                        GSM_Test_State++;
+                        break;
+
+                    case 11:
+                        GSM_Test_State++;
+                        break;
+
+                    case 12:
+                        GSM_Test_State++;
+                        break;
+
+                    case 13:
+                        GSM_Test_State++;
+                        break;
+
+                    case 14:
+                        GSM_Test_State++;
+                        break;
+
+                    case 15:
+                        Test_States[EVSEid].GSM_Test = TestState.PASSED;//This EVSE passed the GSM test
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": GSM test PASSED");
+                        GSM_Test_State = resetStep;//Reset this test
+                        break;
+                }
+
+                if (GSM_Test_Failed)
+                {
+                    Test_States[EVSEid].GSM_Test = TestState.FAILED;//This test has failed
+                    Test_States[EVSEid].Testing_State = TestState.FAILED;//Stop testing this EVSE
+                    Test_States[EVSEid].Fail_Reason = "GSM bandymas neišlaikytas.";
+                    System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": GSM test FAILED");
+                    GSM_Test_State = resetStep;//Reset this test
+                }
+
+                GSM_Test_Step_Timer = NetworkThreads.unixTimeMilliseconds;
+                Random rnd = new Random();
+                GSM_Test_Step_Delay = rnd.Next(700, 2000);
+            }
+        }
+
+        public void Test_Sequence_Wifi()
+        {
+            int resetStep = -2;//Go to this step to reset the test
+            int EVSEid = Wifi_Test_EVSE_ID;
+
+            if ((NetworkThreads.unixTimeMilliseconds - Wifi_Test_Step_Timer) > Wifi_Test_Step_Delay)
+            {
+                if (Wifi_Test_Cancel)
+                {
+                    Wifi_Test_Cancel = false;
+
+                    if (EVSEid > -1)
+                    {
+                        Test_States[EVSEid].WIFI_Test = TestState.CANCELED;//This test has been canceled
+                        Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                        System.Diagnostics.Debug.Print("Wifi test was CANCELED on work place " + (EVSEid + 1));
+                    }
+
+                    if (Wifi_Test_State > 0)
+                    {
+                        Wifi_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                if (EVSEid > -1 && EVSE_Operational[EVSEid])//Run the test
+                {
+                    Update_Progress_Bar_Wifi_Test();
+                }
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                {
+                    Test_States[EVSEid].WIFI_Test = TestState.CANCELED;//This test has been canceled
+                    Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                    Test_States[EVSEid].Fail_Reason = "darbo vieta nebeaktyvi.";
+                    Wifi_Test_State = resetStep;//Reset this test
+                    System.Diagnostics.Debug.Print("Wifi test was CANCELED on work place " + (EVSEid + 1) + ", reason: work place no longer operational");
+                }
+                else//Test is not running
+                {
+                    if (Wifi_Test_State > 0)//Did not finish properly, reset
+                    {
+                        Wifi_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                switch (Wifi_Test_State)
+                {
+                    default:
+                        Wifi_Test_State = resetStep;
+                        break;
+
+                    case -2://Reset 1/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": Wifi test RESET 1/2");
+                        Wifi_Test_Failed = false;
+                        Wifi_Test_State++;
+                        break;
+
+                    case -1://Reset 2/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": Wifi test RESET 2/2");
+                        Wifi_Test_EVSE_ID = -1;//Wifi test is now free to be used
+                        Wifi_Test_State++;
+                        break;
+
+                    case 0:
+                        if (EVSEid > -1)//Start test if EVSE is assigned
+                        {
+                            Wifi_Test_State++;
+                        }
+                        break;
+
+                    case 1:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 2:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 3:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 4:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 5:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 6:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 7:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 8:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 9:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 10:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 11:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 12:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 13:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 14:
+                        Wifi_Test_State++;
+                        break;
+
+                    case 15:
+                        Test_States[EVSEid].WIFI_Test = TestState.PASSED;//This EVSE passed the Wifi test
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": Wifi test PASSED");
+                        Wifi_Test_State = resetStep;//Reset this test
+                        break;
+                }
+
+                if (Wifi_Test_Failed)
+                {
+                    Test_States[EVSEid].WIFI_Test = TestState.FAILED;//This test has failed
+                    Test_States[EVSEid].Testing_State = TestState.FAILED;//Stop testing this EVSE
+                    Test_States[EVSEid].Fail_Reason = "WIFI bandymas neišlaikytas.";
+                    System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": Wifi test FAILED");
+                    Wifi_Test_State = resetStep;//Reset this test
+                }
+
+                Wifi_Test_Step_Timer = NetworkThreads.unixTimeMilliseconds;
+                Random rnd = new Random();
+                Wifi_Test_Step_Delay = rnd.Next(700, 2000);
+            }
+        }
+
+        public void Demo_Test_Sequence_HV()
+        {
+            int resetStep = -2;//Go to this step to reset the test
+            int EVSEid = HV_Demo_Test_EVSE_ID;
+
+            if ((NetworkThreads.unixTimeMilliseconds - HV_Demo_Test_Step_Timer) > HV_Demo_Test_Step_Delay)
+            {
+                if (HV_Demo_Test_Cancel)
+                {
+                    HV_Demo_Test_Cancel = false;
+
+                    if (EVSEid > -1)
+                    {
+                        Test_States[EVSEid].HV_Test = TestState.CANCELED;//This test has been canceled
+                        Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                        System.Diagnostics.Debug.Print("HV test was CANCELED on work place " + (EVSEid + 1));
+                    }
+
+                    if (HV_Test_State > 0)
+                    {
+                        HV_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                if (EVSEid > -1 && EVSE_Operational[EVSEid])//Run the test
+                {
+                    Update_Progress_Bar_Demo_HV_Test();
+                }
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                {
+                    Test_States[EVSEid].HV_Test = TestState.CANCELED;//This test has been canceled
+                    Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                    Test_States[EVSEid].Fail_Reason = "darbo vieta nebeaktyvi.";
+                    HV_Demo_Test_State = resetStep;//Reset this test
+                    System.Diagnostics.Debug.Print("HV test was CANCELED on work place " + (EVSEid + 1) + ", reason: work place no longer operational");
+                }
+                else//Test is not running
+                {
+                    if (HV_Demo_Test_State > 0)//Did not finish properly, reset
+                    {
+                        HV_Demo_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                switch (HV_Demo_Test_State)
+                {
+                    default:
+                        HV_Demo_Test_State = resetStep;
+                        break;
+
+                    case -2://Reset 1/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": HV test RESET 1/2");
+                        HV_Demo_Test_Failed = false;
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case -1://Reset 2/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": HV test RESET 2/2");
+                        HV_Demo_Test_EVSE_ID = -1;//HV test is now free to be used
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 0:
+                        if (EVSEid > -1)//Start test if EVSE is assigned
+                        {
+                            HV_Demo_Test_State++;
+                        }
+                        break;
+
+                    case 1:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 2:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 3:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 4:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 5:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 6:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 7:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 8:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 9:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 10:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 11:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 12:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 13:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 14:
+                        HV_Demo_Test_State++;
+                        break;
+
+                    case 15:
+                        Test_States[EVSEid].HV_Test = TestState.PASSED;//This EVSE passed the HV test
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": HV test PASSED");
+                        HV_Demo_Test_State = resetStep;//Reset this test
+                        break;
+                }
+
+                if (HV_Demo_Test_Failed)
+                {
+                    Test_States[EVSEid].HV_Test = TestState.FAILED;//This test has failed
+                    Test_States[EVSEid].Testing_State = TestState.FAILED;//Stop testing this EVSE
+                    Test_States[EVSEid].Fail_Reason = "pramušimo bandymas neišlaikytas.";
+                    System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": HV test FAILED");
+                    HV_Demo_Test_State = resetStep;//Reset this test
+                }
+
+                HV_Demo_Test_Step_Timer = NetworkThreads.unixTimeMilliseconds;
+                Random rnd = new Random();
+                HV_Demo_Test_Step_Delay = rnd.Next(700, 2000);
+            }
+        }
+
+        public void Demo_Test_Sequence_Load()
+        {
+            int resetStep = -2;//Go to this step to reset the test
+            int EVSEid = Load_Demo_Test_EVSE_ID;
+
+            if ((NetworkThreads.unixTimeMilliseconds - Load_Demo_Test_Step_Timer) > Load_Demo_Test_Step_Delay)
+            {
+                if (Load_Demo_Test_Cancel)
+                {
+                    Load_Demo_Test_Cancel = false;
+
+                    if (EVSEid > -1)
+                    {
+                        Test_States[EVSEid].Load_Test = TestState.CANCELED;//This test has been canceled
+                        Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                        System.Diagnostics.Debug.Print("Load test was CANCELED on work place " + (EVSEid + 1));
+                    }
+
+                    if (Load_Test_State > 0)
+                    {
+                        Load_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                if (EVSEid > -1 && EVSE_Operational[EVSEid])//Run the test
+                {
+                    Update_Progress_Bar_Demo_Load_Test();
+                }
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                {
+                    Test_States[EVSEid].Load_Test = TestState.CANCELED;//This test has been canceled
+                    Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                    Test_States[EVSEid].Fail_Reason = "darbo vieta nebeaktyvi.";
+                    Load_Demo_Test_State = resetStep;//Reset this test
+                    System.Diagnostics.Debug.Print("Load test was CANCELED on work place " + (EVSEid + 1) + ", reason: work place no longer operational");
+                }
+                else//Test is not running
+                {
+                    if (Load_Demo_Test_State > 0)//Did not finish properly, reset
+                    {
+                        Load_Demo_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                switch (Load_Demo_Test_State)
+                {
+                    default:
+                        Load_Demo_Test_State = resetStep;
+                        break;
+
+                    case -2://Reset 1/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": load test RESET 1/2");
+                        Load_Demo_Test_Failed = false;
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case -1://Reset 2/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": load test RESET 2/2");
+                        Load_Demo_Test_EVSE_ID = -1;//Load test is now free to be used
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 0:
+                        if (EVSEid > -1)//Start test if EVSE is assigned
+                        {
+                            Load_Demo_Test_State++;
+                        }
+                        break;
+
+                    case 1:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 2:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 3:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 4:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 5:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 6:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 7:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 8:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 9:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 10:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 11:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 12:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 13:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 14:
+                        Load_Demo_Test_State++;
+                        break;
+
+                    case 15:
+                        Test_States[EVSEid].Load_Test = TestState.PASSED;//This EVSE passed the load test
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": load test PASSED");
+                        Load_Demo_Test_State = resetStep;//Reset this test
+                        break;
+                }
+
+                if (Load_Demo_Test_Failed)
+                {
+                    Test_States[EVSEid].Load_Test = TestState.FAILED;//This test has failed
+                    Test_States[EVSEid].Testing_State = TestState.FAILED;//Stop testing this EVSE
+                    Test_States[EVSEid].Fail_Reason = "apkrovos bandymas neišlaikytas.";
+                    System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": load test FAILED");
+                    Load_Demo_Test_State = resetStep;//Reset this test
+                }
+
+                Load_Demo_Test_Step_Timer = NetworkThreads.unixTimeMilliseconds;
+                Random rnd = new Random();
+                Load_Demo_Test_Step_Delay = rnd.Next(700, 2000);
+            }
         }
 
         public void Demo_Test_Sequence_EVSE_Communication()
         {
+            int resetStep = -2;//Go to this step to reset the test
+            int EVSEid = EVSE_Comm_Test_EVSE_ID;
 
-            if (EVSE_Comm_Test_EVSE_ID > 0 && EVSE_Operational[EVSE_Comm_Test_EVSE_ID])
+            if ((NetworkThreads.unixTimeMilliseconds - EVSE_Comm_Test_Step_Timer) > EVSE_Comm_Test_Step_Delay)
             {
+                if (EVSE_Comm_Test_Cancel)
+                {
+                    EVSE_Comm_Test_Cancel = false;
 
-                Update_Progress_Bar_EVSE_Comm_Test();
+                    if (EVSEid > -1)
+                    {
+                        Test_States[EVSEid].EVSE_Communication_Test = TestState.CANCELED;//This test has been canceled
+                        Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                        System.Diagnostics.Debug.Print("EVSE communication test was CANCELED on work place " + (EVSEid + 1));
+                    }
+
+                    if(EVSE_Comm_Test_State > 0)
+                    {
+                        EVSE_Comm_Test_State = resetStep;//Reset this test
+                    }
+                }
+
+                if (EVSEid > -1 && EVSE_Operational[EVSEid])//Run the test
+                {
+                    Update_Progress_Bar_EVSE_Comm_Test();
+                }
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                {
+                    Test_States[EVSEid].EVSE_Communication_Test = TestState.CANCELED;//This test has been canceled
+                    Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
+                    Test_States[EVSEid].Fail_Reason = "darbo vieta nebeaktyvi.";
+                    EVSE_Comm_Test_State = resetStep;//Reset this test
+                    System.Diagnostics.Debug.Print("EVSE communication test was CANCELED on work place " + (EVSEid + 1) + ", reason: work place no longer operational");
+                }
+                else//Test is not running
+                {
+                    if (EVSE_Comm_Test_State > 0)//Did not finish properly, reset
+                    {
+                        EVSE_Comm_Test_State = resetStep;//Reset this test
+                    }
+                }
 
                 switch (EVSE_Comm_Test_State)
                 {
+                    default:
+                        EVSE_Comm_Test_State = resetStep;
+                        break;
+
                     case -2://Reset 1/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": communication test RESET 1/2");
+                        EVSE_Comm_Test_Failed = false;
                         EVSE_Comm_Test_State++;
                         break;
 
                     case -1://Reset 2/2
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": communication test RESET 2/2");
+                        EVSE_Comm_Test_EVSE_ID = -1;//Communication test is now free to be used
                         EVSE_Comm_Test_State++;
                         break;
 
-                    default:
-                        EVSE_Comm_Test_State = 0;
+                    case 0:
+                        if (EVSEid > -1)//Start test if EVSE is assigned
+                        {
+                            EVSE_Comm_Test_State++;
+                        }
                         break;
 
                     case 1:
@@ -674,21 +1846,72 @@ namespace ArtiluxEOL
                         break;
 
                     case 8:
-                        Test_States[EVSE_Comm_Test_EVSE_ID].EVSE_Communication_Test = TestState.PASSED;//This EVSE passed the communication test
-                        EVSE_Comm_Test_EVSE_ID = -1;//Communication test is now free to be used
-                        System.Diagnostics.Debug.Print("EVSE " + (EVSE_Comm_Test_EVSE_ID + 1) + ": communication test PASSED");
-                        EVSE_Comm_Test_State = 0;
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 9:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 10:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 11:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 12:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 13:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 14:
+                        EVSE_Comm_Test_State++;
+                        break;
+
+                    case 15:
+                        Test_States[EVSEid].EVSE_Communication_Test = TestState.PASSED;//This EVSE passed the communication test
+                        System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": communication test PASSED");
+                        EVSE_Comm_Test_State = resetStep;//Reset this test
                         break;
                 }
 
+                if (EVSE_Comm_Test_Failed)
+                {
+                    Test_States[EVSEid].EVSE_Communication_Test = TestState.FAILED;//This test has failed
+                    Test_States[EVSEid].Testing_State = TestState.FAILED;//Stop testing this EVSE
+                    Test_States[EVSEid].Fail_Reason = "nėra komunikacijos su stotele.";
+                    System.Diagnostics.Debug.Print("EVSE " + (EVSEid + 1) + ": communication test FAILED");
+                    EVSE_Comm_Test_State = resetStep;//Reset this test
+                }
+
+                EVSE_Comm_Test_Step_Timer = NetworkThreads.unixTimeMilliseconds;
+                Random rnd = new Random();
+                EVSE_Comm_Test_Step_Delay = rnd.Next(700, 2000);
             }
-            else
-            {
-                Test_States[EVSE_Comm_Test_EVSE_ID].EVSE_Communication_Test = TestState.CANCELED;//Change test state to canceled
-                Test_States[EVSE_Comm_Test_EVSE_ID].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
-                EVSE_Comm_Test_EVSE_ID = -1;//Communication test is now free to be used
-                System.Diagnostics.Debug.Print("EVSE communication test was CANCELED on work place " + (EVSE_Comm_Test_EVSE_ID + 1) + ", reason: work place no longer operational");
-            }
+        }
+
+        public void Reset_Work_Position(int wrkPos)
+        {
+            Test_States[wrkPos].Testing_State = TestState.WAITING;//Work position state
+
+            //Test states
+            Test_States[wrkPos].EVSE_Communication_Test = TestState.WAITING;
+            Test_States[wrkPos].Load_Test = TestState.WAITING;
+            Test_States[wrkPos].HV_Test = TestState.WAITING;
+            Test_States[wrkPos].WIFI_Test = TestState.WAITING;
+            Test_States[wrkPos].GSM_Test = TestState.WAITING;
+            Test_States[wrkPos].RFID_Test = TestState.WAITING;
+            Test_States[wrkPos].RCD_Test = TestState.WAITING;
+
+            Test_States[wrkPos].Fail_Reason = "";
+
+            mtlist[wrkPos].Form.BackColor = Original_Modal_Form_Background;
+            mtlist[wrkPos].Form.Zero_Timer_Label();
         }
 
         public void Spectroscope_Analyze_Data()
@@ -750,6 +1973,262 @@ namespace ArtiluxEOL
         #endregion
 
         #region Monitors and UI
+
+        private void UpdateFormsInfo()
+        {
+            #region Modal window test state label
+
+            string displayText = "";
+
+            for (int i = 0; i < 3; i++)
+            {
+                if (E_Stop_Signal.STATE != 0)
+                {
+                    mtlist[i].Form.Update_Test_Label("Negalimas, avarinis STOP", Color.IndianRed);
+                    mtlist[i].Form.BackColor = Modal_Form_Color_Fail;
+                }
+                else if (!EVSE_Operational[i])
+                {
+                    mtlist[i].Form.Update_Test_Label("Negalimas, darbo vieta neaktyvi", Color.IndianRed);
+                    mtlist[i].Form.BackColor = Modal_Form_Color_Fail;
+                }
+                else
+                {
+                    switch (Test_States[i].Testing_State)
+                    {
+                        default:
+                            mtlist[i].Form.Update_Test_Label("Nežinoma būsena", Color.IndianRed);
+                            mtlist[i].Form.BackColor = Original_Modal_Form_Background;
+                            break;
+
+                        case TestState.WAITING:
+                            mtlist[i].Form.Update_Test_Label("Pasiruošes", Color.MediumBlue);
+                            mtlist[i].Form.BackColor = Original_Modal_Form_Background;
+                            break;
+
+                        case TestState.IN_PROGRESS:
+                            mtlist[i].Form.Update_Test_Label("Vykdoma", Color.MediumSeaGreen);
+                            mtlist[i].Form.BackColor = Original_Modal_Form_Background;
+                            mtlist[i].Form.Update_Timer_Label(Test_States[i].Test_Start_Time);
+                            break;
+
+                        case TestState.PASSED:
+                            mtlist[i].Form.Update_Test_Label("Bandymas išlaikytas", Color.MediumSeaGreen);
+                            mtlist[i].Form.BackColor = Modal_Form_Color_Pass;
+                            break;
+
+                        case TestState.CANCELED:
+                            displayText = "Bandymas atšauktas";
+
+                            if (Test_States[i].Fail_Reason != "")
+                            {
+                                displayText += ", ";
+                                displayText += Test_States[i].Fail_Reason;
+                            }
+
+                            mtlist[i].Form.Update_Test_Label(displayText, Color.IndianRed);
+                            mtlist[i].Form.BackColor = Modal_Form_Color_Fail;
+                            break;
+
+                        case TestState.FAILED:
+                            displayText = "Bandymas neišlaikytas";
+
+                            if (Test_States[i].Fail_Reason != "")
+                            {
+                                displayText += ", ";
+                                displayText += Test_States[i].Fail_Reason;
+                            }
+
+                            mtlist[i].Form.Update_Test_Label(displayText, Color.IndianRed);
+                            mtlist[i].Form.BackColor = Modal_Form_Color_Fail;
+                            break;
+
+                        case TestState.NOT_POSSIBLE:
+                            displayText = "Bandymas negalimas";
+
+                            if (Test_States[i].Fail_Reason != "")
+                            {
+                                displayText += ", ";
+                                displayText += Test_States[i].Fail_Reason;
+                            }
+
+                            mtlist[i].Form.Update_Test_Label(displayText, Color.IndianRed);
+                            mtlist[i].Form.BackColor = Modal_Form_Color_Fail;
+                            break;
+                    }
+                }
+            }
+
+            #endregion
+
+            #region Modal window progress bars
+
+            for (int i = 0; i < 3; i++)
+            {
+                bool smthWrng = false;
+
+                if (Test_States[i].EVSE_Communication_Test == TestState.PASSED)//Full
+                {
+                    mtlist[i].Form.progressBar_evse_communication.Value = mtlist[i].Form.progressBar_evse_communication.Maximum;
+                    SetState(mtlist[i].Form.progressBar_evse_communication, 1);//Make progress bar green
+                }
+                else if (Test_States[i].EVSE_Communication_Test == TestState.WAITING)//Empty
+                {
+                    mtlist[i].Form.progressBar_evse_communication.Value = 0;
+                    SetState(mtlist[i].Form.progressBar_evse_communication, 1);//Make progress bar green
+                }
+                else if (Test_States[i].EVSE_Communication_Test == TestState.IN_PROGRESS)
+                {
+                    SetState(mtlist[i].Form.progressBar_evse_communication, 1);//Make progress bar green
+                }
+                else//Something went wrong
+                {
+                    SetState(mtlist[i].Form.progressBar_evse_communication, 2);//Make progress bar red
+                    smthWrng = true;
+                }
+
+                if (Test_States[i].Load_Test == TestState.PASSED)//Full
+                {
+                    mtlist[i].Form.progressBar_load_test.Value = mtlist[i].Form.progressBar_load_test.Maximum;
+                    SetState(mtlist[i].Form.progressBar_load_test, 1);//Make progress bar green
+                }
+                else if (Test_States[i].Load_Test == TestState.WAITING)//Empty
+                {
+                    mtlist[i].Form.progressBar_load_test.Value = 0;
+                    SetState(mtlist[i].Form.progressBar_load_test, 1);//Make progress bar green
+                }
+                else if (Test_States[i].Load_Test == TestState.IN_PROGRESS)
+                {
+                    SetState(mtlist[i].Form.progressBar_load_test, 1);//Make progress bar green
+                }
+                else//Something went wrong
+                {
+                    SetState(mtlist[i].Form.progressBar_load_test, 2);//Make progress bar red
+                    smthWrng = true;
+                }
+
+                if (Test_States[i].HV_Test == TestState.PASSED)//Full
+                {
+                    mtlist[i].Form.progressBar_HV_test.Value = mtlist[i].Form.progressBar_HV_test.Maximum;
+                    SetState(mtlist[i].Form.progressBar_HV_test, 1);//Make progress bar green
+                }
+                else if (Test_States[i].HV_Test == TestState.WAITING)//Empty
+                {
+                    mtlist[i].Form.progressBar_HV_test.Value = 0;
+                    SetState(mtlist[i].Form.progressBar_HV_test, 1);//Make progress bar green
+                }
+                else if (Test_States[i].HV_Test == TestState.IN_PROGRESS)
+                {
+                    SetState(mtlist[i].Form.progressBar_HV_test, 1);//Make progress bar green
+                }
+                else//Something went wrong
+                {
+                    SetState(mtlist[i].Form.progressBar_HV_test, 2);//Make progress bar red
+                    smthWrng = true;
+                }
+
+                if (Test_States[i].WIFI_Test == TestState.PASSED)//Full
+                {
+                    mtlist[i].Form.progressBar_Wifi_test.Value = mtlist[i].Form.progressBar_Wifi_test.Maximum;
+                    SetState(mtlist[i].Form.progressBar_Wifi_test, 1);//Make progress bar green
+                }
+                else if (Test_States[i].WIFI_Test == TestState.WAITING)//Empty
+                {
+                    mtlist[i].Form.progressBar_Wifi_test.Value = 0;
+                    SetState(mtlist[i].Form.progressBar_Wifi_test, 1);//Make progress bar green
+                }
+                else if (Test_States[i].WIFI_Test == TestState.IN_PROGRESS)
+                {
+                    SetState(mtlist[i].Form.progressBar_Wifi_test, 1);//Make progress bar green
+                }
+                else//Something went wrong
+                {
+                    SetState(mtlist[i].Form.progressBar_Wifi_test, 2);//Make progress bar red
+                    smthWrng = true;
+                }
+
+                if (Test_States[i].GSM_Test == TestState.PASSED)//Full
+                {
+                    mtlist[i].Form.progressBar_GSM_test.Value = mtlist[i].Form.progressBar_GSM_test.Maximum;
+                    SetState(mtlist[i].Form.progressBar_GSM_test, 1);//Make progress bar green
+                }
+                else if (Test_States[i].GSM_Test == TestState.WAITING)//Empty
+                {
+                    mtlist[i].Form.progressBar_GSM_test.Value = 0;
+                    SetState(mtlist[i].Form.progressBar_GSM_test, 1);//Make progress bar green
+                }
+                else if (Test_States[i].GSM_Test == TestState.IN_PROGRESS)
+                {
+                    SetState(mtlist[i].Form.progressBar_GSM_test, 1);//Make progress bar green
+                }
+                else//Something went wrong
+                {
+                    SetState(mtlist[i].Form.progressBar_GSM_test, 2);//Make progress bar red
+                    smthWrng = true;
+                }
+
+                if (Test_States[i].RFID_Test == TestState.PASSED)//Full
+                {
+                    mtlist[i].Form.progressBar_RFID_test.Value = mtlist[i].Form.progressBar_RFID_test.Maximum;
+                    SetState(mtlist[i].Form.progressBar_RFID_test, 1);//Make progress bar green
+                }
+                else if (Test_States[i].RFID_Test == TestState.WAITING)//Empty
+                {
+                    mtlist[i].Form.progressBar_RFID_test.Value = 0;
+                    SetState(mtlist[i].Form.progressBar_RFID_test, 1);//Make progress bar green
+                }
+                else if (Test_States[i].RFID_Test == TestState.IN_PROGRESS)
+                {
+                    SetState(mtlist[i].Form.progressBar_RFID_test, 1);//Make progress bar green
+                }
+                else//Something went wrong
+                {
+                    SetState(mtlist[i].Form.progressBar_RFID_test, 2);//Make progress bar red
+                    smthWrng = true;
+                }
+
+                if (Test_States[i].RCD_Test == TestState.PASSED)//Full
+                {
+                    mtlist[i].Form.progressBar_RCD_test.Value = mtlist[i].Form.progressBar_RCD_test.Maximum;
+                    SetState(mtlist[i].Form.progressBar_RCD_test, 1);//Make progress bar green
+                }
+                else if (Test_States[i].RCD_Test == TestState.WAITING)//Empty
+                {
+                    mtlist[i].Form.progressBar_RCD_test.Value = 0;
+                    SetState(mtlist[i].Form.progressBar_RCD_test, 1);//Make progress bar green
+                }
+                else if (Test_States[i].RCD_Test == TestState.IN_PROGRESS)
+                {
+                    SetState(mtlist[i].Form.progressBar_RCD_test, 1);//Make progress bar green
+                }
+                else//Something went wrong
+                {
+                    SetState(mtlist[i].Form.progressBar_RCD_test, 2);//Make progress bar red
+                    smthWrng = true;
+                }
+
+                //Progress bar total
+                mtlist[i].Form.progressBar_total.Value = 
+                    mtlist[i].Form.progressBar_evse_communication.Value + 
+                    mtlist[i].Form.progressBar_load_test.Value + 
+                    mtlist[i].Form.progressBar_HV_test.Value + 
+                    mtlist[i].Form.progressBar_Wifi_test.Value + 
+                    mtlist[i].Form.progressBar_GSM_test.Value + 
+                    mtlist[i].Form.progressBar_RFID_test.Value + 
+                    mtlist[i].Form.progressBar_RCD_test.Value;
+
+                if (smthWrng)//If any of the tests went wrong, total progress bar becomes red
+                {
+                    SetState(mtlist[i].Form.progressBar_total, 2);//Make progress bar red
+                }
+                else
+                {
+                    SetState(mtlist[i].Form.progressBar_total, 1);//Make progress bar green
+                }
+            }
+
+            #endregion
+        }
 
         private void ManageFormWindowsPositions()
         {
@@ -1070,20 +2549,26 @@ namespace ArtiluxEOL
                             monOnline = false;
                         }
 
-                        MonitorTest mt = new MonitorTest { Id = id, MonitorIds = ml[i].MonitorIds, WorkPlaceNr = (id + 1), /*testList = new List<TestList>(),*/ MonitorOnline = monOnline, FormHidden = true };
+                        MonitorTest mt = new MonitorTest { Id = id, MonitorIds = ml[i].MonitorIds, MonitorOnline = monOnline, FormHidden = true };
                         mtlist.Add(mt);
 
                         WindowModal tm = new WindowModal(mt);
                         mt.Form = tm;
 
+                        if (Original_Modal_Form_Background != tm.BackColor)
+                        {
+                            Original_Modal_Form_Background = tm.BackColor;
+                        }
+
                         progress.Visible = true;
                         id++;
-                        tm.FormClosing += Tm_FormClosing;
+                        //tm.FormClosing += Tm_FormClosing;
                     }
                     else//Create empty
                     {
-                        MonitorTest mt = new MonitorTest { Id = -1, MonitorIds = "-1", WorkPlaceNr = -1, /*testList = new List<TestList>(),*/ MonitorOnline = false, FormHidden = true };
+                        MonitorTest mt = new MonitorTest { Id = -1, MonitorIds = "-1", MonitorOnline = false, FormHidden = true };
                         mtlist.Add(mt);
+                        id++;
                     }
                 }
             }
@@ -1157,14 +2642,14 @@ namespace ArtiluxEOL
 
         private void Tm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            string x = ((Form)sender).Text;
+            /*string x = ((Form)sender).Text;
             var mt = mtlist.FirstOrDefault(it => it.MonitorIds.Contains(x.Substring(5)));
             if (mt != null)
             {
 
                 Label lbl_text = this.Controls.Find("label" + mt.Id, true).FirstOrDefault() as Label;
                 lbl_text.Text = lbl_text.Text + " " + x.Substring(0, 4);
-            }
+            }*/
         }
 
         protected override void OnHandleCreated(EventArgs e)
@@ -1251,7 +2736,6 @@ namespace ArtiluxEOL
 
                 y_point = y_point + 65;
             }
-            //////////////////////////
 
             for (int a = 0; a < 3; a++)//initinam structuras
             {
@@ -1411,36 +2895,223 @@ namespace ArtiluxEOL
             popup.Show();
         }
 
+        #region Test progress bars
+
+        public void Update_Progress_Bar_RCD_Test()
+        {
+            System.Windows.Forms.ProgressBar progBar = mtlist[RCD_Test_EVSE_ID].Form.progressBar_RCD_test;
+
+            if (Test_States[RCD_Test_EVSE_ID].RCD_Test == TestState.IN_PROGRESS)//Update only if the test is running
+            {
+                if (RCD_Test_State > 0)
+                {
+                    if (RCD_Test_State > RCD_Test_State_Last)
+                    {
+                        RCD_Test_State_Last = RCD_Test_State;
+
+                        if (RCD_Test_State < progBar.Maximum)
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = RCD_Test_State; }));
+                        }
+                        else
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = progBar.Maximum; }));
+                        }
+                    }
+                }
+                else
+                {
+                    this.Invoke(new Action(() => { progBar.Value = 0; }));
+                    RCD_Test_State_Last = 0;
+                }
+            }
+        }
+
+        public void Update_Progress_Bar_RFID_Test()
+        {
+            System.Windows.Forms.ProgressBar progBar = mtlist[RFID_Test_EVSE_ID].Form.progressBar_RFID_test;
+
+            if (Test_States[RFID_Test_EVSE_ID].RFID_Test == TestState.IN_PROGRESS)//Update only if the test is running
+            {
+                if (RFID_Test_State > 0)
+                {
+                    if (RFID_Test_State > RFID_Test_State_Last)
+                    {
+                        RFID_Test_State_Last = RFID_Test_State;
+
+                        if (RFID_Test_State < progBar.Maximum)
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = RFID_Test_State; }));
+                        }
+                        else
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = progBar.Maximum; }));
+                        }
+                    }
+                }
+                else
+                {
+                    this.Invoke(new Action(() => { progBar.Value = 0; }));
+                    RFID_Test_State_Last = 0;
+                }
+            }
+        }
+
+        public void Update_Progress_Bar_GSM_Test()
+        {
+            System.Windows.Forms.ProgressBar progBar = mtlist[GSM_Test_EVSE_ID].Form.progressBar_GSM_test;
+
+            if (Test_States[GSM_Test_EVSE_ID].GSM_Test == TestState.IN_PROGRESS)//Update only if the test is running
+            {
+                if (GSM_Test_State > 0)
+                {
+                    if (GSM_Test_State > GSM_Test_State_Last)
+                    {
+                        GSM_Test_State_Last = GSM_Test_State;
+
+                        if (GSM_Test_State < progBar.Maximum)
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = GSM_Test_State; }));
+                        }
+                        else
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = progBar.Maximum; }));
+                        }
+                    }
+                }
+                else
+                {
+                    this.Invoke(new Action(() => { progBar.Value = 0; }));
+                    GSM_Test_State_Last = 0;
+                }
+            }
+        }
+
+        public void Update_Progress_Bar_Wifi_Test()
+        {
+            System.Windows.Forms.ProgressBar progBar = mtlist[Wifi_Test_EVSE_ID].Form.progressBar_Wifi_test;
+
+            if (Test_States[Wifi_Test_EVSE_ID].WIFI_Test == TestState.IN_PROGRESS)//Update only if the test is running
+            {
+                if (Wifi_Test_State > 0)
+                {
+                    if (Wifi_Test_State > Wifi_Test_State_Last)
+                    {
+                        Wifi_Test_State_Last = Wifi_Test_State;
+
+                        if (Wifi_Test_State < progBar.Maximum)
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = Wifi_Test_State; }));
+                        }
+                        else
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = progBar.Maximum; }));
+                        }
+                    }
+                }
+                else
+                {
+                    this.Invoke(new Action(() => { progBar.Value = 0; }));
+                    Wifi_Test_State_Last = 0;
+                }
+            }
+        }
+
+        public void Update_Progress_Bar_Demo_HV_Test()
+        {
+            System.Windows.Forms.ProgressBar progBar = mtlist[HV_Demo_Test_EVSE_ID].Form.progressBar_HV_test;
+
+            if (Test_States[HV_Demo_Test_EVSE_ID].HV_Test == TestState.IN_PROGRESS)//Update only if the test is running
+            {
+                if (HV_Demo_Test_State > 0)
+                {
+                    if (HV_Demo_Test_State > HV_Demo_Test_State_Last)
+                    {
+                        HV_Demo_Test_State_Last = HV_Demo_Test_State;
+
+                        if (HV_Demo_Test_State < progBar.Maximum)
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = HV_Demo_Test_State; }));
+                        }
+                        else
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = progBar.Maximum; }));
+                        }
+                    }
+                }
+                else
+                {
+                    this.Invoke(new Action(() => { progBar.Value = 0; }));
+                    HV_Demo_Test_State_Last = 0;
+                }
+            }
+        }
+
+        public void Update_Progress_Bar_Demo_Load_Test()
+        {
+            System.Windows.Forms.ProgressBar progBar = mtlist[Load_Demo_Test_EVSE_ID].Form.progressBar_load_test;
+
+            if (Test_States[Load_Demo_Test_EVSE_ID].Load_Test == TestState.IN_PROGRESS)//Update only if the test is running
+            {
+                if (Load_Demo_Test_State > 0)
+                {
+                    if (Load_Demo_Test_State > Load_Demo_Test_State_Last)
+                    {
+                        Load_Demo_Test_State_Last = Load_Demo_Test_State;
+
+                        if (Load_Demo_Test_State < progBar.Maximum)
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = Load_Demo_Test_State; }));
+                        }
+                        else
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = progBar.Maximum; }));
+                        }
+                    }
+                }
+                else
+                {
+                    this.Invoke(new Action(() => { progBar.Value = 0; }));
+                    Load_Demo_Test_State_Last = 0;
+                }
+            }
+        }
+
         public void Update_Progress_Bar_EVSE_Comm_Test()
         {
             System.Windows.Forms.ProgressBar progBar = mtlist[EVSE_Comm_Test_EVSE_ID].Form.progressBar_evse_communication;
 
-            if (EVSE_Comm_Test_State > 0)
+            if (Test_States[EVSE_Comm_Test_EVSE_ID].EVSE_Communication_Test == TestState.IN_PROGRESS)//Update only if the test is running
             {
-                if (EVSE_Comm_Test_State > EVSE_Comm_Test_State_Last)
+                if (EVSE_Comm_Test_State > 0)
                 {
-                    EVSE_Comm_Test_State_Last = EVSE_Comm_Test_State;
+                    if (EVSE_Comm_Test_State > EVSE_Comm_Test_State_Last)
+                    {
+                        EVSE_Comm_Test_State_Last = EVSE_Comm_Test_State;
 
-                    if (EVSE_Comm_Test_State < progBar.Maximum)
-                    {
-                        this.Invoke(new Action(() => { progBar.Value = EVSE_Comm_Test_State; }));
-                    }
-                    else
-                    {
-                        this.Invoke(new Action(() => { progBar.Value = progBar.Maximum; }));
+                        if (EVSE_Comm_Test_State < progBar.Maximum)
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = EVSE_Comm_Test_State; }));
+                        }
+                        else
+                        {
+                            this.Invoke(new Action(() => { progBar.Value = progBar.Maximum; }));
+                        }
                     }
                 }
-            }
-            else
-            {
-                this.Invoke(new Action(() => { progBar.Value = 0; }));
-                EVSE_Comm_Test_State_Last = 0;
+                else
+                {
+                    this.Invoke(new Action(() => { progBar.Value = 0; }));
+                    EVSE_Comm_Test_State_Last = 0;
+                }
             }
         }
 
         #endregion
 
-        #region <<< Picoscope >>>
+        #endregion
+
+        #region Picoscope
 
         public void PicoThread()
         {
@@ -1460,7 +3131,7 @@ namespace ArtiluxEOL
 
                         if (Pico_Status == StatusCodes.PICO_OK)
                         {
-                            System.Diagnostics.Debug.Print("Devices found =" + count);
+                            //System.Diagnostics.Debug.Print("Devices found =" + count);
 
                             Pico_Status = Imports.OpenUnit(out handle, null);
 
@@ -1789,7 +3460,6 @@ namespace ArtiluxEOL
         public void Input_Range_Selector(int index)
         {
             Selected_Input_Range = (short)index;
-            System.Diagnostics.Debug.Print("Selected range= " + Selected_Input_Range);
 
             switch (index)
             {
@@ -3237,8 +4907,7 @@ namespace ArtiluxEOL
             if (Workplaces_reg != null)
             {
                 WorkplacesCount = UInt16.Parse(Workplaces_reg.GetValue("NumWorkPlaces").ToString());
-                //int height = int.Parse(key.GetValue("Height").ToString());
-                System.Diagnostics.Debug.Print($"REGISTRY: = {WorkplacesCount}");
+                //System.Diagnostics.Debug.Print($"REGISTRY: = {WorkplacesCount}");
 
                 for (int a = 0; a < 3; a++)
                 {
@@ -3256,7 +4925,7 @@ namespace ArtiluxEOL
                         }
 
                         SavedWorkplaces[a].Enable = Boolean.Parse(Workplaces_reg.GetValue("WP_" + id + "_EN").ToString());
-                        System.Diagnostics.Debug.Print($"WPLACE: = {SavedWorkplaces[a].WorplaceMonitorID}" + $" en: = {SavedWorkplaces[a].Enable}");
+                        //System.Diagnostics.Debug.Print($"WPLACE: = {SavedWorkplaces[a].WorplaceMonitorID}" + $" en: = {SavedWorkplaces[a].Enable}");
                         cBoxWplace[a].Text = SavedWorkplaces[a].WorplaceMonitorID.ToString();
                     }
                     catch (Exception e)
@@ -3302,7 +4971,7 @@ namespace ArtiluxEOL
 
         private void saveWplace_Click(object sender, EventArgs e)
         {
-            int id = 0;
+            //int id = 0;
             int a = 0;
             int b = 0;
             int kiek_liko = WorkplacesCount;
@@ -3363,7 +5032,7 @@ namespace ArtiluxEOL
         private void regReadPeriphery()
         {
             int phe_count = 0;
-            int id = 0;
+            //int id = 0;
             int a = 0;
 
             Periphery_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Periphery");
@@ -3371,8 +5040,7 @@ namespace ArtiluxEOL
             if (Periphery_reg != null)
             {
                 phe_count = UInt16.Parse(Periphery_reg.GetValue("NumPeriphery").ToString());
-                //int height = int.Parse(key.GetValue("Height").ToString());
-                System.Diagnostics.Debug.Print($"REGISTRY: = {phe_count}");
+                //System.Diagnostics.Debug.Print($"REGISTRY: = {phe_count}");
 
                 for (a = 0; a < phe_count; a++)
                 {
@@ -3380,7 +5048,6 @@ namespace ArtiluxEOL
                     {
                         Periphery_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Periphery\Phe_" + a);
 
-                        //network_dev[a].Name = UInt64.Parse(Periphery_reg.GetValue("Name").ToString());
                         network_dev[a].Name = (Periphery_reg.GetValue("Name").ToString());
                         network_dev[a].Ip = (Periphery_reg.GetValue("Ip").ToString());
                         network_dev[a].Port_0 = (int)(Periphery_reg.GetValue("Port0"));
@@ -3394,11 +5061,6 @@ namespace ArtiluxEOL
                     }
 
                 }
-
-                /*System.Diagnostics.Debug.Print($"Name: = {network_dev[0].Name}");
-                System.Diagnostics.Debug.Print($"Ip: = {network_dev[0].Ip}");
-                System.Diagnostics.Debug.Print($"Port: = {network_dev[0].Port_0}");
-                System.Diagnostics.Debug.Print($"Enable: = {network_dev[0].Enable}");*/
             }
             else
             {
@@ -3429,8 +5091,8 @@ namespace ArtiluxEOL
 
         private void regUpdatePeriphery(int phe_nr)
         {
-            int phe_count = 0;
-            int id = 0;
+            //int phe_count = 0;
+            //int id = 0;
 
             Periphery_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Periphery\Phe_" + phe_nr, true);
 
@@ -3559,7 +5221,7 @@ namespace ArtiluxEOL
         }
         private void dataGrid_HV_test_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            System.Diagnostics.Debug.Print($"CHANGED Row: = {e.RowIndex} Column: = {e.ColumnIndex}");
+            //System.Diagnostics.Debug.Print($"CHANGED Row: = {e.RowIndex} Column: = {e.ColumnIndex}");
         }
         #endregion
 
@@ -3579,18 +5241,16 @@ namespace ArtiluxEOL
             switch (e.ColumnIndex)
             {
                 case 7://SET STATE (ON/OFF load)
+
                     if (NetworkThreads.load_state == false)
                     {
                         network_dev[DevType.ITECH_LOAD].State = NetDev_State.START_TEST;
                         network_dev[DevType.ITECH_LOAD].SubState = NetDev_Test.TEST_START;
-                        break;
                     }
                     else
                     {
                         network_dev[DevType.ITECH_LOAD].State = NetDev_State.READY;
-                        break;
                     }
-
                     break;
             }
 
@@ -4263,7 +5923,7 @@ namespace ArtiluxEOL
         public void Update_data_grid()
         {
             DataGridViewRow Row;
-            Relay RL = RL11;
+            BinaryComponent RL = RL11;
 
             for (int i = 0; i < 4; i++)
             {
@@ -4318,15 +5978,15 @@ namespace ArtiluxEOL
         {
             mut.WaitOne();//Single thread access
 
-            if (targ is Relay)//If id is beeing assigned to a relay type object
+            if (targ is BinaryComponent)//If id is beeing assigned to a relay type object
             {
-                Relay tmpRL = (Relay)targ;
+                BinaryComponent tmpRL = (BinaryComponent)targ;
                 tmpRL.COM_ID = MainControlerTcpCommandId;
                 targ = tmpRL;
             }
-            else if (targ is NumericStateDevice)
+            else if (targ is NumericComponent)
             {
-                NumericStateDevice tmpNmrc = (NumericStateDevice)targ;
+                NumericComponent tmpNmrc = (NumericComponent)targ;
                 tmpNmrc.COM_ID = MainControlerTcpCommandId;
                 targ = tmpNmrc;
             }
@@ -4347,6 +6007,54 @@ namespace ArtiluxEOL
             }
 
             mut.ReleaseMutex();
+        }
+
+        public void Main_Board_Test_Run_I(int en)//Test state on work position 1 -> main board
+        {
+            Test_Running_I.SET = en;//Assign requred state
+            Test_Running_I.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(Test_Running_I);//Assign an ID for this command
+            Test_Running_I.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_Test_Run_II(int en)//Test state on work position 2 -> main board
+        {
+            Test_Running_II.SET = en;//Assign requred state
+            Test_Running_II.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(Test_Running_II);//Assign an ID for this command
+            Test_Running_II.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_Test_Run_III(int en)//Test state on work position 3 -> main board
+        {
+            Test_Running_III.SET = en;//Assign requred state
+            Test_Running_III.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(Test_Running_III);//Assign an ID for this command
+            Test_Running_III.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_Work_Place_Oper_I(int en)//Work place is currently operational -> main board
+        {
+            Work_Place_Operational_I.SET = en;//Assign requred state
+            Work_Place_Operational_I.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(Work_Place_Operational_I);//Assign an ID for this command
+            Work_Place_Operational_I.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_Work_Place_Oper_II(int en)//Work place is currently operational -> main board
+        {
+            Work_Place_Operational_II.SET = en;//Assign requred state
+            Work_Place_Operational_II.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(Work_Place_Operational_II);//Assign an ID for this command
+            Work_Place_Operational_II.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Main_Board_Work_Place_Oper_III(int en)//Work place is currently operational -> main board
+        {
+            Work_Place_Operational_III.SET = en;//Assign requred state
+            Work_Place_Operational_III.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(Work_Place_Operational_III);//Assign an ID for this command
+            Work_Place_Operational_III.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
         }
 
         public void Main_Board_Relay11(int en)
@@ -4461,6 +6169,16 @@ namespace ArtiluxEOL
             TP_Selector.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
         }
 
+        public void PingMainBoard()
+        {
+            if((NetworkThreads.unixTimeMilliseconds - Main_Board_Ping_Timer) > Main_Board_Ping_Delay)
+            {
+                Ping_Signal.ONE_SHOT = true;//Send this signal one time
+                Ping_Signal.STATE = 1;//Signal needs to be sent
+                Main_Board_Ping_Timer = NetworkThreads.unixTimeMilliseconds;
+            }
+        }
+
         #endregion
 
         #region Emergency stop
@@ -4472,10 +6190,27 @@ namespace ArtiluxEOL
             DisableControls(oscillo_form);
             this.Invoke(new Action(() => { this.label_Estop.Visible = true; }));
 
-            Load_Test_Cancel = true;
-            HV_Test_Cancel = true;
-            Spectroscope_Test_Cancel = true;
-            Cancel_Oscilloscope_Teset();
+            for (int i = 0; i < 3; i++)
+            {
+                if (Test_States[i].Testing_State == TestState.IN_PROGRESS)
+                {
+                    Test_States[i].Fail_Reason = "avarinis STOP";
+                    Test_States[i].Testing_State = TestState.CANCELED;
+                }
+            }
+
+            Load_Demo_Test_Cancel = true;//Cancel the test
+            HV_Demo_Test_Cancel = true;//Cancel the test
+            GSM_Test_Cancel = true;//Cancel the test
+            EVSE_Comm_Test_Cancel = true;//Cancel the test
+            Wifi_Test_Cancel = true;//Cancel the test
+            RFID_Test_Cancel = true;//Cancel the test
+            RCD_Test_Cancel = true;//Cancel the test
+
+            //Load_Test_Cancel = true;
+            //HV_Test_Cancel = true;
+            //Spectroscope_Test_Cancel = true;
+            //Cancel_Oscilloscope_Teset();
 
         }
 
@@ -4485,23 +6220,38 @@ namespace ArtiluxEOL
             EnableControls(spectro_form);
             EnableControls(oscillo_form);
             this.Invoke(new Action(() => { this.label_Estop.Visible = false; }));
+
+            if (EVSE_Operational[0])
+            {
+                Main_Board_Work_Place_Oper_I(1);
+            }
+            else
+            {
+                Main_Board_Work_Place_Oper_I(0);
+            }
+
+            if (EVSE_Operational[1])
+            {
+                Main_Board_Work_Place_Oper_II(1);
+            }
+            else
+            {
+                Main_Board_Work_Place_Oper_II(0);
+            }
+
+            if (EVSE_Operational[2])
+            {
+                Main_Board_Work_Place_Oper_III(1);
+            }
+            else
+            {
+                Main_Board_Work_Place_Oper_III(0);
+            }
         }
 
         #endregion
 
         #region Buttons
-
-        private void btnStart_Click(object sender, EventArgs e)//Ijungti testavimo langus
-        {
-            for (int i = 0; i < 3; i++)
-            {
-                if (mtlist[i].MonitorOnline)
-                {
-                    mtlist[i].Form.Show();
-                    mtlist[i].FormHidden = false;
-                }
-            }
-        }
 
         private void button5_Click_1(object sender, EventArgs e)
         {
@@ -4606,17 +6356,6 @@ namespace ArtiluxEOL
             NetworkThreads.Generate_Test_Pulse(textBox_pulse_length.Text);
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            int nr = 0;
-
-            foreach (string existingID in DetectedMonitors)
-            {
-                System.Diagnostics.Debug.Print("[" + nr + "] ID= " + existingID);
-                nr++;
-            }
-        }
-
         private void btn_popup_Click(object sender, EventArgs e)
         {
 
@@ -4626,50 +6365,20 @@ namespace ArtiluxEOL
             popup.Show();
         }
 
-        /*
-
-        private void button2_Click(object sender, EventArgs e)
+        private void button_reset_modular_I_Click(object sender, EventArgs e)
         {
-
-            Socket_.start_socket(network_dev[DevType.GWINSTEK_HV_TESTER], 0);
-            //Socket_.socket_ping(network_dev[DevType.GWINSTEK_HV_TESTER]);
+            Reset_Work_Position(0);
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void button_reset_modular_II_Click(object sender, EventArgs e)
         {
-            Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], "SYSTEM:TIME?");
-
-            //network_dev[DevType.GWINSTEK_HV_TESTER].NewSendData = true;
-            network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
+            Reset_Work_Position(1);
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void button_reset_modular_III_Click(object sender, EventArgs e)
         {
-            Socket_.close_socket(network_dev[DevType.GWINSTEK_HV_TESTER]);
+            Reset_Work_Position(2);
         }
-
-        private void button1_Click_1(object sender, EventArgs e)
-        {
-            Socket_.send_socket(network_dev[DevType.MAIN_CONTROLLER], "A");
-        }
-
-        private void button9_Click(object sender, EventArgs e)
-        {
-            network_dev[DevType.ANALYSER_SIGLENT].Cmd = "FREQ:START?";
-
-            Socket_.send_socket(network_dev[DevType.ANALYSER_SIGLENT], network_dev[DevType.ANALYSER_SIGLENT].Cmd);
-            network_dev[DevType.ANALYSER_SIGLENT].SendReceiveState = NetDev_SendState.SEND_BEGIN;
-        }
-
-        private void button10_Click(object sender, EventArgs e)
-        {
-            network_dev[DevType.ANALYSER_SIGLENT].Cmd = "FREQ:STOP?";
-
-            Socket_.send_socket(network_dev[DevType.ANALYSER_SIGLENT], network_dev[DevType.ANALYSER_SIGLENT].Cmd);
-            network_dev[DevType.ANALYSER_SIGLENT].SendReceiveState = NetDev_SendState.SEND_BEGIN;
-        }
-
-        */
 
         #endregion
     }

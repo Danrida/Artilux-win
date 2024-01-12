@@ -362,8 +362,6 @@ namespace ArtiluxEOL
 
             public static async Task ReceiveAsync(SocketDevList dev)
             {
-
-
                 net_dev = dev;
                 try
                 {
@@ -380,10 +378,6 @@ namespace ArtiluxEOL
 
                     net_dev.ReceiveRunning = true;
 
-
-                    //string response = Encoding.UTF8.GetString(socketReceiveArgs.Buffer, 0, 256);
-                    //Console.WriteLine($"Transferred:{socketReceiveArgs.BytesTransferred}");
-                    //Console.WriteLine($"response:{response}");
                 }
                 catch (Exception e)
                 {
@@ -398,25 +392,15 @@ namespace ArtiluxEOL
                 int line_end = 0;
                 try
                 {
-                    //throw new NotImplementedException();
                     int len = e.BytesTransferred;
                     response = Encoding.UTF8.GetString(e.Buffer, 0, len);
-
-
-                    //Console.WriteLine($"Transferred:{e.BytesTransferred} resp_end0:{Convert.ToInt16(response[len - 1])} resp_end1:{Convert.ToInt16(response[len-2])}" );
                     Main.main.dbg_print(DbgType.NETWORK, "RX:" + len + " <- " + net_dev.Name, Color.DimGray);
-                    //Console.WriteLine($"Received:{e.BytesTransferred} IP: {e.UserToken}");
-                    //Console.WriteLine($"response:{response}");
-
                     line_end = Convert.ToInt16(response[len - 1]);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"RX_FAULT:{net_dev.Name}");
                 }
-
-                
-
 
                 foreach (var dev in Main.main.network_dev)//ieskom per visus porto, tam devaisui pakisim rx data
                 {
@@ -426,8 +410,6 @@ namespace ArtiluxEOL
                         //Console.WriteLine($"Found port:{dev.Port_0} line-end:{line_end}");
                     }
                 }
-
-                //Main.main.network_dev[0].Resp
 
                 if (line_end == 10)//ar turim gale enter
                 {
@@ -477,31 +459,20 @@ namespace ArtiluxEOL
                     var result = ReceiveAsync(dev);
                 }
 
-                //receiveCompleted.WaitOne();
-                //Console.WriteLine($"Resp:{response}");
-
-                //client.Shutdown(SocketShutdown.Both);
-                //client.Close();
             }
 
             public static void start_receive(SocketDevList dev)
             {
-                //dev.NewResp = false;
-
                 if (!dev.ReceiveRunning)// receiv nepaleistas, tai paleidziam
                 {
                     var result = ReceiveAsync(dev);
                 }
             }
 
-
-
-            public static void socket_close(SocketDevList dev)
+            /*public static void socket_close(SocketDevList dev)
             {
-
                 dev.client.Shutdown(SocketShutdown.Both);
-                //client.Close();
-            }
+            }*/
 
             private static void ReceiveCallBack(IAsyncResult ar)
             {
@@ -525,7 +496,6 @@ namespace ArtiluxEOL
                             Console.WriteLine($"Resp_calb:{response}");
                         }
                         receiveCompleted.Set();
-                        //client.Close();
                     }
 
                 }
@@ -536,94 +506,44 @@ namespace ArtiluxEOL
             }
         }
 
-
-        public bool socket_ping(SocketDevList dev, int port)
+        /*public bool socket_ping(SocketDevList dev, int port)
         {
             return AssyncSocketClient.ping(dev, port);
-        }
+        }*/
         public int start_socket(SocketDevList dev, int port)
         {
-            //mainForm.dbg_print("sss");
-            //main_tst.dbg_print("kljsakidjfi");
-
             return AssyncSocketClient.StartClient(dev, port);
         }
 
         public void send_socket(SocketDevList dev, string cmd)
         {
             AssyncSocketClient.send_receive(dev, cmd);
-
-
         }
 
         public void receive_socket(SocketDevList dev)
         {
             AssyncSocketClient.start_receive(dev);
-
-
         }
 
-        public void close_socket(SocketDevList dev)
+        /*public void close_socket(SocketDevList dev)
         {
             AssyncSocketClient.socket_close(dev);
 
 
-        }
+        }*/
 
-        /* public async void Socket_send(byte[] messageBytes)
-         {
-             while (true)
-             {
-
-                     NetworkStream serverStream = clientSocket.GetStream();
-                     string data_cmd = "SYSTEM:TIME?";
-                     byte[] outStream = System.Text.Encoding.ASCII.GetBytes(data_cmd + "$");
-                     serverStream.Write(outStream, 0, outStream.Length);
-                     serverStream.Flush();
-                     byte[] inStream = new byte[1025];
-                     serverStream.
-                     serverStream.Read(inStream, 0, (int)clientSocket.ReceiveBufferSize);
-                     string returndata = System.Text.Encoding.ASCII.GetString(inStream);
-                     Console.WriteLine($"Status: {returndata}");
-
-                     // Send message.
-                     var message = "Hi friends";
-                     messageBytes = Encoding.UTF8.GetBytes(message);
-                     _ = await socket.SendToAsync(messageBytes, SocketFlags.None);
-                     Console.WriteLine($"Socket client sent message: \"{message}\"");
-
-                     // Receive ack.
-                     var buffer = new byte[1_024];
-                     var received = await socket.ReceiveAsync(buffer, SocketFlags.None);
-                     var response = Encoding.UTF8.GetString(buffer, 0, received);
-                     if (response == "<|ACK|>")
-                     {
-                         Console.WriteLine(
-                             $"Socket client received acknowledgment: \"{response}\"");
-                         break;
-                     }
-
-
-             }
-             socket.Shutdown(SocketShutdown.Both);
-         }*/
-
-        public async void Socket_open()
+        /*public async void Socket_open()
         {
             try
             {
-                /*System.Diagnostics.Debug.Print($"Client Started");
-                clientSocket.Connect("192.168.11.150", 12312);*/
                 IPAddress ipAddress = IPAddress.Parse("192.168.11.150");
                 IPEndPoint remoteEndPoint = new IPEndPoint(ipAddress, 12312);
-                //socket.ConnectAsync(remoteEndPoint);
-                // await socket.ConnectAsync(remoteEndPoint);
 
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
             }
-        }
+        }*/
     }
 }

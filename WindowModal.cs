@@ -52,9 +52,10 @@ namespace ArtiluxEOL
             mainPanel.Left = (usableWidth / 2) - (mainPanel.Width / 2);
             mainPanel.Top = (usableHeight / 2) - (mainPanel.Height / 2);
 
-            this.label_work_pos.Text = mtl.WorkPlaceNr.ToString();
-        }
+            this.label_work_pos.Text = (mtl.Id + 1).ToString();
 
+            progressBar_total.Maximum = progressBar_evse_communication.Maximum + progressBar_load_test.Maximum + progressBar_HV_test.Maximum + progressBar_Wifi_test.Maximum + progressBar_GSM_test.Maximum + progressBar_RFID_test.Maximum + progressBar_RCD_test.Maximum;
+        }
         public WindowModal(MonitorTest mt)
         {
             WindowMod = this;
@@ -67,7 +68,6 @@ namespace ArtiluxEOL
             lblWorkplace = new Label[3];
             label_info = new Label[3, 10];
             lbl_ptr = new int[5];//label pointeris
-            backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(backgroundWorker1_DoWork);
         }
         private void panel2_Paint(object sender, PaintEventArgs e)
         {
@@ -97,219 +97,10 @@ namespace ArtiluxEOL
             }
             panel2.Controls.Add(label_info[mtl.Id, 0]);
         }
-        private void btnStart_Click(object sender, EventArgs e)
-        {
-            panelTestResult.Controls.Clear();
-            //redraw_tests_lables();
-            lblResult.Text = "Result";
-            lblResult.BackColor = Color.LightGray;
-            backgroundWorker1.RunWorkerAsync();
-        }
-        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
-        {
-            int i = 1;
-            lbl_ptr[0] = 1;
-            lbl_ptr[1] = 1;
-            lbl_ptr[2] = 1;
-            lbl_ptr[3] = 1;
-            lbl_ptr[4] = 1;
-            int py = 10;
-            DateTime stime = DateTime.Now;
-            //mtl.testList = Helper.GettestLists();
 
-            bool stop_test = false;
-
-            // Get the BackgroundWorker that raised this event.
-            //BackgroundWorker worker = sender as BackgroundWorker;
-
-            int test_nr = 0;
-
-            int y_pos = 0;
-
-            while (!stop_test)
-            {
-
-                switch (test[mtl.Id].all_tests_state)
-                {
-                    case EvseTestState.NONE:
-                        break;
-                    case EvseTestState.TEST_SELECT:
-                        test_nr = 0;
-                        foreach (var test_t in test[mtl.Id].test_type)
-                        {
-                            if (test_t.state == CurrentTestState.NONE)//radom neatlikta ir neuzimta testa
-                            {
-                                switch (test_nr)//neleidziam vienu metu irangos naudoti kitam evse
-                                {
-                                    case TestType.HV_PRAMUSIMAS:
-                                    case TestType.HV_ATSPARUMAS:
-                                        //pazymim visiem test lizdams, kad naudojam sita testa,
-                                        //kai kita test vieta ieskos koki testa atlikineti ras,
-                                        //kad uzimta ir ieskos kito
-                                        for (int a = 0; a < 3; a++) 
-                                        {
-                                            test[a].test_type[TestType.HV_PRAMUSIMAS].state = CurrentTestState.USING;
-                                            test[a].test_type[TestType.HV_ATSPARUMAS].state = CurrentTestState.USING;
-                                        }
-                                        break;
-                                    case TestType.EVSE_APKROVA:
-                                    case TestType.RCD:
-                                        for (int a = 0; a < 3; a++)
-                                        {
-                                            test[a].test_type[TestType.EVSE_APKROVA].state = CurrentTestState.USING;
-                                            test[a].test_type[TestType.RCD].state = CurrentTestState.USING;
-                                        }
-                                        break;
-                                    case TestType.WIFI:
-                                    case TestType.GSM:
-                                        for (int a = 0; a < 3; a++)
-                                        {
-                                            test[a].test_type[TestType.WIFI].state = CurrentTestState.USING;
-                                            test[a].test_type[TestType.GSM].state = CurrentTestState.USING;
-                                        }
-                                        break;
-                                }
-
-                                test[mtl.Id].test_type[test_nr].state = CurrentTestState.PREPARE;
-                                test[mtl.Id].all_tests_state = EvseTestState.TEST_STARTING;
-                                test[mtl.Id].nr = test_nr;
-                                break;
-                            }
-                            test_nr++;
-                        }
-
-                        break;
-                    case EvseTestState.TEST_STARTING:
-                        switch (test[mtl.Id].test_type[test[mtl.Id].nr].state)
-                        {
-                            case CurrentTestState.NONE:
-                                System.Diagnostics.Debug.Print($"ERR_TEST_NONE:{0}");
-                                break;
-                            case CurrentTestState.USING:
-                                System.Diagnostics.Debug.Print($"ERR_TEST_USING:{0}");
-                                break;
-                            case CurrentTestState.PREPARE:
-
-                                y_pos = test[mtl.Id].test_type[test[mtl.Id].nr].y_position;
-
-
-                                ProgressBar progress = new ProgressBar();
-                                progress.Name = "progres" + i;
-                                progress.Style = ProgressBarStyle.Continuous;
-                                lbl_result_point = new Point(x: 20, y: y_pos + 5);
-                                progress.Location = lbl_result_point;
-
-                                btnStart.Visible = false;
-                                lblWait.Visible = false;
-                                panelTestResult.Controls.Add(progress);
-                                lblLong.Text = Socket_.UnixTimeNow().ToString();
-
-                                //lblres[mtl.Id, test[mtl.Id].nr] = new Label { Name = "labelres" + mtl.testList[test[mtl.Id].nr].Id.ToString() };
-                                lblres[mtl.Id, test[mtl.Id].nr].Location = lbl_result_point;
-                                lblres[mtl.Id, test[mtl.Id].nr].Font = SymbolFont;
-                                label[mtl.Id, test[mtl.Id].nr].Font = LargeFont;
-                                label[mtl.Id, test[mtl.Id].nr].ForeColor = Color.Black;
-
-                                switch (test[mtl.Id].nr)
-                                {
-                                    case TestType.HV_ATSPARUMAS:
-
-                                        Tests_.hv_pramusimo_testas(mtl.Id);
-                                        break;
-                                    case TestType.HV_PRAMUSIMAS:
-                                        break;
-                                    case TestType.EVSE_APKROVA:
-                                        break;
-                                    case TestType.EVSE_KOMUNIKACIJA:
-                                        break;
-                                    case TestType.RCD:
-
-                                        break;
-                                    case TestType.WIFI:
-                                        break;
-                                    case TestType.GSM:
-                                        break;
-                                    case TestType.RFID:
-                                        break;
-                                }
-                                break;
-                            case CurrentTestState.TESTING:
-                                break;
-                            case CurrentTestState.HANDLE_RESULT:
-                                break;
-                            case CurrentTestState.DONE:
-                                break;
-                            default:
-                                System.Diagnostics.Debug.Print($"ERR_test_unknown:{test[mtl.Id].test_type[test[mtl.Id].nr].state}");
-                                break;
-
-                        }
-                        break;
-                    case EvseTestState.TEST_IN_PROGRESS:
-                        break;
-                    case EvseTestState.TEST_FINISHED:
-                        break;
-                    case EvseTestState.ALL_TESTS_FINISHED:
-                        break;
-
-                }
-
-                Thread.Sleep(500);
-            }
-        }
-        /*void redraw_tests_lables()
-        {
-            int py = 10;
-            int i = 1;
-            int ptr = 1;
-
-            mtl.testList = Helper.GettestLists();
-
-            //Test_struc[] test = new Main.main.Test;
-
-            foreach (var tst in mtl.testList)
-            {
-                //System.Diagnostics.Debug.Print($"START_BTN: = {0}");
-                label[mtl.Id, ptr] = new Label { Name = "label" + tst.Id.ToString(), Text = tst.Name, AutoSize = true, Location = new Point(x: 60, y: py) };
-                label[mtl.Id, ptr].Font = LargeFont;
-                lblWorkplace[mtl.Id] = new Label { Name = "lblWorkplace" + tst.Id.ToString(), Text = (mtl.Id + 1).ToString(), AutoSize = true, Location = new Point(x: 35, y: 0), Font = new Font("Microsoft Sans Serif", 43), ForeColor = Color.Gray };
-                label[mtl.Id, ptr].ForeColor = Color.Gray;
-                lblWait = new Label { Name = "labelWait" + tst.Id.ToString() };
-                lbl_result_point = new Point(x: 20, y: py + 5);
-                lblWait.Location = lbl_result_point;
-                lblWait.Font = SymbolFont;
-                lblIds = new Label { Name = "MonitorID", Text = mtl.MonitorIds };
-
-                test[mtl.Id].test_type[i - 1].y_position = py;
-
-                Action action = () =>
-                {
-                    lblWait.Text = ""; //WAIT symbol
-                    panelTestResult.Controls.Add(label[mtl.Id, ptr]);
-                    panel_wplace.Controls.Add(lblWorkplace[mtl.Id]);
-                    //panelTestResult.Controls.Add(lblWait);
-                    //panelTestResult.Controls.Add(lblIds);
-
-                };
-                if (InvokeRequired)
-                {
-                    Invoke(action);
-                }
-                else
-                {
-                    action();
-                }
-
-                py = py + 45;
-
-                //lbl_ptr[mtl.Id]++;
-                ptr++;
-                i++;
-            }
-        }*/
         private void TestModal_FormClosing(object sender, FormClosingEventArgs e)
         {
-            this.Text = lblResult.Text + "-" + this.Text;
+            
         }
         private void timer1_Tick(object sender, EventArgs e)
         {
@@ -328,6 +119,41 @@ namespace ArtiluxEOL
                     //System.Diagnostics.Debug.Print($"DevEvse: = NULL");
                 }
             }
+        }
+
+        public void Update_Test_Label(String labelText, Color textColor)
+        {
+            label_Test_State.Text = labelText;
+            label_Test_State.ForeColor = textColor;
+        }
+
+        public void Update_Timer_Label(long startTime)
+        {
+            long msElapsed = DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTime;
+            TimeSpan t = TimeSpan.FromMilliseconds(msElapsed);
+            string timerText = "";
+
+            if (t.Minutes < 10)
+            {
+                timerText += "0";
+            }
+
+            timerText += t.Minutes;
+            timerText += ":";
+
+            if (t.Seconds < 10)
+            {
+                timerText += "0";
+            }
+
+            timerText += t.Seconds;
+
+            label_Time_elapsed.Text = timerText;
+        }
+
+        public void Zero_Timer_Label()
+        {
+            label_Time_elapsed.Text = "00:00";
         }
     }
 }

@@ -11,6 +11,7 @@ namespace MonitorsTest.Models
 {
     public class TestState
     {
+        public const int NOT_POSSIBLE = -3;
         public const int FAILED = -2;
         public const int CANCELED = -1;
         public const int WAITING = 0;
@@ -20,6 +21,8 @@ namespace MonitorsTest.Models
 
     public class EVSETestState
     {
+        public bool Done_Loading { get; set; }//Has the EVSE finished booting
+
         public int Testing_State { get; set; }//State of all tests for this EVSE- TestState class
 
         public int EVSE_Communication_Test { get; set; }//TestState class
@@ -36,31 +39,20 @@ namespace MonitorsTest.Models
 
         public int RCD_Test { get; set; }//TestState class
 
+        public string Fail_Reason { get; set; }//Extra text displayed in test state
+
+        public long Test_Start_Time { get; set; }//Unix time in milliseconds when testing had started
+
     }
 
     public class MonitorTest
     {
-        public int Id { get; set; }
+        public int Id { get; set; }//0 - 2 actuall monitor number, tied to monitor serial number
         public string MonitorIds { get; set; }
-        //public int Width { get; set; }
-        //public int Height { get; set; }
-        public int WorkPlaceNr { get; set; }
-        //public Point Location { get; set; }
-        //public List<TestList> testList { get; set; }
         public bool MonitorOnline { get; set; }//Is this monitor currently operational (detected by OS)
         public WindowModal Form { get; set; }//Form window assigned to this monitor
         public bool FormHidden { get; set; }
     }
-
-    /*public class TestList
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-
-        public int TestLong { get; set; }
-
-        public bool TestResult { get; set; }
-    }*/
 
     public class WorkplaceList
     {
@@ -132,7 +124,7 @@ namespace MonitorsTest.Models
         public const int TEST_DONE = 5;
     }
 
-    public static class EvseTestState
+    /*public static class EvseTestState
     {
         public const int NONE = 0;
         //public const int TEST_STARTING = 1;
@@ -144,7 +136,7 @@ namespace MonitorsTest.Models
 
 
         public const int ERR = 115;
-    }
+    }*/
 
     public static class CurrentTestState
     {
@@ -284,16 +276,16 @@ namespace MonitorsTest.Models
         public const int ERROR = 2;
     }
 
-    public class Relay
+    public class BinaryComponent
     {
         public int SET = 0;//Do not use directly, call Main_Board_RelayXX (int)
         public int STATE = 0;//0: OFF, 1: ON, -1: No response, -2: No confirmation, 10: waiting for responce (OK), 11: waiting for confirmation (ON/OFF) - read only
-        public int COM_ID = 0;//Main controller TCP command id attached to this relay (changes with new command)
+        public int COM_ID = 0;//Main controller TCP command id attached to this component (changes with new command)
         public int ATTEMPTS = 0;//Number of attempts to execute current command
         public string NAME = "UNDEF";//Command name (used to generate TCP commands)
     }
 
-    public class NumericStateDevice
+    public class NumericComponent
     {
         public int SET = 0;//Do not use directly,
         public int STATE = 0;//0, 1, 2, 3..., -100: No response, -101: No confirmation, -10: waiting for responce (OK), -11: waiting for state confirmation (0/1/2/3...) - read only
@@ -304,9 +296,11 @@ namespace MonitorsTest.Models
 
     public class Signal
     {
-        public int STATE = 0;//0, 1 - read only
+        public int STATE = 0;//0, 1
         public int COM_ID = 0;//Main controller TCP command id attached to this device (changes with new command)
         public string NAME = "UNDEF";//Command name (used to generate TCP commands)
+        public string EXTRA = "";//Extra text after the name if needed
+        public bool ONE_SHOT = false;//Set STATE to 0 after sending
     }
 
     public class SpectumPoint

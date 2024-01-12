@@ -34,34 +34,33 @@ namespace ArtiluxEOL
             this.fileSystemWatcher1 = new System.IO.FileSystemWatcher();
             this.panel_main = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.label_EVSE_state = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label_work_pos = new System.Windows.Forms.Label();
             this.lblIds = new System.Windows.Forms.Label();
             this.disp_evse_nr = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.btnStart = new System.Windows.Forms.Button();
-            this.lblResult = new System.Windows.Forms.Label();
-            this.lblLong = new System.Windows.Forms.Label();
+            this.progressBar_total = new System.Windows.Forms.ProgressBar();
+            this.label_Time_elapsed = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label_Test_State = new System.Windows.Forms.Label();
             this.panelTestResult = new System.Windows.Forms.Panel();
+            this.progressBar_evse_communication = new System.Windows.Forms.ProgressBar();
+            this.progressBar_RFID_test = new System.Windows.Forms.ProgressBar();
+            this.progressBar_Wifi_test = new System.Windows.Forms.ProgressBar();
+            this.label11 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.progressBar_RCD_test = new System.Windows.Forms.ProgressBar();
+            this.progressBar_load_test = new System.Windows.Forms.ProgressBar();
+            this.progressBar_GSM_test = new System.Windows.Forms.ProgressBar();
+            this.progressBar_HV_test = new System.Windows.Forms.ProgressBar();
             this.panel4 = new System.Windows.Forms.Panel();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.label_work_pos = new System.Windows.Forms.Label();
-            this.progressBar_oscilloscope = new System.Windows.Forms.ProgressBar();
-            this.progressBar_spectroscope_test = new System.Windows.Forms.ProgressBar();
-            this.progressBar_hv_test = new System.Windows.Forms.ProgressBar();
-            this.progressBar_load_test = new System.Windows.Forms.ProgressBar();
-            this.label5 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.progressBar_wifi_test = new System.Windows.Forms.ProgressBar();
-            this.progressBar_rfid_test = new System.Windows.Forms.ProgressBar();
-            this.progressBar_evse_communication = new System.Windows.Forms.ProgressBar();
             ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).BeginInit();
             this.panel_main.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -88,26 +87,58 @@ namespace ArtiluxEOL
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.label_EVSE_state);
+            this.panel2.Controls.Add(this.label1);
             this.panel2.Controls.Add(this.label_work_pos);
             this.panel2.Controls.Add(this.lblIds);
             this.panel2.Controls.Add(this.disp_evse_nr);
-            this.panel2.Controls.Add(this.label1);
-            this.panel2.Controls.Add(this.label4);
-            this.panel2.Controls.Add(this.label3);
-            this.panel2.Controls.Add(this.label2);
             this.panel2.Location = new System.Drawing.Point(647, 15);
             this.panel2.Margin = new System.Windows.Forms.Padding(2);
             this.panel2.Name = "panel2";
             this.panel2.Padding = new System.Windows.Forms.Padding(3, 8, 0, 0);
-            this.panel2.Size = new System.Drawing.Size(221, 459);
+            this.panel2.Size = new System.Drawing.Size(221, 456);
             this.panel2.TabIndex = 10;
             this.panel2.Paint += new System.Windows.Forms.PaintEventHandler(this.panel2_Paint);
+            // 
+            // label_EVSE_state
+            // 
+            this.label_EVSE_state.AutoSize = true;
+            this.label_EVSE_state.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_EVSE_state.Location = new System.Drawing.Point(8, 218);
+            this.label_EVSE_state.Name = "label_EVSE_state";
+            this.label_EVSE_state.Size = new System.Drawing.Size(40, 18);
+            this.label_EVSE_state.TabIndex = 13;
+            this.label_EVSE_state.Text = "state";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.DimGray;
+            this.label1.Location = new System.Drawing.Point(5, 187);
+            this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(134, 27);
+            this.label1.TabIndex = 12;
+            this.label1.Text = "EVSE būsena:";
+            // 
+            // label_work_pos
+            // 
+            this.label_work_pos.BackColor = System.Drawing.Color.Transparent;
+            this.label_work_pos.Font = new System.Drawing.Font("Microsoft Sans Serif", 48F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_work_pos.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.label_work_pos.Location = new System.Drawing.Point(5, 19);
+            this.label_work_pos.Name = "label_work_pos";
+            this.label_work_pos.Size = new System.Drawing.Size(213, 73);
+            this.label_work_pos.TabIndex = 0;
+            this.label_work_pos.Text = "Pos";
+            this.label_work_pos.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // lblIds
             // 
             this.lblIds.AutoSize = true;
             this.lblIds.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblIds.Location = new System.Drawing.Point(8, 158);
+            this.lblIds.Location = new System.Drawing.Point(8, 148);
             this.lblIds.Name = "lblIds";
             this.lblIds.Size = new System.Drawing.Size(59, 18);
             this.lblIds.TabIndex = 11;
@@ -125,105 +156,66 @@ namespace ArtiluxEOL
             this.disp_evse_nr.TabIndex = 7;
             this.disp_evse_nr.Text = "EVSE SN:";
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label1.Location = new System.Drawing.Point(10, 271);
-            this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(139, 27);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "INFORMACIJA";
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.ForeColor = System.Drawing.Color.MediumSeaGreen;
-            this.label4.Location = new System.Drawing.Point(47, 416);
-            this.label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(122, 27);
-            this.label4.TabIndex = 2;
-            this.label4.Text = "PASIRUOŠĘS";
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label3.Location = new System.Drawing.Point(32, 379);
-            this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(152, 27);
-            this.label3.TabIndex = 1;
-            this.label3.Text = "Įrangos būsena";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label2.Location = new System.Drawing.Point(2, 233);
-            this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(217, 27);
-            this.label2.TabIndex = 0;
-            this.label2.Text = "Papildoma informacija";
-            // 
             // panel1
             // 
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel1.Controls.Add(this.btnStart);
-            this.panel1.Controls.Add(this.lblResult);
-            this.panel1.Controls.Add(this.lblLong);
+            this.panel1.Controls.Add(this.progressBar_total);
+            this.panel1.Controls.Add(this.label_Time_elapsed);
+            this.panel1.Controls.Add(this.label3);
+            this.panel1.Controls.Add(this.label_Test_State);
             this.panel1.Location = new System.Drawing.Point(4, 491);
             this.panel1.Margin = new System.Windows.Forms.Padding(2);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(865, 170);
             this.panel1.TabIndex = 9;
             // 
-            // btnStart
+            // progressBar_total
             // 
-            this.btnStart.AutoSize = true;
-            this.btnStart.Font = new System.Drawing.Font("Microsoft Sans Serif", 25.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnStart.Location = new System.Drawing.Point(647, 27);
-            this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(202, 114);
-            this.btnStart.TabIndex = 2;
-            this.btnStart.Text = "PRADĖTI";
-            this.btnStart.UseVisualStyleBackColor = true;
-            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
+            this.progressBar_total.Location = new System.Drawing.Point(108, 105);
+            this.progressBar_total.Maximum = 28;
+            this.progressBar_total.Name = "progressBar_total";
+            this.progressBar_total.Size = new System.Drawing.Size(718, 23);
+            this.progressBar_total.TabIndex = 30;
             // 
-            // lblResult
+            // label_Time_elapsed
             // 
-            this.lblResult.AutoSize = true;
-            this.lblResult.BackColor = System.Drawing.Color.MediumAquamarine;
-            this.lblResult.Font = new System.Drawing.Font("Microsoft Sans Serif", 28.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblResult.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.lblResult.Location = new System.Drawing.Point(345, 57);
-            this.lblResult.Name = "lblResult";
-            this.lblResult.Size = new System.Drawing.Size(133, 44);
-            this.lblResult.TabIndex = 3;
-            this.lblResult.Text = "Result";
+            this.label_Time_elapsed.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_Time_elapsed.Location = new System.Drawing.Point(29, 105);
+            this.label_Time_elapsed.Name = "label_Time_elapsed";
+            this.label_Time_elapsed.Size = new System.Drawing.Size(73, 23);
+            this.label_Time_elapsed.TabIndex = 2;
+            this.label_Time_elapsed.Text = "00:00";
+            this.label_Time_elapsed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // lblLong
+            // label3
             // 
-            this.lblLong.AutoSize = true;
-            this.lblLong.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblLong.Location = new System.Drawing.Point(61, 54);
-            this.lblLong.Name = "lblLong";
-            this.lblLong.Size = new System.Drawing.Size(98, 37);
-            this.lblLong.TabIndex = 2;
-            this.lblLong.Text = "00:00";
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.label3.Location = new System.Drawing.Point(29, 59);
+            this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(177, 27);
+            this.label3.TabIndex = 1;
+            this.label3.Text = "Bandymo būsena:";
+            // 
+            // label_Test_State
+            // 
+            this.label_Test_State.AutoSize = true;
+            this.label_Test_State.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_Test_State.ForeColor = System.Drawing.Color.MediumSeaGreen;
+            this.label_Test_State.Location = new System.Drawing.Point(205, 59);
+            this.label_Test_State.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label_Test_State.Name = "label_Test_State";
+            this.label_Test_State.Size = new System.Drawing.Size(79, 27);
+            this.label_Test_State.TabIndex = 2;
+            this.label_Test_State.Text = "Būsena";
             // 
             // panelTestResult
             // 
             this.panelTestResult.Controls.Add(this.progressBar_evse_communication);
-            this.panelTestResult.Controls.Add(this.progressBar_rfid_test);
-            this.panelTestResult.Controls.Add(this.progressBar_wifi_test);
+            this.panelTestResult.Controls.Add(this.progressBar_RFID_test);
+            this.panelTestResult.Controls.Add(this.progressBar_Wifi_test);
             this.panelTestResult.Controls.Add(this.label11);
             this.panelTestResult.Controls.Add(this.label10);
             this.panelTestResult.Controls.Add(this.label9);
@@ -231,15 +223,155 @@ namespace ArtiluxEOL
             this.panelTestResult.Controls.Add(this.label7);
             this.panelTestResult.Controls.Add(this.label6);
             this.panelTestResult.Controls.Add(this.label5);
-            this.panelTestResult.Controls.Add(this.progressBar_oscilloscope);
+            this.panelTestResult.Controls.Add(this.progressBar_RCD_test);
             this.panelTestResult.Controls.Add(this.progressBar_load_test);
-            this.panelTestResult.Controls.Add(this.progressBar_spectroscope_test);
-            this.panelTestResult.Controls.Add(this.progressBar_hv_test);
+            this.panelTestResult.Controls.Add(this.progressBar_GSM_test);
+            this.panelTestResult.Controls.Add(this.progressBar_HV_test);
             this.panelTestResult.Font = new System.Drawing.Font("Webdings", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(2)));
-            this.panelTestResult.Location = new System.Drawing.Point(8, 34);
+            this.panelTestResult.Location = new System.Drawing.Point(8, 15);
             this.panelTestResult.Name = "panelTestResult";
-            this.panelTestResult.Size = new System.Drawing.Size(634, 437);
+            this.panelTestResult.Size = new System.Drawing.Size(634, 456);
             this.panelTestResult.TabIndex = 7;
+            // 
+            // progressBar_evse_communication
+            // 
+            this.progressBar_evse_communication.Location = new System.Drawing.Point(283, 104);
+            this.progressBar_evse_communication.Maximum = 15;
+            this.progressBar_evse_communication.Name = "progressBar_evse_communication";
+            this.progressBar_evse_communication.Size = new System.Drawing.Size(298, 23);
+            this.progressBar_evse_communication.TabIndex = 39;
+            // 
+            // progressBar_RFID_test
+            // 
+            this.progressBar_RFID_test.Location = new System.Drawing.Point(283, 284);
+            this.progressBar_RFID_test.Maximum = 15;
+            this.progressBar_RFID_test.Name = "progressBar_RFID_test";
+            this.progressBar_RFID_test.Size = new System.Drawing.Size(298, 23);
+            this.progressBar_RFID_test.TabIndex = 38;
+            // 
+            // progressBar_Wifi_test
+            // 
+            this.progressBar_Wifi_test.Location = new System.Drawing.Point(283, 212);
+            this.progressBar_Wifi_test.Maximum = 15;
+            this.progressBar_Wifi_test.Name = "progressBar_Wifi_test";
+            this.progressBar_Wifi_test.Size = new System.Drawing.Size(298, 23);
+            this.progressBar_Wifi_test.TabIndex = 37;
+            // 
+            // label11
+            // 
+            this.label11.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label11.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.label11.Location = new System.Drawing.Point(32, 313);
+            this.label11.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(246, 36);
+            this.label11.TabIndex = 36;
+            this.label11.Text = "Srovės nuotekio testas";
+            this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // label10
+            // 
+            this.label10.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label10.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.label10.Location = new System.Drawing.Point(32, 274);
+            this.label10.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(246, 36);
+            this.label10.TabIndex = 35;
+            this.label10.Text = "RFID testas";
+            this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // label9
+            // 
+            this.label9.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label9.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.label9.Location = new System.Drawing.Point(32, 238);
+            this.label9.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(246, 36);
+            this.label9.TabIndex = 34;
+            this.label9.Text = "GSM testas";
+            this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // label8
+            // 
+            this.label8.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label8.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.label8.Location = new System.Drawing.Point(32, 202);
+            this.label8.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(246, 36);
+            this.label8.TabIndex = 33;
+            this.label8.Text = "WI-FI testas";
+            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // label7
+            // 
+            this.label7.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.label7.Location = new System.Drawing.Point(32, 93);
+            this.label7.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(246, 36);
+            this.label7.TabIndex = 32;
+            this.label7.Text = "Stotelės komunikacija";
+            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // label6
+            // 
+            this.label6.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.label6.Location = new System.Drawing.Point(32, 130);
+            this.label6.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(246, 36);
+            this.label6.TabIndex = 31;
+            this.label6.Text = "Apkrovos testas";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // label5
+            // 
+            this.label5.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label5.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.label5.Location = new System.Drawing.Point(32, 166);
+            this.label5.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(246, 36);
+            this.label5.TabIndex = 30;
+            this.label5.Text = "HV testas";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // progressBar_RCD_test
+            // 
+            this.progressBar_RCD_test.Location = new System.Drawing.Point(283, 323);
+            this.progressBar_RCD_test.Maximum = 15;
+            this.progressBar_RCD_test.Name = "progressBar_RCD_test";
+            this.progressBar_RCD_test.Size = new System.Drawing.Size(298, 23);
+            this.progressBar_RCD_test.TabIndex = 29;
+            // 
+            // progressBar_load_test
+            // 
+            this.progressBar_load_test.Location = new System.Drawing.Point(283, 140);
+            this.progressBar_load_test.Maximum = 15;
+            this.progressBar_load_test.Name = "progressBar_load_test";
+            this.progressBar_load_test.Size = new System.Drawing.Size(298, 23);
+            this.progressBar_load_test.TabIndex = 26;
+            // 
+            // progressBar_GSM_test
+            // 
+            this.progressBar_GSM_test.Location = new System.Drawing.Point(283, 248);
+            this.progressBar_GSM_test.Maximum = 15;
+            this.progressBar_GSM_test.Name = "progressBar_GSM_test";
+            this.progressBar_GSM_test.Size = new System.Drawing.Size(298, 23);
+            this.progressBar_GSM_test.TabIndex = 28;
+            // 
+            // progressBar_HV_test
+            // 
+            this.progressBar_HV_test.Location = new System.Drawing.Point(283, 176);
+            this.progressBar_HV_test.Maximum = 15;
+            this.progressBar_HV_test.Name = "progressBar_HV_test";
+            this.progressBar_HV_test.Size = new System.Drawing.Size(298, 23);
+            this.progressBar_HV_test.TabIndex = 27;
             // 
             // panel4
             // 
@@ -256,162 +388,11 @@ namespace ArtiluxEOL
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // label_work_pos
-            // 
-            this.label_work_pos.BackColor = System.Drawing.Color.Transparent;
-            this.label_work_pos.Font = new System.Drawing.Font("Microsoft Sans Serif", 48F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label_work_pos.ForeColor = System.Drawing.SystemColors.GrayText;
-            this.label_work_pos.Location = new System.Drawing.Point(5, 19);
-            this.label_work_pos.Name = "label_work_pos";
-            this.label_work_pos.Size = new System.Drawing.Size(213, 73);
-            this.label_work_pos.TabIndex = 0;
-            this.label_work_pos.Text = "Pos";
-            this.label_work_pos.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // progressBar_oscilloscope
-            // 
-            this.progressBar_oscilloscope.Location = new System.Drawing.Point(283, 296);
-            this.progressBar_oscilloscope.Maximum = 28;
-            this.progressBar_oscilloscope.Name = "progressBar_oscilloscope";
-            this.progressBar_oscilloscope.Size = new System.Drawing.Size(298, 23);
-            this.progressBar_oscilloscope.TabIndex = 29;
-            // 
-            // progressBar_spectroscope_test
-            // 
-            this.progressBar_spectroscope_test.Location = new System.Drawing.Point(283, 221);
-            this.progressBar_spectroscope_test.Maximum = 28;
-            this.progressBar_spectroscope_test.Name = "progressBar_spectroscope_test";
-            this.progressBar_spectroscope_test.Size = new System.Drawing.Size(298, 23);
-            this.progressBar_spectroscope_test.TabIndex = 28;
-            // 
-            // progressBar_hv_test
-            // 
-            this.progressBar_hv_test.Location = new System.Drawing.Point(283, 149);
-            this.progressBar_hv_test.Maximum = 39;
-            this.progressBar_hv_test.Name = "progressBar_hv_test";
-            this.progressBar_hv_test.Size = new System.Drawing.Size(298, 23);
-            this.progressBar_hv_test.TabIndex = 27;
-            // 
-            // progressBar_load_test
-            // 
-            this.progressBar_load_test.Location = new System.Drawing.Point(283, 113);
-            this.progressBar_load_test.Maximum = 50;
-            this.progressBar_load_test.Name = "progressBar_load_test";
-            this.progressBar_load_test.Size = new System.Drawing.Size(298, 23);
-            this.progressBar_load_test.TabIndex = 26;
-            // 
-            // label5
-            // 
-            this.label5.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label5.Location = new System.Drawing.Point(32, 139);
-            this.label5.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(246, 36);
-            this.label5.TabIndex = 30;
-            this.label5.Text = "HV testas";
-            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // label6
-            // 
-            this.label6.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label6.Location = new System.Drawing.Point(32, 103);
-            this.label6.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(246, 36);
-            this.label6.TabIndex = 31;
-            this.label6.Text = "Apkrovos testas";
-            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // label7
-            // 
-            this.label7.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label7.Location = new System.Drawing.Point(32, 67);
-            this.label7.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(246, 36);
-            this.label7.TabIndex = 32;
-            this.label7.Text = "Stotelės komunikacija";
-            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // label8
-            // 
-            this.label8.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label8.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label8.Location = new System.Drawing.Point(32, 175);
-            this.label8.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(246, 36);
-            this.label8.TabIndex = 33;
-            this.label8.Text = "WI-FI testas";
-            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // label9
-            // 
-            this.label9.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label9.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label9.Location = new System.Drawing.Point(32, 211);
-            this.label9.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(246, 36);
-            this.label9.TabIndex = 34;
-            this.label9.Text = "GSM testas";
-            this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // label10
-            // 
-            this.label10.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label10.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label10.Location = new System.Drawing.Point(32, 247);
-            this.label10.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(246, 36);
-            this.label10.TabIndex = 35;
-            this.label10.Text = "RFID testas";
-            this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // label11
-            // 
-            this.label11.Font = new System.Drawing.Font("Calibri", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label11.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.label11.Location = new System.Drawing.Point(32, 283);
-            this.label11.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(246, 36);
-            this.label11.TabIndex = 36;
-            this.label11.Text = "Srovės nuotekio testas";
-            this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // progressBar_wifi_test
-            // 
-            this.progressBar_wifi_test.Location = new System.Drawing.Point(283, 185);
-            this.progressBar_wifi_test.Maximum = 28;
-            this.progressBar_wifi_test.Name = "progressBar_wifi_test";
-            this.progressBar_wifi_test.Size = new System.Drawing.Size(298, 23);
-            this.progressBar_wifi_test.TabIndex = 37;
-            // 
-            // progressBar_rfid_test
-            // 
-            this.progressBar_rfid_test.Location = new System.Drawing.Point(283, 257);
-            this.progressBar_rfid_test.Maximum = 28;
-            this.progressBar_rfid_test.Name = "progressBar_rfid_test";
-            this.progressBar_rfid_test.Size = new System.Drawing.Size(298, 23);
-            this.progressBar_rfid_test.TabIndex = 38;
-            // 
-            // progressBar_evse_communication
-            // 
-            this.progressBar_evse_communication.Location = new System.Drawing.Point(283, 77);
-            this.progressBar_evse_communication.Maximum = 50;
-            this.progressBar_evse_communication.Name = "progressBar_evse_communication";
-            this.progressBar_evse_communication.Size = new System.Drawing.Size(298, 23);
-            this.progressBar_evse_communication.TabIndex = 39;
-            // 
             // WindowModal
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1587, 928);
             this.Controls.Add(this.panel_main);
             this.Name = "WindowModal";
@@ -434,33 +415,32 @@ namespace ArtiluxEOL
         private System.IO.FileSystemWatcher fileSystemWatcher1;
         private System.Windows.Forms.Panel panel_main;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Button btnStart;
-        private System.Windows.Forms.Label lblResult;
-        private System.Windows.Forms.Label lblLong;
+        private System.Windows.Forms.Label label_Time_elapsed;
         private System.Windows.Forms.Panel panelTestResult;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label_Test_State;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label lblIds;
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.Label disp_evse_nr;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Label label_work_pos;
-        public System.Windows.Forms.ProgressBar progressBar_oscilloscope;
+        public System.Windows.Forms.ProgressBar progressBar_RCD_test;
         public System.Windows.Forms.ProgressBar progressBar_load_test;
-        public System.Windows.Forms.ProgressBar progressBar_spectroscope_test;
-        public System.Windows.Forms.ProgressBar progressBar_hv_test;
+        public System.Windows.Forms.ProgressBar progressBar_GSM_test;
+        public System.Windows.Forms.ProgressBar progressBar_HV_test;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label8;
-        public System.Windows.Forms.ProgressBar progressBar_wifi_test;
+        public System.Windows.Forms.ProgressBar progressBar_Wifi_test;
         private System.Windows.Forms.Label label11;
         public System.Windows.Forms.ProgressBar progressBar_evse_communication;
-        public System.Windows.Forms.ProgressBar progressBar_rfid_test;
+        public System.Windows.Forms.ProgressBar progressBar_RFID_test;
+        private System.Windows.Forms.Label label_EVSE_state;
+        private System.Windows.Forms.Label label1;
+        public System.Windows.Forms.ProgressBar progressBar_total;
     }
 }

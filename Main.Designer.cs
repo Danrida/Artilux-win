@@ -33,17 +33,17 @@ namespace ArtiluxEOL
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle13 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle14 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle15 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle16 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle33 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle34 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle35 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle36 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend5 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle37 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle38 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle39 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle40 = new System.Windows.Forms.DataGridViewCellStyle();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -78,6 +78,7 @@ namespace ArtiluxEOL
             this.lbl_hvgen = new System.Windows.Forms.Label();
             this.lbl_osc = new System.Windows.Forms.Label();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.checkBox_fullscreen = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.saveWplace = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -208,7 +209,6 @@ namespace ArtiluxEOL
             this.Barcode3 = new System.ComponentModel.BackgroundWorker();
             this.cbAdmin = new System.Windows.Forms.CheckBox();
             this.panelTestResult = new System.Windows.Forms.Panel();
-            this.btnStart = new System.Windows.Forms.Button();
             this.button_load_test_start = new System.Windows.Forms.Button();
             this.progressBar_load_test = new System.Windows.Forms.ProgressBar();
             this.button_load_test_cancel = new System.Windows.Forms.Button();
@@ -225,8 +225,9 @@ namespace ArtiluxEOL
             this.textBox_pulse_length = new System.Windows.Forms.TextBox();
             this.label22 = new System.Windows.Forms.Label();
             this.label_Estop = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
-            this.checkBox_fullscreen = new System.Windows.Forms.CheckBox();
+            this.button_reset_modular_I = new System.Windows.Forms.Button();
+            this.button_reset_modular_II = new System.Windows.Forms.Button();
+            this.button_reset_modular_III = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.Test_lizdas_3.SuspendLayout();
@@ -288,6 +289,9 @@ namespace ArtiluxEOL
             // tabPage1
             // 
             this.tabPage1.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.tabPage1.Controls.Add(this.button_reset_modular_III);
+            this.tabPage1.Controls.Add(this.button_reset_modular_II);
+            this.tabPage1.Controls.Add(this.button_reset_modular_I);
             this.tabPage1.Controls.Add(this.Test_lizdas_3);
             this.tabPage1.Controls.Add(this.Test_lizdas_2);
             this.tabPage1.Controls.Add(this.Test_lizdas_1);
@@ -667,6 +671,18 @@ namespace ArtiluxEOL
             this.tabPage2.Size = new System.Drawing.Size(984, 613);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Nustatymai";
+            // 
+            // checkBox_fullscreen
+            // 
+            this.checkBox_fullscreen.AutoSize = true;
+            this.checkBox_fullscreen.Checked = true;
+            this.checkBox_fullscreen.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox_fullscreen.Location = new System.Drawing.Point(71, 308);
+            this.checkBox_fullscreen.Name = "checkBox_fullscreen";
+            this.checkBox_fullscreen.Size = new System.Drawing.Size(174, 30);
+            this.checkBox_fullscreen.TabIndex = 5;
+            this.checkBox_fullscreen.Text = "Pilnas ekranas";
+            this.checkBox_fullscreen.UseVisualStyleBackColor = true;
             // 
             // groupBox1
             // 
@@ -1192,15 +1208,15 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn4,
             this.dataGridViewTextBoxColumn5,
             this.dataGridViewTextBoxColumn6});
-            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle9.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle9.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle9.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle9.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle9.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle9.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle9.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGrid_HV_result.DefaultCellStyle = dataGridViewCellStyle9;
+            dataGridViewCellStyle33.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle33.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle33.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle33.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle33.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle33.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle33.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle33.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGrid_HV_result.DefaultCellStyle = dataGridViewCellStyle33;
             this.dataGrid_HV_result.Location = new System.Drawing.Point(2, 270);
             this.dataGrid_HV_result.Margin = new System.Windows.Forms.Padding(2);
             this.dataGrid_HV_result.Name = "dataGrid_HV_result";
@@ -1263,8 +1279,8 @@ namespace ArtiluxEOL
             // dataGrid_HV_test
             // 
             this.dataGrid_HV_test.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle10.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_HV_test.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle10;
+            dataGridViewCellStyle34.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_HV_test.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle34;
             this.dataGrid_HV_test.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_HV_test.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_HV_test.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1284,8 +1300,8 @@ namespace ArtiluxEOL
             this.dataGrid_HV_test.Name = "dataGrid_HV_test";
             this.dataGrid_HV_test.RowHeadersVisible = false;
             this.dataGrid_HV_test.RowHeadersWidth = 51;
-            dataGridViewCellStyle11.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_HV_test.RowsDefaultCellStyle = dataGridViewCellStyle11;
+            dataGridViewCellStyle35.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_HV_test.RowsDefaultCellStyle = dataGridViewCellStyle35;
             this.dataGrid_HV_test.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_HV_test.RowTemplate.Height = 35;
             this.dataGrid_HV_test.Size = new System.Drawing.Size(797, 188);
@@ -1390,14 +1406,14 @@ namespace ArtiluxEOL
             this.dataGrid_Spectrum.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Spectrum.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.dataGrid_Spectrum.BackgroundColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle12.BackColor = System.Drawing.SystemColors.ActiveBorder;
-            dataGridViewCellStyle12.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle12.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle12.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle12.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle12.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGrid_Spectrum.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle12;
+            dataGridViewCellStyle36.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle36.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            dataGridViewCellStyle36.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle36.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle36.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle36.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle36.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGrid_Spectrum.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle36;
             this.dataGrid_Spectrum.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGrid_Spectrum.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Column18,
@@ -1438,18 +1454,18 @@ namespace ArtiluxEOL
             // 
             // chart1
             // 
-            chartArea2.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea2);
-            legend2.Name = "Legend1";
-            this.chart1.Legends.Add(legend2);
+            chartArea5.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea5);
+            legend5.Name = "Legend1";
+            this.chart1.Legends.Add(legend5);
             this.chart1.Location = new System.Drawing.Point(5, 6);
             this.chart1.Margin = new System.Windows.Forms.Padding(2);
             this.chart1.Name = "chart1";
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series2.Legend = "Legend1";
-            series2.Name = "Series1";
-            this.chart1.Series.Add(series2);
+            series5.ChartArea = "ChartArea1";
+            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series5.Legend = "Legend1";
+            series5.Name = "Series1";
+            this.chart1.Series.Add(series5);
             this.chart1.Size = new System.Drawing.Size(563, 370);
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart1";
@@ -1505,8 +1521,8 @@ namespace ArtiluxEOL
             // dataGrid_Load_Line
             // 
             this.dataGrid_Load_Line.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle13.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_Line.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle13;
+            dataGridViewCellStyle37.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_Line.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle37;
             this.dataGrid_Load_Line.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Load_Line.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_Load_Line.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1523,8 +1539,8 @@ namespace ArtiluxEOL
             this.dataGrid_Load_Line.Name = "dataGrid_Load_Line";
             this.dataGrid_Load_Line.RowHeadersVisible = false;
             this.dataGrid_Load_Line.RowHeadersWidth = 51;
-            dataGridViewCellStyle14.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_Line.RowsDefaultCellStyle = dataGridViewCellStyle14;
+            dataGridViewCellStyle38.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_Line.RowsDefaultCellStyle = dataGridViewCellStyle38;
             this.dataGrid_Load_Line.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_Load_Line.RowTemplate.Height = 35;
             this.dataGrid_Load_Line.Size = new System.Drawing.Size(443, 171);
@@ -1583,8 +1599,8 @@ namespace ArtiluxEOL
             // dataGrid_Load_load
             // 
             this.dataGrid_Load_load.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle15.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_load.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle15;
+            dataGridViewCellStyle39.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_load.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle39;
             this.dataGrid_Load_load.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Load_load.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_Load_load.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1603,8 +1619,8 @@ namespace ArtiluxEOL
             this.dataGrid_Load_load.Name = "dataGrid_Load_load";
             this.dataGrid_Load_load.RowHeadersVisible = false;
             this.dataGrid_Load_load.RowHeadersWidth = 51;
-            dataGridViewCellStyle16.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_load.RowsDefaultCellStyle = dataGridViewCellStyle16;
+            dataGridViewCellStyle40.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_load.RowsDefaultCellStyle = dataGridViewCellStyle40;
             this.dataGrid_Load_load.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_Load_load.RowTemplate.Height = 35;
             this.dataGrid_Load_load.Size = new System.Drawing.Size(737, 179);
@@ -2068,17 +2084,6 @@ namespace ArtiluxEOL
             this.panelTestResult.Size = new System.Drawing.Size(286, 156);
             this.panelTestResult.TabIndex = 0;
             // 
-            // btnStart
-            // 
-            this.btnStart.Font = new System.Drawing.Font("Microsoft Sans Serif", 19.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnStart.Location = new System.Drawing.Point(13, 718);
-            this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(132, 76);
-            this.btnStart.TabIndex = 2;
-            this.btnStart.Text = "Pradėti";
-            this.btnStart.UseVisualStyleBackColor = true;
-            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
-            // 
             // button_load_test_start
             // 
             this.button_load_test_start.Location = new System.Drawing.Point(289, 677);
@@ -2222,41 +2227,48 @@ namespace ArtiluxEOL
             // 
             this.label_Estop.BackColor = System.Drawing.Color.IndianRed;
             this.label_Estop.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label_Estop.Location = new System.Drawing.Point(169, 711);
+            this.label_Estop.Location = new System.Drawing.Point(12, 673);
             this.label_Estop.Name = "label_Estop";
-            this.label_Estop.Size = new System.Drawing.Size(100, 60);
+            this.label_Estop.Size = new System.Drawing.Size(271, 143);
             this.label_Estop.TabIndex = 29;
             this.label_Estop.Text = "STOP";
             this.label_Estop.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // button1
+            // button_reset_modular_I
             // 
-            this.button1.Location = new System.Drawing.Point(143, 800);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(140, 23);
-            this.button1.TabIndex = 30;
-            this.button1.Text = "Detected monitors";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.button_reset_modular_I.Location = new System.Drawing.Point(357, 243);
+            this.button_reset_modular_I.Name = "button_reset_modular_I";
+            this.button_reset_modular_I.Size = new System.Drawing.Size(117, 37);
+            this.button_reset_modular_I.TabIndex = 14;
+            this.button_reset_modular_I.Text = "Reset";
+            this.button_reset_modular_I.UseVisualStyleBackColor = true;
+            this.button_reset_modular_I.Click += new System.EventHandler(this.button_reset_modular_I_Click);
             // 
-            // checkBox_fullscreen
+            // button_reset_modular_II
             // 
-            this.checkBox_fullscreen.AutoSize = true;
-            this.checkBox_fullscreen.Checked = true;
-            this.checkBox_fullscreen.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox_fullscreen.Location = new System.Drawing.Point(71, 308);
-            this.checkBox_fullscreen.Name = "checkBox_fullscreen";
-            this.checkBox_fullscreen.Size = new System.Drawing.Size(174, 30);
-            this.checkBox_fullscreen.TabIndex = 5;
-            this.checkBox_fullscreen.Text = "Pilnas ekranas";
-            this.checkBox_fullscreen.UseVisualStyleBackColor = true;
+            this.button_reset_modular_II.Location = new System.Drawing.Point(548, 243);
+            this.button_reset_modular_II.Name = "button_reset_modular_II";
+            this.button_reset_modular_II.Size = new System.Drawing.Size(117, 37);
+            this.button_reset_modular_II.TabIndex = 15;
+            this.button_reset_modular_II.Text = "Reset";
+            this.button_reset_modular_II.UseVisualStyleBackColor = true;
+            this.button_reset_modular_II.Click += new System.EventHandler(this.button_reset_modular_II_Click);
+            // 
+            // button_reset_modular_III
+            // 
+            this.button_reset_modular_III.Location = new System.Drawing.Point(760, 243);
+            this.button_reset_modular_III.Name = "button_reset_modular_III";
+            this.button_reset_modular_III.Size = new System.Drawing.Size(117, 37);
+            this.button_reset_modular_III.TabIndex = 16;
+            this.button_reset_modular_III.Text = "Reset";
+            this.button_reset_modular_III.UseVisualStyleBackColor = true;
+            this.button_reset_modular_III.Click += new System.EventHandler(this.button_reset_modular_III_Click);
             // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1000, 833);
-            this.Controls.Add(this.button1);
             this.Controls.Add(this.label_Estop);
             this.Controls.Add(this.label22);
             this.Controls.Add(this.textBox_pulse_length);
@@ -2273,7 +2285,6 @@ namespace ArtiluxEOL
             this.Controls.Add(this.button_load_test_cancel);
             this.Controls.Add(this.progressBar_load_test);
             this.Controls.Add(this.button_load_test_start);
-            this.Controls.Add(this.btnStart);
             this.Controls.Add(this.panelTestResult);
             this.Controls.Add(this.tabControl1);
             this.Name = "Main";
@@ -2491,7 +2502,6 @@ namespace ArtiluxEOL
         private CheckBox debug_evse_cbox;
         private CheckBox cbAdmin;
         private Panel panelTestResult;
-        private System.Windows.Forms.Button btnStart;
         private CheckBox debug_ping_cbox;
         private CheckBox debug_load_cbox;
         private CheckBox debug_siglent_cbox;
@@ -2522,8 +2532,10 @@ namespace ArtiluxEOL
         private System.Windows.Forms.TextBox textBox_pulse_length;
         private Label label22;
         private Label label_Estop;
-        private System.Windows.Forms.Button button1;
         private CheckBox checkBox_fullscreen;
+        private System.Windows.Forms.Button button_reset_modular_III;
+        private System.Windows.Forms.Button button_reset_modular_II;
+        private System.Windows.Forms.Button button_reset_modular_I;
     }
 }
 
