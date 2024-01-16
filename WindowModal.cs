@@ -28,7 +28,7 @@ namespace ArtiluxEOL
         Tests Tests_ = new Tests();
 
         protected Label[,] label;
-        int[] lbl_ptr;//label pointeris
+        //int[] lbl_ptr;//label pointeris
 
         protected Label[,] lblres;
         protected Label[] lblWorkplace;
@@ -67,7 +67,7 @@ namespace ArtiluxEOL
             lblres = new Label[3, 10];
             lblWorkplace = new Label[3];
             label_info = new Label[3, 10];
-            lbl_ptr = new int[5];//label pointeris
+            //lbl_ptr = new int[5];//label pointeris
         }
         private void panel2_Paint(object sender, PaintEventArgs e)
         {
@@ -110,13 +110,6 @@ namespace ArtiluxEOL
                 {
                     System.Diagnostics.Debug.Print($"barcode: = {dev_list.DevEvse[1].barcode} mtl.Id:{mtl.Id}");
                     label_info[mtl.Id, 0].Text = dev_list.DevEvse[mtl.Id].barcode;
-                    //label_info[0, 0].Text = "bar_0";
-                    //label_info[1, 0].Text = "bar_1";
-                    //label_info[2, 0].Text = "bar_2";
-                }
-                else
-                {
-                    //System.Diagnostics.Debug.Print($"DevEvse: = NULL");
                 }
             }
         }

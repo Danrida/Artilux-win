@@ -39,31 +39,16 @@ using System.Runtime.InteropServices;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using System.Runtime.Remoting.Contexts;
 using System.Security.Policy;
+using Newtonsoft.Json.Linq;
+using System.Data.SqlClient;
 
 
 namespace ArtiluxEOL
 {
     public partial class Main : Form
     {
-
-        //For disabling monitors
-
-        public int WM_SYSCOMMAND = 0x0112;
-        public int SC_MONITORPOWER = 0xF170;
-
-        [DllImport("user32.dll")]
-        private static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);
-
-        //------------------------
-
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = false)]
         static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr w, IntPtr l);
-        public static void SetState(System.Windows.Forms.ProgressBar pBar, int state)
-        {
-            SendMessage(pBar.Handle, 1040, (IntPtr)state, IntPtr.Zero);
-        }
-
-
 
         public static Main main;
         SpectroscopeTestWindow spectro_form;
@@ -174,6 +159,8 @@ namespace ArtiluxEOL
         public static bool E_Stop_Previous = false;
         long Main_Board_Ping_Timer;
         long Main_Board_Ping_Delay = 1000;
+        long TCP_Dev_State_Check_Timer;
+        long TCP_Dev_State_Check_Delay = 2000;//Delay between checking for online network devices
         long TCP_Comm_Timer1;
         long TCP_Comm_Timer1_Delay = 1000;//Delay between sending TCP commands to the main controller to stop the test process when the test has failed / been canceled
         long TCP_Comm_Timer2;
@@ -187,10 +174,6 @@ namespace ArtiluxEOL
         3) assign device name (that will be used to generate TCP commands) in public Main()
          */
 
-        public static BinaryComponent RL11 = new BinaryComponent();
-        public static BinaryComponent RL12 = new BinaryComponent();
-        public static BinaryComponent RL13 = new BinaryComponent();
-        public static BinaryComponent RL14 = new BinaryComponent();
         public static BinaryComponent LS_EN = new BinaryComponent();
         public static BinaryComponent LOAD = new BinaryComponent();
         public static BinaryComponent SOURCE = new BinaryComponent();
@@ -208,12 +191,15 @@ namespace ArtiluxEOL
         public static NumericComponent LS_Selector = new NumericComponent();
         public static NumericComponent CP_Selector = new NumericComponent();
         public static NumericComponent TP_Selector = new NumericComponent();
+        public static NumericComponent Spectroscope_Select = new NumericComponent();
+        public static NumericComponent RCD_Select = new NumericComponent();
+        public static NumericComponent RCD_Phase = new NumericComponent();
 
         public static Signal E_Stop_Signal = new Signal();
         public static Signal Work_Pos_Signal = new Signal();
         public static Signal Ping_Signal = new Signal();
 
-        public static object[] Main_Board_Controls = new object[] { RL11, RL12, RL13, RL14, PP_Selector, LS_EN, LOAD, SOURCE, LS_Selector, CP_Selector, DIODE_SH, PE_OP, CP_SH, TP_Selector, E_Stop_Signal, Test_Running_I, Test_Running_II, Test_Running_III, Work_Pos_Signal, Work_Place_Operational_I, Work_Place_Operational_II, Work_Place_Operational_III, Ping_Signal };
+        public static object[] Main_Board_Controls = new object[] { PP_Selector, LS_EN, LOAD, SOURCE, LS_Selector, CP_Selector, DIODE_SH, PE_OP, CP_SH, TP_Selector, E_Stop_Signal, Test_Running_I, Test_Running_II, Test_Running_III, Work_Pos_Signal, Work_Place_Operational_I, Work_Place_Operational_II, Work_Place_Operational_III, Ping_Signal, Spectroscope_Select, RCD_Select, RCD_Phase };
 
         #endregion
 
@@ -435,11 +421,7 @@ namespace ArtiluxEOL
         {
             System.Diagnostics.Debug.Print("==================== Program start ====================");
 
-            //Assign relay names (used to generate TCP commands)
-            RL11.NAME = "RL:11";
-            RL12.NAME = "RL:12";
-            RL13.NAME = "RL:13";
-            RL14.NAME = "RL:14";
+            //Assign component names (used to generate TCP commands)
             PP_Selector.NAME = "PP_SEL";
             LS_EN.NAME = "LS_EN";
             LOAD.NAME = "LOAD";
@@ -459,6 +441,9 @@ namespace ArtiluxEOL
             Work_Place_Operational_II.NAME = "WP_OP:2";
             Work_Place_Operational_III.NAME = "WP_OP:3";
             Ping_Signal.NAME = "BOARD_PING";
+            Spectroscope_Select.NAME = "SPECT_SEL";
+            RCD_Select.NAME = "RCD_CURR";
+            RCD_Phase.NAME = "RCD_PHSE";
 
             Config_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Configs");
             Workplaces_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Workplaces");
@@ -503,22 +488,7 @@ namespace ArtiluxEOL
                 p.NewLine = "\r";
                 SerPorts.Add(p);
             }
-            // sukonfiguruojam objektus
-            /*SerPorts[0].port.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.SP0_DataRx);
-            SerPorts[0].id = tb_nust_svarA1ID;//.Text.Trim().ToUpper();
-            SerPorts[1].port.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.SP1_DataRx);
-            SerPorts[1].id = tb_nust_svarA2ID;//.Text.Trim().ToUpper();
-            SerPorts[2].port.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.SP2_DataRx);
-            SerPorts[2].id = tb_nust_svarB2ID;//.Text.Trim().ToUpper();
-            SerPorts[3].port.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.SP3_DataRx);
-            SerPorts[3].id = tb_nust_svarB1ID;//.Text.Trim().ToUpper();
-            SerPorts[4].port.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.SP4_DataRx);
-            SerPorts[4].id = tb_nust_mcuID;//.Text;//.Trim().ToUpper();
-            SerPorts[5].port.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.SP5_DataRx);
-            SerPorts[5].id = tb_nust_alkotestID;//.Text.Trim().ToUpper();
-            SerPorts[6].id = new TextBox(); // sukurima tuscia*/
-
-            //tabControl1.SelectTab(3); //pradzioje rodom debug langa
+            
             #endregion
 
             DbgType.NETWORK = true;
@@ -562,17 +532,12 @@ namespace ArtiluxEOL
             Test_States.Add(new EVSETestState());
             Test_States.Add(new EVSETestState());
 
-            //Turn monitors off and on
-            //SendMessage(this.Handle.ToInt32(), WM_SYSCOMMAND, SC_MONITORPOWER, 2);
-            //Thread.Sleep(3000);
-            //SendMessage(this.Handle.ToInt32(), WM_SYSCOMMAND, SC_MONITORPOWER, -1);
-
             /*
             
             Skaitiklis
             Skaitiklis rodo kai vieta neveikia
             EVSE Done_Loading
-
+            
             */
 
             //For testing
@@ -588,6 +553,8 @@ namespace ArtiluxEOL
             ManageFormWindowsPositions();
             PingMainBoard();
             TestManager();
+            Update_controls();
+            Check_Network_Devices_Sates();
         }
 
         #region Tests
@@ -2640,18 +2607,6 @@ namespace ArtiluxEOL
             panelTestResult.Controls.Clear();
         }
 
-        private void Tm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            /*string x = ((Form)sender).Text;
-            var mt = mtlist.FirstOrDefault(it => it.MonitorIds.Contains(x.Substring(5)));
-            if (mt != null)
-            {
-
-                Label lbl_text = this.Controls.Find("label" + mt.Id, true).FirstOrDefault() as Label;
-                lbl_text.Text = lbl_text.Text + " " + x.Substring(0, 4);
-            }*/
-        }
-
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
@@ -2661,13 +2616,12 @@ namespace ArtiluxEOL
             MonitorSetup();
 
             ip_texbox_show();//irenginiu IP adresu nustatymas
-            //serial port init
             load_dev_control();
 
             devList.DevEvse = new DevEvse_struc[3];//label pointeris
 
 
-            /*  PWR relay, EVSE mode, EVSE fault  */
+            //  PWR relay, EVSE mode, EVSE fault
             int x_point = 70;
             int y_point = 35;
             string[] name = { "EVSE 1", "EVSE 2", "EVSE 3" };
@@ -2895,7 +2849,7 @@ namespace ArtiluxEOL
             popup.Show();
         }
 
-        #region Test progress bars
+            #region Test progress bars
 
         public void Update_Progress_Bar_RCD_Test()
         {
@@ -3107,8 +3061,12 @@ namespace ArtiluxEOL
             }
         }
 
-        #endregion
+        public static void SetState(System.Windows.Forms.ProgressBar pBar, int state)
+        {
+            SendMessage(pBar.Handle, 1040, (IntPtr)state, IntPtr.Zero);
+        }
 
+            #endregion
         #endregion
 
         #region Picoscope
@@ -3752,7 +3710,7 @@ namespace ArtiluxEOL
             }
 
         }
-        /*  EVSE FAULT TEST SELECT RADIO BTN HANDLER */
+        //  EVSE FAULT TEST SELECT RADIO BTN HANDLER
         void ev_fault_checbox_change(object sender, EventArgs e)//EVSE test lizdai, indijuojam busena
         {
             var net_dev = network_dev[NetDev_Tab.MAIN_CONTROLLER];
@@ -3860,7 +3818,7 @@ namespace ArtiluxEOL
                 }
             }
         }
-        /*  EVSE MODE SELECT RADIO BTN HANDLER */
+        //  EVSE MODE SELECT RADIO BTN HANDLER
         private void CheckEvseRadioBtn(object sender, EventArgs e)//indijuojam irangos busena
         {
             RadioButton rb = sender as RadioButton;
@@ -3883,7 +3841,7 @@ namespace ArtiluxEOL
             }
 
         }
-        /*  POWER RELAY MODE SELECT RADIO BTN HANDLER */
+        //  POWER RELAY MODE SELECT RADIO BTN HANDLER
         private void CheckRelayRadioBtn(object sender, EventArgs e)//indijuojam irangos busena
         {
             RadioButton rb = sender as RadioButton;
@@ -3964,7 +3922,7 @@ namespace ArtiluxEOL
             lizdai_checbox_change();
         }
 
-        /*  IRANGOS EN/DIS  */
+        //  IRANGOS EN/DIS
         private void ShowCheckedCheckboxes(object sender, EventArgs e)//indijuojam irangos busena
         {
             bool state = false;
@@ -4005,7 +3963,8 @@ namespace ArtiluxEOL
         }
 
         public void ip_texbox_show()
-        {//dev ip ivedino laukeliai ir devaisu enable checbox
+        {
+            //dev ip ivedino laukeliai ir devaisu enable checbox
             int cbox_y_location = 30;
             Font textbox_font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 
@@ -4104,7 +4063,6 @@ namespace ArtiluxEOL
 
                 }
 
-
                 // priskiram ip ir porta i laukus
                 if (network_dev[x].Port_1 == 0)
                 {
@@ -4115,8 +4073,6 @@ namespace ArtiluxEOL
                 {
                     TextBox_dev_info[x].Text = network_dev[x].Ip + ':' + network_dev[x].Port_0 + ':' + network_dev[x].Port_1;//ip port setings
                 }
-
-
             }
 
             lizdai_checbox_change();
@@ -4137,21 +4093,12 @@ namespace ArtiluxEOL
 
             groupBoxBarcode2.Controls.Add(evse2_params);
 
-
-
-            /* THREADS INIT */
-            //NetworkDevConn.WorkerSupportsCancellation = true;
+            // THREADS INIT
             NetworkDevConn.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.NetworkDevConn_DoWork);
             NetworkDevConn.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(NetworkThreads.NetworkDevConn_RunWorkerCompleted);
             NetworkDevConn.RunWorkerAsync();
             NetworkDevConn.WorkerSupportsCancellation = true;
             MainControllerTCP.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.MainControllerTCP_DoWork);
-            //MainControllerTCP.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(MainControllerTCP_RunWorkerCompleted);
-            //MainControllerTCP.RunWorkerAsync();
-            //NetworkDevConn.WorkerSupportsCancellation = true;
-            //MainControllerMODBUS.DoWork += new System.ComponentModel.DoWorkEventHandler(MainControllerMODBUS_DoWork);
-            //MainControllerMODBUS.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(MainControllerMODBUS_RunWorkerCompleted);
-            //MainControllerMODBUS.RunWorkerAsync();
 
             HVgen.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.HVgen_DoWork);
             Specroscope.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.Specroscope_DoWork);
@@ -4168,7 +4115,6 @@ namespace ArtiluxEOL
         {
             string str;
             string[] subs;
-            //string[] ip;
             string ip;
             bool update = false;
             int port;
@@ -4420,50 +4366,8 @@ namespace ArtiluxEOL
                             }
                         }
                     }
-                    // jai pasibaige startup seka perjugiam puslapi i pirma svarstykliu
-                    /* if ((startup) && (b == (PCportai.Count() - 1)))
-                     {
-                         tabControl.SelectTab(0); // portai pravaziavo, rodom pirma puslapi
-                         startup = false; //daugiau niekada i cia nebegryztam
-                     }*/
                 }
                 portsFoundBefore = PCportai.Length;
-            }
-
-
-            // keiciam serial portu spalva pagal statusa
-            for (int a = 0; a < 4; a++)
-            {
-                if (SerPorts[a].port_active)
-                {
-                    /*svarstykles[a].connected = true;
-                    Tara[a].connected = true;
-                    startupas_svr(a);*/
-                }
-                else
-                {
-                    /* svarstykles[a].connected = false;
-                     Tara[a].connected = false;*/
-                }
-            }
-
-            //if (a == 5)
-            // {
-            if (SerPorts[OSCIL_PORT].port_active)
-            {
-                //ijungiam mikrovaldiklis urasas zaliai
-                //lbl_osc.BackColor = Color.SpringGreen; <-- Valdymas is Main.cs > PicoThread()
-
-            }
-            else
-            {
-                //isjungiam mikrovaldiklis uzrasa zaliai
-                //lbl_osc.BackColor = Color.LightCoral; <-- Valdymas is Main.cs > PicoThread()
-                /*Tara[PORT_SVARST_A1].reset_temp();
-                Tara[PORT_SVARST_A2].reset_temp();
-                Tara[PORT_SVARST_B1].reset_temp();
-                Tara[PORT_SVARST_B2].reset_temp();*/
-
             }
 
             if (SerPorts[METERL_PORT].port_active)
@@ -4472,15 +4376,9 @@ namespace ArtiluxEOL
             }
             else
             {
-                //if (a == PORT_ALKOTEST)
-                //{
-                //Alko_serial_close_end();
                 lbl_evse.BackColor = Color.LightCoral;
-                //}
-
             }
 
-            // }
             if (send_err > 0)
             {
                 send_err--;
@@ -4503,23 +4401,16 @@ namespace ArtiluxEOL
                     try
                     {
                         SerPorts[nr].port.Write(str);
-
-                        //Console.Write(str);
-                        // Console.WriteLine(nr.ToString());
                     }
                     catch (Exception ex)
                     {
                         dbg_print(DbgType.USB, "Exc!_USB_SEND  :", Color.LightCoral);
                         Console.WriteLine(ex);
                         SerPorts[nr].port_active = false;
-                        //SerPorts[nr].port.Close();
-                        //SerPorts[nr].port.Dispose();
 
                         try
                         {
-
                             SerPorts[nr].port.Close();
-                            //this.BeginInvoke(new EventHandler(delegate { SerPorts[nr].port.Close(); }));
                         }
                         catch (Exception ex1)
                         {
@@ -4538,21 +4429,11 @@ namespace ArtiluxEOL
             else
             {
                 return false;
-                // dbg_print("inactive" + SerPorts[nr].port.PortName + " lost");
             }
         }
 
         private void tmr_5hz_Tick(object sender, EventArgs e)
         {
-            //   this.myPen = new System.Drawing.Pen(System.Drawing.Color.Black);
-            //   Pen blackPen = new Pen(Color.Black, 3);
-            //   Point point1 = new Point(0, 0);
-            //   Point point2 = new Point(1000, 1000);
-
-            //   this.g = this.CreateGraphics();
-            //   this.g.DrawLine(blackPen, point1, point2);
-            //    myPen.Dispose();
-            //    this.g.Dispose();
 
             for (int a = 0; a < 6; a++)
             {
@@ -4565,13 +4446,9 @@ namespace ArtiluxEOL
                         {
                             dbg_print(DbgType.USB, "! Port " + SerPorts[a].port.PortName + " timeout", Color.DimGray);
                             SerPorts[a].port_active = false;
-                            //SerPorts[a].port.Dispose();
                             try
                             {
-                                //frezina softas del close;
                                 SerPorts[a].port.Close();
-                                // this.BeginInvoke(new EventHandler(delegate { SerPorts[a].port.Close(); }));
-
                             }
                             catch (Exception ex)
                             {
@@ -4585,8 +4462,6 @@ namespace ArtiluxEOL
             }
         }
 
-
-        // tik [6] paskutiniam portui
         private bool try_port(string prt)
         {
             int search_dev_nr = 0;
@@ -4597,17 +4472,10 @@ namespace ArtiluxEOL
             {
                 SerPorts[nr].port.PortName = prt;
                 SerPorts[nr].port.BaudRate = 115200;
-                //SerPorts[nr].port.DataBits = 8;
-                //SerPorts[nr].port.Parity = Parity.None;
-                //SerPorts[nr].port.StopBits = StopBits.One;
 
-                // bandom atidaryti porta 
                 try
                 {
-
                     SerPorts[nr].port.Open();
-
-                    //SerPorts[nr].port.DiscardInBuffer(); // isvalom buferi
                 }
                 catch (Exception) { dbg_print(DbgType.USB, d + " ...FAIL !", Color.LightCoral); return false; }
 
@@ -4618,7 +4486,6 @@ namespace ArtiluxEOL
                 }
                 // atidarem sekmingai, siunciam ID uzklausa
                 SerPorts[nr].port_active = true;
-                //string get = send_receive("ID ?\r\n");
 
                 int all_dev_count = devices_info.GetLength(0);//kiek turim devaisu liste
                 int usb_dev_ptr = all_dev_count - serial_dev_count;//nuo katro ptr prasideda usb devaisai
@@ -4628,7 +4495,7 @@ namespace ArtiluxEOL
                     search_dev_nr++;
                     get = send_receive(devices_info[usb_dev_ptr] + "\r\n");
                     dbg_print(DbgType.USB, get, Color.DimGray);
-                    //System.Diagnostics.Debug.Print($"METREL:: = {get}");
+
                     if (get.Length > 2)
                     {
                         id = get.Substring(2, (get.Length - 2)).ToUpper().Trim();
@@ -4643,13 +4510,9 @@ namespace ArtiluxEOL
                         if (usb_dev_ptr == (all_dev_count - 1))
                         {
                             dbg_print(DbgType.USB, d + " ...TIMEOUT !", Color.Gold);
-                            //SerPorts[nr].port.Close();
-                            //SerPorts[nr].port.Dispose();
                             try
                             {
                                 SerPorts[nr].port.Close();
-                                //SerPorts[nr].port.Close();
-                                //this.BeginInvoke(new EventHandler(delegate { SerPorts[nr].port.Close(); }));
                             }
                             catch (Exception ex)
                             {
@@ -4677,7 +4540,6 @@ namespace ArtiluxEOL
 
         }
 
-        // tik [6] paskutiniam portui
         private string send_receive(string s)
         {
             string ret = "";
@@ -4693,13 +4555,12 @@ namespace ArtiluxEOL
 
                 int timeout = 30;
                 string line;
-                string newLine;
+                //string newLine;
                 // laukiam iki sekundes laiko kol gausim ID atsakyma
                 while (timeout > 0)
                 {
                     Thread.Sleep(30);
                     timeout--;
-                    //dbg_print(timeout.ToString());
                     if (SerPorts[SerPorts.Count - 1].port.IsOpen == false)
                         return "";
 
@@ -4749,22 +4610,12 @@ namespace ArtiluxEOL
             try
             {
                 temp = SerPorts[pnr].port.ReadExisting();
-
-                // string s = SerPorts[pnr].port.ReadLine().Trim().ToUpper();
-
-
-                // if (s.Length > 1)
-                // {
-                //    SerPorts[pnr].cmd.Add(s);
-                //    SerPorts[pnr].timeout = 10;
-                //}
             }
             catch (Exception ex)
             {
                 try
                 {
                     SerPorts[pnr].port.Close();
-                    //this.BeginInvoke(new EventHandler(delegate { SerPorts[pnr].port.Close(); }));
                 }
                 catch (Exception ex1)
                 {
@@ -4777,7 +4628,6 @@ namespace ArtiluxEOL
             }
 
             serial_temp[pnr] += temp.ToUpper();
-            // Console.Write(serial_temp[pnr]);
 
             int timeoutwhile = 3000;
             while (serial_temp[pnr].Contains("\r\n") && timeoutwhile > 0)
@@ -4786,7 +4636,7 @@ namespace ArtiluxEOL
                 {
                     StringReader strReader = new StringReader(serial_temp[pnr]);
                     string line = strReader.ReadLine();
-                    //Console.Write("{0}, c:{1}", line.Replace("\r\n", "AA"), line.Count());
+
                     if (line != null)
                     {
                         SerPorts[pnr].cmd.Add(line);
@@ -4804,46 +4654,7 @@ namespace ArtiluxEOL
         // sitas blokas butinas kitaip luzta nes accesinam is atskiro thread kuris generuojamas OnDataReceived
         // kodel? http://stackoverflow.com/questions/10775367/cross-thread-operation-not-valid-control-textbox1-accessed-from-a-thread-othe
         delegate void ShowWeightCallback(int svarst, float svoris);
-        /*private void display_weight(int svarst, float svoris)
-        {
-            if (this.svarstykles[svarst].InvokeRequired)
-            {
-                ShowWeightCallback d = new ShowWeightCallback(display_weight);
-                this.Invoke(d, new object[] { svarst, svoris });
-            }
-            else
-            {
-                this.svarstykles[svarst].weight = svoris;
-            }
-        }*/
-
         delegate void ShowStatusCallback(int svarst, string busena);
-
-        private void display_status(int svarst, string busena)
-        {
-            /*
-            if (this.gB_svartikles[svarst].InvokeRequired)
-            {
-                ShowStatusCallback d = new ShowStatusCallback(display_status);
-                this.Invoke(d, new object[] { svarst, busena });
-            }
-            else
-            {
-               // this.Tara[svarst].weight = svoris;
-               if (svarst== PORT_SVARST_A1)
-                { this.gB_svartikles[svarst].Text = "A1 [" + busena +"]"; }
-                if (svarst == PORT_SVARST_A2)
-                { this.gB_svartikles[svarst].Text = "A1 [" + busena + "]"; }
-                if (svarst == PORT_SVARST_B1)
-                { this.gB_svartikles[svarst].Text = "B1 [" + busena + "]"; }
-                if (svarst == PORT_SVARST_B2)
-                { this.gB_svartikles[svarst].Text = "B2 [" + busena + "]"; }
-
-            }
-            */
-            //this.InvokeEx(alcoWin.gB_svartikles[svarst].Text = "A5");
-
-        }
 
         private void SP0_DataRx(object sender, SerialDataReceivedEventArgs e)
         {
@@ -4862,7 +4673,7 @@ namespace ArtiluxEOL
                 if (c.Substring(0, 2).Equals("WG"))
                 {
                     string tempstring = c.Substring(2, (c.Length - 2)).Trim();
-                    float temp;
+                    //float temp;
                 }
             }
         }
@@ -5186,7 +4997,7 @@ namespace ArtiluxEOL
 
         public void gwinstek_handle_test_result()
         {
-            bool test_pass = false;
+            //bool test_pass = false;
             DataGridViewCellStyle style = new DataGridViewCellStyle();
 
             network_dev[DevType.GWINSTEK_HV_TESTER].State = NetDev_State.READY;
@@ -5201,7 +5012,7 @@ namespace ArtiluxEOL
 
             if (String.Equals("PASS ", split_result[1]))//lyginam stringus, ar uzsetinom parametra
             {
-                test_pass = true;
+                //test_pass = true;
                 style.BackColor = Color.SpringGreen;
                 dataGrid_HV_result.Rows[0].Cells[2].Style = style;
                 System.Diagnostics.Debug.Print($"TEST_PASS");
@@ -5292,7 +5103,7 @@ namespace ArtiluxEOL
         }
         #endregion
 
-        #region Device control tab
+        #region Device control
 
         DataGridViewComboBoxColumn CreateComboBoxWithEnums()
         {
@@ -5303,28 +5114,8 @@ namespace ArtiluxEOL
             return combo;
         }
 
-
         void load_dev_control()//irenginiu valdymo skirtukai ir lenteliu pradines reiksmes
         {
-            DataGridViewRow Row0 = (DataGridViewRow)data_grid_main_board.Rows[0].Clone();
-
-            //MAIN BOARD
-            Row0.Cells[0].Value = "Relay 11";
-            data_grid_main_board.Rows.Add(Row0);
-            Row0 = (DataGridViewRow)data_grid_main_board.Rows[0].Clone();
-            Row0.Cells[0].Value = "Relay 12";
-            data_grid_main_board.Rows.Add(Row0);
-            Row0 = (DataGridViewRow)data_grid_main_board.Rows[0].Clone();
-            Row0.Cells[0].Value = "Relay 13";
-            data_grid_main_board.Rows.Add(Row0);
-            Row0 = (DataGridViewRow)data_grid_main_board.Rows[0].Clone();
-            Row0.Cells[0].Value = "Relay 14";
-            data_grid_main_board.Rows.Add(Row0);
-
-            Main_Board_Relay11(0);
-            Main_Board_Relay12(0);
-            Main_Board_Relay13(0);
-            Main_Board_Relay14(0);
             Main_Board_LS_EN(0);
             Main_Board_LOAD(0);
             Main_Board_SOURCE(0);
@@ -5334,11 +5125,12 @@ namespace ArtiluxEOL
             CP_Selector_Set(0);
             PP_Selector_Set(0);
             TP_Selector_Set(0);
-
-            Update_data_grid();
+            Spectroscope_Selector_Set(0);
+            RCD_Selector_Set(0);
+            RCD_Phase_Set(0);
 
             // GWINSTEK 
-            Row0 = (DataGridViewRow)dataGrid_HV_test.Rows[0].Clone();
+            DataGridViewRow Row0 = (DataGridViewRow)dataGrid_HV_test.Rows[0].Clone();
             Row0.Cells[1].Value = "ACW";
             dataGrid_HV_test.Rows.Add(Row0);
             Row0 = (DataGridViewRow)dataGrid_HV_test.Rows[0].Clone();
@@ -5450,6 +5242,41 @@ namespace ArtiluxEOL
             dataGrid_Barcode3.Rows.Add(Row0);
 
         }
+
+        void Check_Network_Devices_Sates()
+        {
+            if ((NetworkThreads.unixTimeMilliseconds - TCP_Dev_State_Check_Timer) > TCP_Dev_State_Check_Delay)
+            {
+                /*int a = 0;
+                int ret = 1;
+
+                foreach (var dev in network_dev)//einam per dev lista, kurie enable ieskom tinkle, jei toki radom bandom jungtis
+                {
+                    if (dev.Enable && a < 7) //tikrinam tik jei enable, nuo 7 jau nebe tinklo devaisai - skip.
+                    {
+                        ret = Socket_.start_socket(network_dev[a], 0);
+
+                        if (ret == 0)
+                        {
+                            network_dev[a].Connected = true;
+                            device_state_indication(a, Color.SpringGreen);//jei prisijungem indikuojam zaliai
+                        }
+                        else
+                        {
+                            network_dev[a].Connected = false;
+                            device_state_indication(a, Color.LightCoral);//jei neprisijungem indikuojam raudonai
+                        }
+                    }
+
+                    a++;
+                }
+
+                update_all_device_ctrl_access();
+                TCP_Dev_State_Check_Timer = NetworkThreads.unixTimeMilliseconds;*/
+
+            }
+        }
+
         #endregion
 
         #region Siglent analyser chart
@@ -5607,48 +5434,6 @@ namespace ArtiluxEOL
         #endregion
 
         #region Main board
-
-        private void dataGrid_main_board_click(object sender, DataGridViewCellEventArgs e)
-        {
-            var net_dev = Main.main.network_dev[DevType.MAIN_CONTROLLER];
-            int set_state = 0;
-
-            System.Diagnostics.Debug.Print($"e.RowIndex: = {e.RowIndex} e.ColumnIndex: = {e.ColumnIndex}");
-
-            switch (e.ColumnIndex)
-            {
-                case 2:
-                    set_state = 1;
-                    break;
-
-                case 3:
-                    set_state = 0;
-                    break;
-            }
-
-            switch (e.RowIndex)
-            {
-                case 0:
-                    Main_Board_Relay11(set_state);
-                    break;
-
-                case 1:
-                    Main_Board_Relay12(set_state);
-                    break;
-
-                case 2:
-                    Main_Board_Relay13(set_state);
-                    break;
-
-                case 3:
-                    Main_Board_Relay14(set_state);
-                    break;
-
-            }
-
-            NetworkThreads.MAIN_Ctrl_handle();
-
-        }
 
         public void Update_controls()
         {
@@ -5899,6 +5684,100 @@ namespace ArtiluxEOL
                     }
                 }
             }
+
+            if (Spectroscope_Select.STATE == 0)
+            {
+                rad_btn_spect_EVSE_sel_1.BackColor = Color.Transparent;
+                rad_btn_spect_EVSE_sel_2.BackColor = Color.Transparent;
+                rad_btn_spect_EVSE_sel_3.BackColor = Color.Transparent;
+            }
+            else if (Spectroscope_Select.STATE == 1)
+            {
+                rad_btn_spect_EVSE_sel_1.BackColor = Color.LightGreen;
+                rad_btn_spect_EVSE_sel_2.BackColor = Color.Transparent;
+                rad_btn_spect_EVSE_sel_3.BackColor = Color.Transparent;
+            }
+            else if (Spectroscope_Select.STATE == 2)
+            {
+                rad_btn_spect_EVSE_sel_1.BackColor = Color.Transparent;
+                rad_btn_spect_EVSE_sel_2.BackColor = Color.LightGreen;
+                rad_btn_spect_EVSE_sel_3.BackColor = Color.Transparent;
+            }
+            else if (Spectroscope_Select.STATE == 3)
+            {
+                rad_btn_spect_EVSE_sel_1.BackColor = Color.Transparent;
+                rad_btn_spect_EVSE_sel_2.BackColor = Color.Transparent;
+                rad_btn_spect_EVSE_sel_3.BackColor = Color.LightGreen;
+            }
+            else if (Spectroscope_Select.STATE == -100 || Spectroscope_Select.STATE == -101)
+            {
+                rad_btn_spect_EVSE_sel_1.BackColor = Color.IndianRed;
+                rad_btn_spect_EVSE_sel_2.BackColor = Color.IndianRed;
+                rad_btn_spect_EVSE_sel_3.BackColor = Color.IndianRed;
+            }
+            else
+            {
+                rad_btn_spect_EVSE_sel_1.BackColor = Color.Orange;
+                rad_btn_spect_EVSE_sel_2.BackColor = Color.Orange;
+                rad_btn_spect_EVSE_sel_3.BackColor = Color.Orange;
+            }
+
+            if (RCD_Select.STATE >= 0)
+            {
+                label_RCD_current.Text = RCD_Select.STATE.ToString();
+                label_RCD_current.BackColor = Color.LightGreen;
+            }
+            else if (RCD_Select.STATE == -100 || RCD_Select.STATE == -101)
+            {
+                label_RCD_current.Text = "-";
+                label_RCD_current.BackColor = Color.IndianRed;
+            }
+            else
+            {
+                label_RCD_current.Text = "-";
+                label_RCD_current.BackColor = Color.Orange;
+            }
+
+            if (RCD_Phase.STATE >= 0)
+            {
+                if (RCD_Phase.STATE == 1)
+                {
+                    radioButton_RCD_L1.BackColor = Color.LightGreen;
+                    radioButton_RCD_L2.BackColor = Color.Transparent;
+                    radioButton_RCD_L3.BackColor = Color.Transparent;
+                }
+                else if (RCD_Phase.STATE == 2)
+                {
+                    radioButton_RCD_L1.BackColor = Color.Transparent;
+                    radioButton_RCD_L2.BackColor = Color.LightGreen;
+                    radioButton_RCD_L3.BackColor = Color.Transparent;
+                }
+                else if (RCD_Phase.STATE == 3)
+                {
+                    radioButton_RCD_L1.BackColor = Color.Transparent;
+                    radioButton_RCD_L2.BackColor = Color.Transparent;
+                    radioButton_RCD_L3.BackColor = Color.LightGreen;
+                }
+                else
+                {
+                    radioButton_RCD_L1.BackColor = Color.Transparent;
+                    radioButton_RCD_L2.BackColor = Color.Transparent;
+                    radioButton_RCD_L3.BackColor = Color.Transparent;
+                }
+            }
+            else if (RCD_Phase.STATE == -100 || RCD_Phase.STATE == -101)
+            {
+                radioButton_RCD_L1.BackColor = Color.IndianRed;
+                radioButton_RCD_L2.BackColor = Color.IndianRed;
+                radioButton_RCD_L3.BackColor = Color.IndianRed;
+            }
+            else
+            {
+                radioButton_RCD_L1.BackColor = Color.Orange;
+                radioButton_RCD_L2.BackColor = Color.Orange;
+                radioButton_RCD_L3.BackColor = Color.Orange;
+            }
+
         }
 
         private IEnumerable<Control> GetControlHierarchy(Control root)
@@ -5918,60 +5797,6 @@ namespace ArtiluxEOL
 
             } while (queue.Count > 0);
 
-        }
-
-        public void Update_data_grid()
-        {
-            DataGridViewRow Row;
-            BinaryComponent RL = RL11;
-
-            for (int i = 0; i < 4; i++)
-            {
-                switch (i)
-                {
-                    case 0:
-                        RL = RL11;
-                        break;
-
-                    case 1:
-                        RL = RL12;
-                        break;
-
-                    case 2:
-                        RL = RL13;
-                        break;
-
-                    case 3:
-                        RL = RL14;
-                        break;
-                }
-
-                if (i < data_grid_main_board.Rows.Count)//Sometimes throws an exeption when closing the program, i is never more than data_grid_main_board.Rows count
-                {
-                    Row = (DataGridViewRow)data_grid_main_board.Rows[i];
-
-                    if (RL.STATE == 0)
-                    {
-                        Row.Cells[1].Value = "OFF";
-                        Row.Cells[1].Style.BackColor = Color.LightBlue;
-                    }
-                    else if (RL.STATE == 1)
-                    {
-                        Row.Cells[1].Value = "ON";
-                        Row.Cells[1].Style.BackColor = Color.LightGreen;
-                    }
-                    else if (RL.STATE < 0)
-                    {
-                        Row.Cells[1].Value = "ERROR";
-                        Row.Cells[1].Style.BackColor = Color.IndianRed;
-                    }
-                    else
-                    {
-                        Row.Cells[1].Value = "-";
-                        Row.Cells[1].Style.BackColor = Color.Orange;
-                    }
-                }
-            }
         }
 
         public void Main_Board_Set_Command_ID(object targ)
@@ -6057,38 +5882,6 @@ namespace ArtiluxEOL
             Work_Place_Operational_III.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
         }
 
-        public void Main_Board_Relay11(int en)
-        {
-            RL11.SET = en;//Assign requred state
-            RL11.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
-            Main_Board_Set_Command_ID(RL11);//Assign an ID for this command
-            RL11.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
-        }
-
-        public void Main_Board_Relay12(int en)
-        {
-            RL12.SET = en;//Assign requred state
-            RL12.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
-            Main_Board_Set_Command_ID(RL12);//Assign an ID for this command
-            RL12.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
-        }
-
-        public void Main_Board_Relay13(int en)
-        {
-            RL13.SET = en;//Assign requred state
-            RL13.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
-            Main_Board_Set_Command_ID(RL13);//Assign an ID for this command
-            RL13.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
-        }
-
-        public void Main_Board_Relay14(int en)
-        {
-            RL14.SET = en;//Assign requred state
-            RL14.STATE = 10;//STATE = 10: waiting for main board responce ("OK")
-            Main_Board_Set_Command_ID(RL14);//Assign an ID for this command
-            RL14.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
-        }
-
         public void PP_Selector_Set(int set)
         {
             PP_Selector.SET = set;//Assign requred state
@@ -6167,6 +5960,30 @@ namespace ArtiluxEOL
             TP_Selector.STATE = -10;//STATE = -10: waiting for main board responce ("OK")
             Main_Board_Set_Command_ID(TP_Selector);//Assign an ID for this command
             TP_Selector.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void Spectroscope_Selector_Set(int set)
+        {
+            Spectroscope_Select.SET = set;//Assign requred state
+            Spectroscope_Select.STATE = -10;//STATE = -10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(Spectroscope_Select);//Assign an ID for this command
+            Spectroscope_Select.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void RCD_Selector_Set(int set)
+        {
+            RCD_Select.SET = set;//Assign requred state
+            RCD_Select.STATE = -10;//STATE = -10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(RCD_Select);//Assign an ID for this command
+            RCD_Select.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
+        }
+
+        public void RCD_Phase_Set(int set)
+        {
+            RCD_Phase.SET = set;//Assign requred state
+            RCD_Phase.STATE = -10;//STATE = -10: waiting for main board responce ("OK")
+            Main_Board_Set_Command_ID(RCD_Phase);//Assign an ID for this command
+            RCD_Phase.ATTEMPTS = 0;//Reset the tracker for number of times a command was sent repeatedly
         }
 
         public void PingMainBoard()
@@ -6271,10 +6088,6 @@ namespace ArtiluxEOL
 
         private void button6_Click(object sender, EventArgs e)
         {
-            /*network_dev[DevType.ITECH_LOAD].Cmd = "MEAS?";//test select komandos formavimas
-            Socket_.send_socket(network_dev[DevType.ITECH_LOAD], network_dev[DevType.ITECH_LOAD].Cmd);
-            network_dev[DevType.ITECH_LOAD].SendReceiveState = NetDev_SendState.SEND_BEGIN;*/
-
             network_dev[DevType.ITECH_LOAD].State = NetDev_State.GET_PARAM_ALL;
             network_dev[DevType.ITECH_LOAD].GetSetParamLeft = NetworkThreads.Itech_load_param_get_type.Length;
             NetworkThreads.ITECH_LOAD_handle_get_params();
@@ -6291,10 +6104,15 @@ namespace ArtiluxEOL
                 case NetDev_Tab.HW_TESTER:
                     break;
                 case NetDev_Tab.SIGLENT:
-                    network_dev[DevType.ANALYSER_SIGLENT].State = NetDev_State.GET_PARAM_ALL;
-                    network_dev[DevType.ANALYSER_SIGLENT].GetSetParamLeft = 3;
-                    network_dev[DevType.ANALYSER_SIGLENT].GetSetParamCount = 3;
-                    NetworkThreads.Spectroscope_handle_get_params();
+
+                    if (network_dev[DevType.ANALYSER_SIGLENT].Connected)
+                    {
+                        network_dev[DevType.ANALYSER_SIGLENT].State = NetDev_State.GET_PARAM_ALL;
+                        network_dev[DevType.ANALYSER_SIGLENT].GetSetParamLeft = 3;
+                        network_dev[DevType.ANALYSER_SIGLENT].GetSetParamCount = 3;
+                        NetworkThreads.Spectroscope_handle_get_params();
+                    }
+
                     break;
                 case NetDev_Tab.ITECH_LOAD:
                     break;
@@ -6378,6 +6196,85 @@ namespace ArtiluxEOL
         private void button_reset_modular_III_Click(object sender, EventArgs e)
         {
             Reset_Work_Position(2);
+        }
+
+        private void rad_btn_spect_EVSE_sel_1_CheckedChanged(object sender, EventArgs e)
+        {
+            Spectroscope_Selector_Set(1);
+        }
+
+        private void rad_btn_spect_EVSE_sel_2_CheckedChanged(object sender, EventArgs e)
+        {
+            Spectroscope_Selector_Set(2);
+        }
+
+        private void rad_btn_spect_EVSE_sel_3_CheckedChanged(object sender, EventArgs e)
+        {
+            Spectroscope_Selector_Set(3);
+        }
+
+        private void button_RCD_set_Click(object sender, EventArgs e)
+        {
+            int val;
+
+            if (int.TryParse(RCD_textBox.Text, out val))
+            {
+                if (val < 0)
+                {
+                    val = 0;
+                    RCD_textBox.Text = "0";
+                }
+                else if (val > 63)
+                {
+                    val = 63;
+                    RCD_textBox.Text = "63";
+                }
+
+                RCD_Selector_Set(val);
+            }
+            else if (RCD_Select.STATE >= 0)
+            {
+                RCD_textBox.Text = RCD_Select.STATE.ToString();
+            }
+            else
+            {
+                RCD_textBox.Text = "";
+            }
+        }
+
+        private void RCD_sel_plus_Click(object sender, EventArgs e)
+        {
+            int selCurr = RCD_Select.STATE;
+
+            if (selCurr >= 0 && selCurr < 63)
+            {
+                RCD_Selector_Set((selCurr + 1));
+            }
+        }
+
+        private void RCD_sel_minus_Click(object sender, EventArgs e)
+        {
+            int selCurr = RCD_Select.STATE;
+
+            if (selCurr > 0)
+            {
+                RCD_Selector_Set((selCurr - 1));
+            }
+        }
+
+        private void radioButton_RCD_L1_CheckedChanged(object sender, EventArgs e)
+        {
+            RCD_Phase_Set(1);
+        }
+
+        private void radioButton_RCD_L2_CheckedChanged(object sender, EventArgs e)
+        {
+            RCD_Phase_Set(2);
+        }
+
+        private void radioButton_RCD_L3_CheckedChanged(object sender, EventArgs e)
+        {
+            RCD_Phase_Set(3);
         }
 
         #endregion

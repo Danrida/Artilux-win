@@ -22,25 +22,15 @@ namespace MonitorsTest.Models
     public class EVSETestState
     {
         public bool Done_Loading { get; set; }//Has the EVSE finished booting
-
         public int Testing_State { get; set; }//State of all tests for this EVSE- TestState class
-
         public int EVSE_Communication_Test { get; set; }//TestState class
-
         public int Load_Test { get; set; }//TestState class
-
         public int HV_Test { get; set; }//TestState class
-
         public int WIFI_Test { get; set; }//TestState class
-
         public int GSM_Test { get; set; }//TestState class
-
         public int RFID_Test { get; set; }//TestState class
-
         public int RCD_Test { get; set; }//TestState class
-
         public string Fail_Reason { get; set; }//Extra text displayed in test state
-
         public long Test_Start_Time { get; set; }//Unix time in milliseconds when testing had started
 
     }
@@ -76,31 +66,24 @@ namespace MonitorsTest.Models
         public bool ReceiveRunning { get; set; }
         public bool Enable { get; set; }
         public bool Connected { get; set; }
-
         public string Cmd { get; set; }
         public string Resp { get; set; }
         public int RespPktCount { get; set; }
-
         public string TestParam { get; set; }
         public bool NewResp { get; set; }
-
         public int ReceiveWaitSec { get; set; }
-
         public long TimeStamp { get; set; }
         public bool NewSendData { get; set; }
         public int SendReceiveState { get; set; }
         public int CmdRetransmitCnt { get; set; }
         public int PingPktTmrCnt { get; set; }
         public int GetSetParamCount { get; set; }
-
         public int GetSetParamLeft { get; set; }
-
         public int TestType { get; set; }
-
         public string[] device_param { get; set; }
     }
 
-    public static class TestType
+    /*public static class TestType
     {
         public const int HV_ATSPARUMAS = 0;
         public const int HV_PRAMUSIMAS = 1;
@@ -112,9 +95,9 @@ namespace MonitorsTest.Models
         public const int WIFI = 7;
         public const int GSM = 8;
         
-    }
+    }*/
 
-    public static class SubstateTestState
+    /*public static class SubstateTestState
     {
         public const int NONE = 0;
         public const int CONNECT_TO_TESTER = 1;
@@ -122,23 +105,9 @@ namespace MonitorsTest.Models
         public const int SET_TEST_PARAMS = 3;
         public const int TESTING = 4;
         public const int TEST_DONE = 5;
-    }
-
-    /*public static class EvseTestState
-    {
-        public const int NONE = 0;
-        //public const int TEST_STARTING = 1;
-        public const int TEST_SELECT = 2;
-        public const int TEST_STARTING = 3;
-        public const int TEST_IN_PROGRESS = 4;
-        public const int TEST_FINISHED = 5;
-        public const int ALL_TESTS_FINISHED = 6;
-
-
-        public const int ERR = 115;
     }*/
 
-    public static class CurrentTestState
+    /*public static class CurrentTestState
     {
         public const int NONE = 0;
         public const int USING = 1;
@@ -154,7 +123,7 @@ namespace MonitorsTest.Models
 
 
         public const int ERR = 115;
-    }
+    }*/
 
     public struct TestType_struc
     {
@@ -163,7 +132,6 @@ namespace MonitorsTest.Models
         public int time_in_sec;
         public int state;
         public bool result;
-        
     }
 
     public struct Test_struc
@@ -174,10 +142,8 @@ namespace MonitorsTest.Models
         public int tests_remaining;
         public int time_total;
         public int all_tests_state;
-        //public string test_time;
         public int result;
         public TestType_struc[] test_type;
-
     }
 
     public struct LoadLine_struc
@@ -237,7 +203,6 @@ namespace MonitorsTest.Models
         public const int EVSE_NOT_CONNECTED = 0;
         public const int EVSE_WAIT_CONNECT = 14;
         public const int EVSE_CONNECTED = 15;
-        
         public const int ERR = 115;
     }
 
@@ -253,7 +218,6 @@ namespace MonitorsTest.Models
         public const int GET_METER = 7;
         public const int GET_RFID = 8;
         public const int RELAY_OFF = 9;
-
         public const int ERR = 115;
     }
 
@@ -370,7 +334,6 @@ namespace MonitorsTest.Models
         public const int STOP_X = 1;
         public const int ATTENUATION = 2;
         public const int ITECH_LOAD = 3;
-
         public const int Y_MIN = 13;
         public const int Y_MAX = 14;
         public const int X_INTERVAL = 15;
@@ -403,5 +366,4 @@ namespace MonitorsTest.Models
         public const int BARCODE_2 = 5;
         public const int BARCODE_3 = 6;
     }
-
 }

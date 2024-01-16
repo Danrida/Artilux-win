@@ -35,8 +35,6 @@ namespace ArtiluxEOL
 
         public string[] Itech_hv_test_type = new string[] { "ACW", "IR", "CONT" };
 
-        public string[] Main_board_rl_command = new string[] {":RL:MAIN:", ":RL:11:", ":RL:12:", ":RL:13:", ":RL:14:", ":LS:", ":LS_EN:", ":LOAD:", ":SOURCE:", ":PP_SEL:", ":CP_SEL:", ":DIODE_SH:", ":PE_OP:", ":CP_SH:"};
-
         string[,] Itech_hv_test_list = new string[,]
         {
             {"VOLT", "CHIS", "CLOS","REF", "TTIM"},
@@ -77,17 +75,6 @@ namespace ArtiluxEOL
         SocketClient Socket_ = new SocketClient();
 
         public DevList dev_list;
-
-        /*public NetworkThreads(IContainer container)
-        {
-            container.Add(this);
-
-            InitializeComponent();
-
-            //dev_list = Main.main.devList;
-
-            
-        }*/
 
         #region <ieskom tinklo devaisu>
 
@@ -143,27 +130,12 @@ namespace ArtiluxEOL
             System.Diagnostics.Debug.Print($"Connect_network_periphery:");
             try
             {
-                //Socket_.socket_ping(Main.main.network_dev[a], 0);//ar turim tinkle musu devaisa
-
                 foreach (var dev in Main.main.network_dev)//einam per dev lista, kurie enable ieskom tinkle, jei toki radom bandom jungtis
                 {
 
                     if (dev.Enable && !dev.Connected && a < 7) //tikrinam tik jei enable, nuo 7 jau nebe tinklo devaisai - skip.
                     {
-                        /*if (Socket_.socket_ping(Main.main.network_dev[a], 0))//ar turim tinkle musu devaisa
-                        {
-                            System.Diagnostics.Debug.Print($"Ping_ok: {Main.main.network_dev[a].Name}");
-                        }*/
-                        
                         ret = Socket_.start_socket(Main.main.network_dev[a], 0);
-
-                        /*if (network_dev[a].Port_1 > 0)// jei devaisas turi antra porta ieskom, jei randam jungiames
-                        {
-                            //if (Socket_.socket_ping(network_dev[a], 1))//ar turim tinkle musu devaisa
-                           // {
-                                ret = Socket_.start_socket(network_dev[a], 1);
-                            //}
-                        }*/
 
                         if (ret == 0)
                         {
@@ -204,9 +176,8 @@ namespace ArtiluxEOL
                                     break;
                             }
                         }
-
-                        //}
                     }
+
                     a++;
                 }
                 Main.main.update_all_device_ctrl_access();
@@ -246,7 +217,6 @@ namespace ArtiluxEOL
         {
             int result = 0;
             bool connection_closed = false;
-            //int ptr = 0;
 
             var net_dev = Main.main.network_dev[DevType.MAIN_CONTROLLER];
             var main_func = Main.main;
@@ -297,9 +267,6 @@ namespace ArtiluxEOL
             string[] split;//Stores the split strings from the main board responces
             int respID = -1;//Stores responce ID
             int nmrcResp = -1;//Stores numeric responce
-
-            Main.main.Update_data_grid();
-            Main.main.Update_controls();
 
             if (net_dev.NewResp)//There is a new responce from the main board
             {
@@ -514,9 +481,6 @@ namespace ArtiluxEOL
                                 {
                                     System.Diagnostics.Debug.Print($"Unhandled responce from main controller: {net_dev.Resp}");
                                 }
-
-                                Main.main.Update_data_grid();
-
                             }
                             else
                             {
@@ -3477,13 +3441,7 @@ namespace ArtiluxEOL
                                 {
                                     if (stepPass)
                                     {
-                                        /*Main.Load_Test_State++;
-                                        Main.Load_Test_One_Call = false;
-                                        Main.Load_Test_Cmd_Attempts = 0;
-                                        net_evse.Resp = "";*/
-
                                         System.Diagnostics.Debug.Print("All good- reset");
-                                        //Main.Load_Test_State = -2;
                                     }
                                     else
                                     {
@@ -3723,8 +3681,6 @@ namespace ArtiluxEOL
             float start;
             float stop;
 
-            //int param = 0;
-
             DataGridViewRow Row;
             int Row_cnt = Main.main.dataGrid_Spectrum.Rows.Count;//get table row by test type
 
@@ -3734,8 +3690,6 @@ namespace ArtiluxEOL
                     if (net_dev.NewResp)
                     {
                         net_dev.NewResp = false;
-                        //Main.main.dbg_print(DbgType.MAIN, "ping_CMD: Siglent", Color.DarkRed);
-                        //Debug.Print($"ping_CMD:{net_dev.Resp}");
                         Main.main.dbg_print(DbgType.PING, "ping:" + net_dev.Resp, Color.Blue);
                     }
                     
@@ -3749,7 +3703,6 @@ namespace ArtiluxEOL
                             net_dev.Cmd = "TRAC:DATA?";
                             Socket_.send_socket(net_dev, net_dev.Cmd);
                             net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
-                            //net_dev.SubState = NetDev_State.READY;
                             break;
                         case NetDev_Test.PROCESS_CHART_DATA:
                             if (net_dev.NewResp)
@@ -3781,7 +3734,6 @@ namespace ArtiluxEOL
                     }
                     break;
                 case NetDev_State.END_TEST:
-                    //Main.main.gwinstek_handle_test_result();
 
                     break;
                 case NetDev_State.SELECT_TEST:

@@ -33,20 +33,23 @@ namespace ArtiluxEOL
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle33 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle34 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle35 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle36 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend5 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle37 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle38 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle39 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle40 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle25 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle26 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle27 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle28 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle29 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle30 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle31 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle32 = new System.Windows.Forms.DataGridViewCellStyle();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.button_reset_modular_III = new System.Windows.Forms.Button();
+            this.button_reset_modular_II = new System.Windows.Forms.Button();
+            this.button_reset_modular_I = new System.Windows.Forms.Button();
             this.Test_lizdas_3 = new System.Windows.Forms.GroupBox();
             this.lbl_evse3 = new System.Windows.Forms.Label();
             this.lbl_barcode_3 = new System.Windows.Forms.Label();
@@ -114,11 +117,6 @@ namespace ArtiluxEOL
             this.groupBox_pp_select = new System.Windows.Forms.GroupBox();
             this.groupBox_tp_select = new System.Windows.Forms.GroupBox();
             this.groupBox_checks = new System.Windows.Forms.GroupBox();
-            this.data_grid_main_board = new System.Windows.Forms.DataGridView();
-            this.CMD = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Column23 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Column24 = new System.Windows.Forms.DataGridViewButtonColumn();
-            this.Column25 = new System.Windows.Forms.DataGridViewButtonColumn();
             this.tabPage7 = new System.Windows.Forms.TabPage();
             this.btn_stop = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
@@ -140,6 +138,10 @@ namespace ArtiluxEOL
             this.Column4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tabPage6 = new System.Windows.Forms.TabPage();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.rad_btn_spect_EVSE_sel_3 = new System.Windows.Forms.RadioButton();
+            this.rad_btn_spect_EVSE_sel_2 = new System.Windows.Forms.RadioButton();
+            this.rad_btn_spect_EVSE_sel_1 = new System.Windows.Forms.RadioButton();
             this.dataGrid_Spectrum = new System.Windows.Forms.DataGridView();
             this.Column18 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column19 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -225,9 +227,15 @@ namespace ArtiluxEOL
             this.textBox_pulse_length = new System.Windows.Forms.TextBox();
             this.label22 = new System.Windows.Forms.Label();
             this.label_Estop = new System.Windows.Forms.Label();
-            this.button_reset_modular_I = new System.Windows.Forms.Button();
-            this.button_reset_modular_II = new System.Windows.Forms.Button();
-            this.button_reset_modular_III = new System.Windows.Forms.Button();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.RCD_sel_minus = new System.Windows.Forms.Button();
+            this.RCD_sel_plus = new System.Windows.Forms.Button();
+            this.RCD_textBox = new System.Windows.Forms.TextBox();
+            this.button_RCD_set = new System.Windows.Forms.Button();
+            this.label_RCD_current = new System.Windows.Forms.Label();
+            this.radioButton_RCD_L1 = new System.Windows.Forms.RadioButton();
+            this.radioButton_RCD_L2 = new System.Windows.Forms.RadioButton();
+            this.radioButton_RCD_L3 = new System.Windows.Forms.RadioButton();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.Test_lizdas_3.SuspendLayout();
@@ -249,11 +257,11 @@ namespace ArtiluxEOL
             this.tabPage4.SuspendLayout();
             this.tabControl2.SuspendLayout();
             this.tabPage5.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.data_grid_main_board)).BeginInit();
             this.tabPage7.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGrid_HV_result)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGrid_HV_test)).BeginInit();
             this.tabPage6.SuspendLayout();
+            this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGrid_Spectrum)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
             this.tabPage8.SuspendLayout();
@@ -268,6 +276,7 @@ namespace ArtiluxEOL
             ((System.ComponentModel.ISupportInitialize)(this.dataGrid_Barcode1)).BeginInit();
             this.debug_tab.SuspendLayout();
             this.panelTestResult.SuspendLayout();
+            this.groupBox3.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -313,6 +322,36 @@ namespace ArtiluxEOL
             this.tabPage1.Size = new System.Drawing.Size(984, 613);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Pagrindinis";
+            // 
+            // button_reset_modular_III
+            // 
+            this.button_reset_modular_III.Location = new System.Drawing.Point(760, 243);
+            this.button_reset_modular_III.Name = "button_reset_modular_III";
+            this.button_reset_modular_III.Size = new System.Drawing.Size(117, 37);
+            this.button_reset_modular_III.TabIndex = 16;
+            this.button_reset_modular_III.Text = "Reset";
+            this.button_reset_modular_III.UseVisualStyleBackColor = true;
+            this.button_reset_modular_III.Click += new System.EventHandler(this.button_reset_modular_III_Click);
+            // 
+            // button_reset_modular_II
+            // 
+            this.button_reset_modular_II.Location = new System.Drawing.Point(548, 243);
+            this.button_reset_modular_II.Name = "button_reset_modular_II";
+            this.button_reset_modular_II.Size = new System.Drawing.Size(117, 37);
+            this.button_reset_modular_II.TabIndex = 15;
+            this.button_reset_modular_II.Text = "Reset";
+            this.button_reset_modular_II.UseVisualStyleBackColor = true;
+            this.button_reset_modular_II.Click += new System.EventHandler(this.button_reset_modular_II_Click);
+            // 
+            // button_reset_modular_I
+            // 
+            this.button_reset_modular_I.Location = new System.Drawing.Point(357, 243);
+            this.button_reset_modular_I.Name = "button_reset_modular_I";
+            this.button_reset_modular_I.Size = new System.Drawing.Size(117, 37);
+            this.button_reset_modular_I.TabIndex = 14;
+            this.button_reset_modular_I.Text = "Reset";
+            this.button_reset_modular_I.UseVisualStyleBackColor = true;
+            this.button_reset_modular_I.Click += new System.EventHandler(this.button_reset_modular_I_Click);
             // 
             // Test_lizdas_3
             // 
@@ -1042,12 +1081,12 @@ namespace ArtiluxEOL
             // 
             // tabPage5
             // 
+            this.tabPage5.Controls.Add(this.groupBox3);
             this.tabPage5.Controls.Add(this.groupBox_evse_state);
             this.tabPage5.Controls.Add(this.groupBox_main_relay);
             this.tabPage5.Controls.Add(this.groupBox_pp_select);
             this.tabPage5.Controls.Add(this.groupBox_tp_select);
             this.tabPage5.Controls.Add(this.groupBox_checks);
-            this.tabPage5.Controls.Add(this.data_grid_main_board);
             this.tabPage5.Location = new System.Drawing.Point(4, 31);
             this.tabPage5.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage5.Name = "tabPage5";
@@ -1070,7 +1109,7 @@ namespace ArtiluxEOL
             // 
             // groupBox_main_relay
             // 
-            this.groupBox_main_relay.Location = new System.Drawing.Point(32, 256);
+            this.groupBox_main_relay.Location = new System.Drawing.Point(32, 258);
             this.groupBox_main_relay.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox_main_relay.Name = "groupBox_main_relay";
             this.groupBox_main_relay.Padding = new System.Windows.Forms.Padding(2);
@@ -1111,54 +1150,6 @@ namespace ArtiluxEOL
             this.groupBox_checks.TabIndex = 3;
             this.groupBox_checks.TabStop = false;
             this.groupBox_checks.Text = "CHECKS";
-            // 
-            // data_grid_main_board
-            // 
-            this.data_grid_main_board.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.data_grid_main_board.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.CMD,
-            this.Column23,
-            this.Column24,
-            this.Column25});
-            this.data_grid_main_board.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
-            this.data_grid_main_board.Location = new System.Drawing.Point(32, 376);
-            this.data_grid_main_board.Name = "data_grid_main_board";
-            this.data_grid_main_board.RowHeadersWidth = 51;
-            this.data_grid_main_board.Size = new System.Drawing.Size(700, 150);
-            this.data_grid_main_board.TabIndex = 1;
-            this.data_grid_main_board.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGrid_main_board_click);
-            // 
-            // CMD
-            // 
-            this.CMD.HeaderText = "Name";
-            this.CMD.MinimumWidth = 6;
-            this.CMD.Name = "CMD";
-            this.CMD.Width = 125;
-            // 
-            // Column23
-            // 
-            this.Column23.HeaderText = "State";
-            this.Column23.MinimumWidth = 6;
-            this.Column23.Name = "Column23";
-            this.Column23.Width = 125;
-            // 
-            // Column24
-            // 
-            this.Column24.HeaderText = "ON";
-            this.Column24.MinimumWidth = 6;
-            this.Column24.Name = "Column24";
-            this.Column24.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Column24.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.Column24.Width = 125;
-            // 
-            // Column25
-            // 
-            this.Column25.HeaderText = "OFF";
-            this.Column25.MinimumWidth = 6;
-            this.Column25.Name = "Column25";
-            this.Column25.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Column25.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.Column25.Width = 125;
             // 
             // tabPage7
             // 
@@ -1208,15 +1199,15 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn4,
             this.dataGridViewTextBoxColumn5,
             this.dataGridViewTextBoxColumn6});
-            dataGridViewCellStyle33.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle33.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle33.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle33.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle33.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle33.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle33.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle33.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGrid_HV_result.DefaultCellStyle = dataGridViewCellStyle33;
+            dataGridViewCellStyle25.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle25.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle25.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle25.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle25.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle25.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle25.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle25.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGrid_HV_result.DefaultCellStyle = dataGridViewCellStyle25;
             this.dataGrid_HV_result.Location = new System.Drawing.Point(2, 270);
             this.dataGrid_HV_result.Margin = new System.Windows.Forms.Padding(2);
             this.dataGrid_HV_result.Name = "dataGrid_HV_result";
@@ -1279,8 +1270,8 @@ namespace ArtiluxEOL
             // dataGrid_HV_test
             // 
             this.dataGrid_HV_test.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle34.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_HV_test.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle34;
+            dataGridViewCellStyle26.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_HV_test.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle26;
             this.dataGrid_HV_test.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_HV_test.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_HV_test.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1300,8 +1291,8 @@ namespace ArtiluxEOL
             this.dataGrid_HV_test.Name = "dataGrid_HV_test";
             this.dataGrid_HV_test.RowHeadersVisible = false;
             this.dataGrid_HV_test.RowHeadersWidth = 51;
-            dataGridViewCellStyle35.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_HV_test.RowsDefaultCellStyle = dataGridViewCellStyle35;
+            dataGridViewCellStyle27.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_HV_test.RowsDefaultCellStyle = dataGridViewCellStyle27;
             this.dataGrid_HV_test.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_HV_test.RowTemplate.Height = 35;
             this.dataGrid_HV_test.Size = new System.Drawing.Size(797, 188);
@@ -1388,6 +1379,7 @@ namespace ArtiluxEOL
             // 
             // tabPage6
             // 
+            this.tabPage6.Controls.Add(this.groupBox2);
             this.tabPage6.Controls.Add(this.dataGrid_Spectrum);
             this.tabPage6.Controls.Add(this.button7);
             this.tabPage6.Controls.Add(this.chart1);
@@ -1400,20 +1392,68 @@ namespace ArtiluxEOL
             this.tabPage6.Text = "  SPECTRUM  ";
             this.tabPage6.UseVisualStyleBackColor = true;
             // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.rad_btn_spect_EVSE_sel_3);
+            this.groupBox2.Controls.Add(this.rad_btn_spect_EVSE_sel_2);
+            this.groupBox2.Controls.Add(this.rad_btn_spect_EVSE_sel_1);
+            this.groupBox2.Location = new System.Drawing.Point(239, 422);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(386, 68);
+            this.groupBox2.TabIndex = 9;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "EVSE";
+            // 
+            // rad_btn_spect_EVSE_sel_3
+            // 
+            this.rad_btn_spect_EVSE_sel_3.AutoSize = true;
+            this.rad_btn_spect_EVSE_sel_3.Location = new System.Drawing.Point(286, 30);
+            this.rad_btn_spect_EVSE_sel_3.Name = "rad_btn_spect_EVSE_sel_3";
+            this.rad_btn_spect_EVSE_sel_3.Size = new System.Drawing.Size(94, 28);
+            this.rad_btn_spect_EVSE_sel_3.TabIndex = 8;
+            this.rad_btn_spect_EVSE_sel_3.TabStop = true;
+            this.rad_btn_spect_EVSE_sel_3.Text = "EVSE 3";
+            this.rad_btn_spect_EVSE_sel_3.UseVisualStyleBackColor = true;
+            this.rad_btn_spect_EVSE_sel_3.CheckedChanged += new System.EventHandler(this.rad_btn_spect_EVSE_sel_3_CheckedChanged);
+            // 
+            // rad_btn_spect_EVSE_sel_2
+            // 
+            this.rad_btn_spect_EVSE_sel_2.AutoSize = true;
+            this.rad_btn_spect_EVSE_sel_2.Location = new System.Drawing.Point(143, 30);
+            this.rad_btn_spect_EVSE_sel_2.Name = "rad_btn_spect_EVSE_sel_2";
+            this.rad_btn_spect_EVSE_sel_2.Size = new System.Drawing.Size(94, 28);
+            this.rad_btn_spect_EVSE_sel_2.TabIndex = 7;
+            this.rad_btn_spect_EVSE_sel_2.TabStop = true;
+            this.rad_btn_spect_EVSE_sel_2.Text = "EVSE 2";
+            this.rad_btn_spect_EVSE_sel_2.UseVisualStyleBackColor = true;
+            this.rad_btn_spect_EVSE_sel_2.CheckedChanged += new System.EventHandler(this.rad_btn_spect_EVSE_sel_2_CheckedChanged);
+            // 
+            // rad_btn_spect_EVSE_sel_1
+            // 
+            this.rad_btn_spect_EVSE_sel_1.AutoSize = true;
+            this.rad_btn_spect_EVSE_sel_1.Location = new System.Drawing.Point(9, 30);
+            this.rad_btn_spect_EVSE_sel_1.Name = "rad_btn_spect_EVSE_sel_1";
+            this.rad_btn_spect_EVSE_sel_1.Size = new System.Drawing.Size(94, 28);
+            this.rad_btn_spect_EVSE_sel_1.TabIndex = 6;
+            this.rad_btn_spect_EVSE_sel_1.TabStop = true;
+            this.rad_btn_spect_EVSE_sel_1.Text = "EVSE 1";
+            this.rad_btn_spect_EVSE_sel_1.UseVisualStyleBackColor = true;
+            this.rad_btn_spect_EVSE_sel_1.CheckedChanged += new System.EventHandler(this.rad_btn_spect_EVSE_sel_1_CheckedChanged);
+            // 
             // dataGrid_Spectrum
             // 
             this.dataGrid_Spectrum.AllowUserToDeleteRows = false;
             this.dataGrid_Spectrum.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Spectrum.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.dataGrid_Spectrum.BackgroundColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle36.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle36.BackColor = System.Drawing.SystemColors.ActiveBorder;
-            dataGridViewCellStyle36.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle36.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle36.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle36.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle36.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGrid_Spectrum.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle36;
+            dataGridViewCellStyle28.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle28.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            dataGridViewCellStyle28.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle28.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle28.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle28.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle28.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGrid_Spectrum.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle28;
             this.dataGrid_Spectrum.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGrid_Spectrum.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Column18,
@@ -1454,18 +1494,18 @@ namespace ArtiluxEOL
             // 
             // chart1
             // 
-            chartArea5.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea5);
-            legend5.Name = "Legend1";
-            this.chart1.Legends.Add(legend5);
+            chartArea4.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea4);
+            legend4.Name = "Legend1";
+            this.chart1.Legends.Add(legend4);
             this.chart1.Location = new System.Drawing.Point(5, 6);
             this.chart1.Margin = new System.Windows.Forms.Padding(2);
             this.chart1.Name = "chart1";
-            series5.ChartArea = "ChartArea1";
-            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series5.Legend = "Legend1";
-            series5.Name = "Series1";
-            this.chart1.Series.Add(series5);
+            series4.ChartArea = "ChartArea1";
+            series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series4.Legend = "Legend1";
+            series4.Name = "Series1";
+            this.chart1.Series.Add(series4);
             this.chart1.Size = new System.Drawing.Size(563, 370);
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart1";
@@ -1521,8 +1561,8 @@ namespace ArtiluxEOL
             // dataGrid_Load_Line
             // 
             this.dataGrid_Load_Line.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle37.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_Line.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle37;
+            dataGridViewCellStyle29.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_Line.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle29;
             this.dataGrid_Load_Line.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Load_Line.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_Load_Line.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1539,8 +1579,8 @@ namespace ArtiluxEOL
             this.dataGrid_Load_Line.Name = "dataGrid_Load_Line";
             this.dataGrid_Load_Line.RowHeadersVisible = false;
             this.dataGrid_Load_Line.RowHeadersWidth = 51;
-            dataGridViewCellStyle38.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_Line.RowsDefaultCellStyle = dataGridViewCellStyle38;
+            dataGridViewCellStyle30.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_Line.RowsDefaultCellStyle = dataGridViewCellStyle30;
             this.dataGrid_Load_Line.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_Load_Line.RowTemplate.Height = 35;
             this.dataGrid_Load_Line.Size = new System.Drawing.Size(443, 171);
@@ -1599,8 +1639,8 @@ namespace ArtiluxEOL
             // dataGrid_Load_load
             // 
             this.dataGrid_Load_load.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle39.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_load.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle39;
+            dataGridViewCellStyle31.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_load.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle31;
             this.dataGrid_Load_load.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Load_load.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_Load_load.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1619,8 +1659,8 @@ namespace ArtiluxEOL
             this.dataGrid_Load_load.Name = "dataGrid_Load_load";
             this.dataGrid_Load_load.RowHeadersVisible = false;
             this.dataGrid_Load_load.RowHeadersWidth = 51;
-            dataGridViewCellStyle40.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_load.RowsDefaultCellStyle = dataGridViewCellStyle40;
+            dataGridViewCellStyle32.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_load.RowsDefaultCellStyle = dataGridViewCellStyle32;
             this.dataGrid_Load_load.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_Load_load.RowTemplate.Height = 35;
             this.dataGrid_Load_load.Size = new System.Drawing.Size(737, 179);
@@ -2234,35 +2274,108 @@ namespace ArtiluxEOL
             this.label_Estop.Text = "STOP";
             this.label_Estop.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // button_reset_modular_I
+            // groupBox3
             // 
-            this.button_reset_modular_I.Location = new System.Drawing.Point(357, 243);
-            this.button_reset_modular_I.Name = "button_reset_modular_I";
-            this.button_reset_modular_I.Size = new System.Drawing.Size(117, 37);
-            this.button_reset_modular_I.TabIndex = 14;
-            this.button_reset_modular_I.Text = "Reset";
-            this.button_reset_modular_I.UseVisualStyleBackColor = true;
-            this.button_reset_modular_I.Click += new System.EventHandler(this.button_reset_modular_I_Click);
+            this.groupBox3.Controls.Add(this.radioButton_RCD_L3);
+            this.groupBox3.Controls.Add(this.radioButton_RCD_L2);
+            this.groupBox3.Controls.Add(this.radioButton_RCD_L1);
+            this.groupBox3.Controls.Add(this.label_RCD_current);
+            this.groupBox3.Controls.Add(this.button_RCD_set);
+            this.groupBox3.Controls.Add(this.RCD_textBox);
+            this.groupBox3.Controls.Add(this.RCD_sel_plus);
+            this.groupBox3.Controls.Add(this.RCD_sel_minus);
+            this.groupBox3.Location = new System.Drawing.Point(32, 342);
+            this.groupBox3.Margin = new System.Windows.Forms.Padding(2);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox3.Size = new System.Drawing.Size(888, 60);
+            this.groupBox3.TabIndex = 4;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "RCD";
             // 
-            // button_reset_modular_II
+            // RCD_sel_minus
             // 
-            this.button_reset_modular_II.Location = new System.Drawing.Point(548, 243);
-            this.button_reset_modular_II.Name = "button_reset_modular_II";
-            this.button_reset_modular_II.Size = new System.Drawing.Size(117, 37);
-            this.button_reset_modular_II.TabIndex = 15;
-            this.button_reset_modular_II.Text = "Reset";
-            this.button_reset_modular_II.UseVisualStyleBackColor = true;
-            this.button_reset_modular_II.Click += new System.EventHandler(this.button_reset_modular_II_Click);
+            this.RCD_sel_minus.Location = new System.Drawing.Point(79, 17);
+            this.RCD_sel_minus.Name = "RCD_sel_minus";
+            this.RCD_sel_minus.Size = new System.Drawing.Size(55, 38);
+            this.RCD_sel_minus.TabIndex = 5;
+            this.RCD_sel_minus.Text = "<";
+            this.RCD_sel_minus.UseVisualStyleBackColor = true;
+            this.RCD_sel_minus.Click += new System.EventHandler(this.RCD_sel_minus_Click);
             // 
-            // button_reset_modular_III
+            // RCD_sel_plus
             // 
-            this.button_reset_modular_III.Location = new System.Drawing.Point(760, 243);
-            this.button_reset_modular_III.Name = "button_reset_modular_III";
-            this.button_reset_modular_III.Size = new System.Drawing.Size(117, 37);
-            this.button_reset_modular_III.TabIndex = 16;
-            this.button_reset_modular_III.Text = "Reset";
-            this.button_reset_modular_III.UseVisualStyleBackColor = true;
-            this.button_reset_modular_III.Click += new System.EventHandler(this.button_reset_modular_III_Click);
+            this.RCD_sel_plus.Location = new System.Drawing.Point(238, 17);
+            this.RCD_sel_plus.Name = "RCD_sel_plus";
+            this.RCD_sel_plus.Size = new System.Drawing.Size(55, 38);
+            this.RCD_sel_plus.TabIndex = 6;
+            this.RCD_sel_plus.Text = ">";
+            this.RCD_sel_plus.UseVisualStyleBackColor = true;
+            this.RCD_sel_plus.Click += new System.EventHandler(this.RCD_sel_plus_Click);
+            // 
+            // RCD_textBox
+            // 
+            this.RCD_textBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.RCD_textBox.Location = new System.Drawing.Point(424, 18);
+            this.RCD_textBox.Name = "RCD_textBox";
+            this.RCD_textBox.Size = new System.Drawing.Size(63, 35);
+            this.RCD_textBox.TabIndex = 7;
+            this.RCD_textBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // button_RCD_set
+            // 
+            this.button_RCD_set.Location = new System.Drawing.Point(493, 17);
+            this.button_RCD_set.Name = "button_RCD_set";
+            this.button_RCD_set.Size = new System.Drawing.Size(55, 38);
+            this.button_RCD_set.TabIndex = 8;
+            this.button_RCD_set.Text = "SET";
+            this.button_RCD_set.UseVisualStyleBackColor = true;
+            this.button_RCD_set.Click += new System.EventHandler(this.button_RCD_set_Click);
+            // 
+            // label_RCD_current
+            // 
+            this.label_RCD_current.BackColor = System.Drawing.Color.Gainsboro;
+            this.label_RCD_current.Location = new System.Drawing.Point(141, 18);
+            this.label_RCD_current.Name = "label_RCD_current";
+            this.label_RCD_current.Size = new System.Drawing.Size(91, 37);
+            this.label_RCD_current.TabIndex = 9;
+            this.label_RCD_current.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // radioButton_RCD_L1
+            // 
+            this.radioButton_RCD_L1.AutoSize = true;
+            this.radioButton_RCD_L1.Location = new System.Drawing.Point(672, 21);
+            this.radioButton_RCD_L1.Name = "radioButton_RCD_L1";
+            this.radioButton_RCD_L1.Size = new System.Drawing.Size(48, 28);
+            this.radioButton_RCD_L1.TabIndex = 10;
+            this.radioButton_RCD_L1.TabStop = true;
+            this.radioButton_RCD_L1.Text = "L1";
+            this.radioButton_RCD_L1.UseVisualStyleBackColor = true;
+            this.radioButton_RCD_L1.CheckedChanged += new System.EventHandler(this.radioButton_RCD_L1_CheckedChanged);
+            // 
+            // radioButton_RCD_L2
+            // 
+            this.radioButton_RCD_L2.AutoSize = true;
+            this.radioButton_RCD_L2.Location = new System.Drawing.Point(746, 21);
+            this.radioButton_RCD_L2.Name = "radioButton_RCD_L2";
+            this.radioButton_RCD_L2.Size = new System.Drawing.Size(48, 28);
+            this.radioButton_RCD_L2.TabIndex = 11;
+            this.radioButton_RCD_L2.TabStop = true;
+            this.radioButton_RCD_L2.Text = "L2";
+            this.radioButton_RCD_L2.UseVisualStyleBackColor = true;
+            this.radioButton_RCD_L2.CheckedChanged += new System.EventHandler(this.radioButton_RCD_L2_CheckedChanged);
+            // 
+            // radioButton_RCD_L3
+            // 
+            this.radioButton_RCD_L3.AutoSize = true;
+            this.radioButton_RCD_L3.Location = new System.Drawing.Point(820, 21);
+            this.radioButton_RCD_L3.Name = "radioButton_RCD_L3";
+            this.radioButton_RCD_L3.Size = new System.Drawing.Size(48, 28);
+            this.radioButton_RCD_L3.TabIndex = 12;
+            this.radioButton_RCD_L3.TabStop = true;
+            this.radioButton_RCD_L3.Text = "L3";
+            this.radioButton_RCD_L3.UseVisualStyleBackColor = true;
+            this.radioButton_RCD_L3.CheckedChanged += new System.EventHandler(this.radioButton_RCD_L3_CheckedChanged);
             // 
             // Main
             // 
@@ -2321,11 +2434,12 @@ namespace ArtiluxEOL
             this.tabPage4.ResumeLayout(false);
             this.tabControl2.ResumeLayout(false);
             this.tabPage5.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.data_grid_main_board)).EndInit();
             this.tabPage7.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGrid_HV_result)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGrid_HV_test)).EndInit();
             this.tabPage6.ResumeLayout(false);
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGrid_Spectrum)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).EndInit();
             this.tabPage8.ResumeLayout(false);
@@ -2346,6 +2460,8 @@ namespace ArtiluxEOL
             this.debug_tab.PerformLayout();
             this.panelTestResult.ResumeLayout(false);
             this.panelTestResult.PerformLayout();
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2506,16 +2622,11 @@ namespace ArtiluxEOL
         private CheckBox debug_load_cbox;
         private CheckBox debug_siglent_cbox;
         private CheckBox debug_gwinstek_cbox;
-        private DataGridView data_grid_main_board;
         private GroupBox groupBox_main_relay;
         private GroupBox groupBox_pp_select;
         private GroupBox groupBox_tp_select;
         private GroupBox groupBox_evse_state;
         private GroupBox groupBox_checks;
-        private DataGridViewTextBoxColumn CMD;
-        private DataGridViewTextBoxColumn Column23;
-        private DataGridViewButtonColumn Column24;
-        private DataGridViewButtonColumn Column25;
         private System.Windows.Forms.Button button_load_test_start;
         private System.Windows.Forms.ProgressBar progressBar_load_test;
         private System.Windows.Forms.Button button_load_test_cancel;
@@ -2536,6 +2647,19 @@ namespace ArtiluxEOL
         private System.Windows.Forms.Button button_reset_modular_III;
         private System.Windows.Forms.Button button_reset_modular_II;
         private System.Windows.Forms.Button button_reset_modular_I;
+        private GroupBox groupBox2;
+        private RadioButton rad_btn_spect_EVSE_sel_3;
+        private RadioButton rad_btn_spect_EVSE_sel_2;
+        private RadioButton rad_btn_spect_EVSE_sel_1;
+        private GroupBox groupBox3;
+        private System.Windows.Forms.Button RCD_sel_plus;
+        private System.Windows.Forms.Button RCD_sel_minus;
+        private System.Windows.Forms.TextBox RCD_textBox;
+        private Label label_RCD_current;
+        private System.Windows.Forms.Button button_RCD_set;
+        private RadioButton radioButton_RCD_L3;
+        private RadioButton radioButton_RCD_L2;
+        private RadioButton radioButton_RCD_L1;
     }
 }
 

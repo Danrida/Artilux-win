@@ -9,31 +9,6 @@ namespace MonitorsTest.Services
 {
   public class Helper
     {
-        /*public static List<TestList> GettestLists()
-        {
-            List < TestList > tl=  new List<TestList> { 
-                new TestList { Id=1, Name = "HV Atsparumo Testas" },
-                new TestList { Id=2, Name = "HV Pramušimo Testas" },
-                new TestList { Id=3, Name = "EVSE Apkrovos Testas" },
-                new TestList { Id=4, Name = "EVSE Komunikacijos Testas"},
-                new TestList { Id=5, Name = "EVSE Kabelio Užrakto Testas"},
-                new TestList { Id=6, Name = "RCD Testas" },
-                new TestList { Id=7, Name = "RF-ID Testas" },
-                new TestList { Id=8, Name = "WIFI Testas" },
-                new TestList { Id=9, Name = "GSM Testas" },
-                  
-            };
-
-            foreach (var t in tl)
-            {
-                t.TestLong = GetTestLong();
-                        t.TestResult = GetTestResult();
-            }
-
-
-            return tl;
-        }*/
-
         public static int GetTestLong()
         {
             Random rnd = new Random();

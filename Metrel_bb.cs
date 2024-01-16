@@ -120,7 +120,6 @@ namespace ArtiluxEOL
         { 
              channel.RequestAvailableActions();
         }
-       
 
         public void RequestKeys()
         {
@@ -131,14 +130,10 @@ namespace ArtiluxEOL
         { 
             currentRequest = request;
         }
-        
-
-
 
         private void OnBlackBoxError(Error errorMessage)
         {
             Trace.TraceError($"BlackBox Error:\n{errorMessage.ErrorNumber}; {errorMessage.Description}");
-            //InfoTexts.Add($"ERROR: {errorMessage.ErrorNumber}; {errorMessage.Description}");
         }
 
         public Metrel_bb(IContainer container)
@@ -149,32 +144,21 @@ namespace ArtiluxEOL
             InitializeComponent();
             
         }
-        //private Lazy<IBlackBoxChannelTaskSource> lazyChannel;
-        //private IBlackBoxChannelTaskSource Channel => lazyChannel.Value;
-
 
         public async Task PolarityNoInteraction()
         {
-            
 
             var region = new Region(1000, 1);
             var measurementInfo = DataDisplayInfos.MeasurementInfoList.Get(4);    //Polarity
             var measurement = new EmptyMeasurement(measurementInfo.Id, region);
             var test = new SingleTest(measurement);
-            //var result = channel.Start(test).Result;
 
             var bb_channel = await Task.Run(() => channel);
 
-            //InfoTexts.Add("Running...");
             System.Diagnostics.Debug.Print($"Running...");
 
             Action timeoutAction = null;
-            //if (!showIntermediateResults)
-            /*timeoutAction = () =>
-            {
-                if (CurrentRequest == null)
-                    channel.Stop();
-            };*/
+
             ThreadPool.QueueUserWorkItem(state =>
             {
                 // request actions/keys after test started with some delay.
@@ -201,14 +185,11 @@ namespace ArtiluxEOL
             {
                 try
                 {
-                    //InfoTexts.Clear();
-                    //InfoTexts.Add("Starting...");
                     System.Diagnostics.Debug.Print($"Starting...");
 
                     // resolve channel in background.
                     var bb_channel = await Task.Run(() => channel);
 
-                    //InfoTexts.Add("Running...");
                     System.Diagnostics.Debug.Print($"Running...");
 
                     ThreadPool.QueueUserWorkItem(state =>
@@ -220,7 +201,6 @@ namespace ArtiluxEOL
                     });
 
                     var status = await channel.StartAutoSequence(AutoSequenceName, region, false, showIntermediateResults);
-                    //InfoTexts.Add($"Finished (status = {status}).");
                     System.Diagnostics.Debug.Print($"Finished (status = {status}).");
                 }
                 catch (Exception ex)
@@ -232,14 +212,7 @@ namespace ArtiluxEOL
 
         public async Task Stop()
         {
-            
-                
-                await Task.Run(() => channel?.Stop());
-            
+            await Task.Run(() => channel?.Stop());
         }
-
-
     }
-
-
 }
