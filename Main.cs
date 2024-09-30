@@ -47,6 +47,8 @@ namespace ArtiluxEOL
 {
     public partial class Main : Form
     {
+        const bool RUN_TEST_MODE = true;//Set to false on final build- this is for tesing
+
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = false)]
         static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr w, IntPtr l);
 
@@ -96,13 +98,8 @@ namespace ArtiluxEOL
 
         public static int portsFoundBefore = 0;
 
-        public const int PORT_SVARST_A1 = 0;
-        public const int PORT_SVARST_A2 = 1;
-        public const int PORT_SVARST_B2 = 2;
-        public const int PORT_SVARST_B1 = 3;
-        public const int PORT_ARM_BOARD = 4;
+        //public const int PORT_SVARST_A1 = 0;
         public const int PORT_ALKOTEST = 5;
-        public const int PORT_NONE = 255;
 
         int found_ser_nr = 0;
         int METERL_PORT = 0;
@@ -138,8 +135,8 @@ namespace ArtiluxEOL
         UInt16 WorkplacesCount = 0;
 
         System.Windows.Forms.ComboBox[] cBoxWplace = new System.Windows.Forms.ComboBox[4];
-        System.Windows.Forms.TextBox[] TextBox_dev_info = new System.Windows.Forms.TextBox[13];
-        CheckBox[] CheckBox_dev_info = new CheckBox[12];
+        
+        CheckBox[] CheckBox_dev_info = new CheckBox[13];//Prietaiso enable checkbox (padrindiniame lange, sukuriami is kodo)
         CheckBox[] CheckBox_lizdai = new CheckBox[3];
 
         public List<MonitorTest> mtlist = new List<MonitorTest>();
@@ -150,6 +147,12 @@ namespace ArtiluxEOL
 
         public DevList devList;
         public Test_struc[] Test = new Test_struc[3];
+
+        #region <<< Nustatymu langas >>>
+
+        System.Windows.Forms.TextBox[] TextBox_dev_info = new System.Windows.Forms.TextBox[13];//IP ivedimo laukai (sukuriami is kodo)
+
+        #endregion
 
         #region <<< Main board variables >>>
 
@@ -472,7 +475,7 @@ namespace ArtiluxEOL
             Thread thread1 = new Thread(PicoThread); //Create Pocoscope thread
             thread1.Start();
 
-            this.groupBox1.Controls.Add(cBoxWplace[0]); //Darbo vietos nr prikyrimas
+            this.groupBox1.Controls.Add(cBoxWplace[0]); //Darbo vietos nr priskyrimas
             this.groupBox1.Controls.Add(cBoxWplace[1]);
             this.groupBox1.Controls.Add(cBoxWplace[2]);
 
@@ -550,7 +553,12 @@ namespace ArtiluxEOL
         {
             CheckMonitorStatus();
             UpdateGraphicsOperationalWorkplaces();
-            ManageFormWindowsPositions();
+
+            if (RUN_TEST_MODE == false)
+            {
+                ManageFormWindowsPositions();
+            }
+
             PingMainBoard();
             TestManager();
             Update_controls();
@@ -861,7 +869,7 @@ namespace ArtiluxEOL
                 {
                     Update_Progress_Bar_RCD_Test();
                 }
-                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid] && RCD_Test_State > 0)//Work position no longer operational, cancel
                 {
                     Test_States[EVSEid].RCD_Test = TestState.CANCELED;//This test has been canceled
                     Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
@@ -1008,7 +1016,7 @@ namespace ArtiluxEOL
                 {
                     Update_Progress_Bar_RFID_Test();
                 }
-                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid] && RFID_Test_State > 0)//Work position no longer operational, cancel
                 {
                     Test_States[EVSEid].RFID_Test = TestState.CANCELED;//This test has been canceled
                     Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
@@ -1155,7 +1163,7 @@ namespace ArtiluxEOL
                 {
                     Update_Progress_Bar_GSM_Test();
                 }
-                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid] && GSM_Test_State > 0)//Work position no longer operational, cancel
                 {
                     Test_States[EVSEid].GSM_Test = TestState.CANCELED;//This test has been canceled
                     Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
@@ -1302,7 +1310,7 @@ namespace ArtiluxEOL
                 {
                     Update_Progress_Bar_Wifi_Test();
                 }
-                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid] && Wifi_Test_State > 0)//Work position no longer operational, cancel
                 {
                     Test_States[EVSEid].WIFI_Test = TestState.CANCELED;//This test has been canceled
                     Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
@@ -1449,7 +1457,7 @@ namespace ArtiluxEOL
                 {
                     Update_Progress_Bar_Demo_HV_Test();
                 }
-                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid] && HV_Demo_Test_State > 0)//Work position no longer operational, cancel
                 {
                     Test_States[EVSEid].HV_Test = TestState.CANCELED;//This test has been canceled
                     Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
@@ -1596,7 +1604,7 @@ namespace ArtiluxEOL
                 {
                     Update_Progress_Bar_Demo_Load_Test();
                 }
-                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid] && Load_Demo_Test_State > 0)//Work position no longer operational, cancel
                 {
                     Test_States[EVSEid].Load_Test = TestState.CANCELED;//This test has been canceled
                     Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
@@ -1743,7 +1751,7 @@ namespace ArtiluxEOL
                 {
                     Update_Progress_Bar_EVSE_Comm_Test();
                 }
-                else if (EVSEid > -1 && !EVSE_Operational[EVSEid])//Work position no longer operational, cancel
+                else if (EVSEid > -1 && !EVSE_Operational[EVSEid] && EVSE_Comm_Test_State > 0)//Work position no longer operational, cancel
                 {
                     Test_States[EVSEid].EVSE_Communication_Test = TestState.CANCELED;//This test has been canceled
                     Test_States[EVSEid].Testing_State = TestState.CANCELED;//All tests are canceled on this EVSE
@@ -1956,8 +1964,11 @@ namespace ArtiluxEOL
                 }
                 else if (!EVSE_Operational[i])
                 {
-                    mtlist[i].Form.Update_Test_Label("Negalimas, darbo vieta neaktyvi", Color.IndianRed);
-                    mtlist[i].Form.BackColor = Modal_Form_Color_Fail;
+                    if (mtlist[i].Form != null)
+                    {
+                        mtlist[i].Form.Update_Test_Label("Negalimas, darbo vieta neaktyvi", Color.IndianRed);
+                        mtlist[i].Form.BackColor = Modal_Form_Color_Fail;
+                    }
                 }
                 else
                 {
@@ -2032,165 +2043,168 @@ namespace ArtiluxEOL
 
             for (int i = 0; i < 3; i++)
             {
-                bool smthWrng = false;
+                if (mtlist[i].Form != null)
+                {
+                    bool smthWrng = false;
 
-                if (Test_States[i].EVSE_Communication_Test == TestState.PASSED)//Full
-                {
-                    mtlist[i].Form.progressBar_evse_communication.Value = mtlist[i].Form.progressBar_evse_communication.Maximum;
-                    SetState(mtlist[i].Form.progressBar_evse_communication, 1);//Make progress bar green
-                }
-                else if (Test_States[i].EVSE_Communication_Test == TestState.WAITING)//Empty
-                {
-                    mtlist[i].Form.progressBar_evse_communication.Value = 0;
-                    SetState(mtlist[i].Form.progressBar_evse_communication, 1);//Make progress bar green
-                }
-                else if (Test_States[i].EVSE_Communication_Test == TestState.IN_PROGRESS)
-                {
-                    SetState(mtlist[i].Form.progressBar_evse_communication, 1);//Make progress bar green
-                }
-                else//Something went wrong
-                {
-                    SetState(mtlist[i].Form.progressBar_evse_communication, 2);//Make progress bar red
-                    smthWrng = true;
-                }
+                    if (Test_States[i].EVSE_Communication_Test == TestState.PASSED)//Full
+                    {
+                        mtlist[i].Form.progressBar_evse_communication.Value = mtlist[i].Form.progressBar_evse_communication.Maximum;
+                        SetState(mtlist[i].Form.progressBar_evse_communication, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].EVSE_Communication_Test == TestState.WAITING)//Empty
+                    {
+                        mtlist[i].Form.progressBar_evse_communication.Value = 0;
+                        SetState(mtlist[i].Form.progressBar_evse_communication, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].EVSE_Communication_Test == TestState.IN_PROGRESS)
+                    {
+                        SetState(mtlist[i].Form.progressBar_evse_communication, 1);//Make progress bar green
+                    }
+                    else//Something went wrong
+                    {
+                        SetState(mtlist[i].Form.progressBar_evse_communication, 2);//Make progress bar red
+                        smthWrng = true;
+                    }
 
-                if (Test_States[i].Load_Test == TestState.PASSED)//Full
-                {
-                    mtlist[i].Form.progressBar_load_test.Value = mtlist[i].Form.progressBar_load_test.Maximum;
-                    SetState(mtlist[i].Form.progressBar_load_test, 1);//Make progress bar green
-                }
-                else if (Test_States[i].Load_Test == TestState.WAITING)//Empty
-                {
-                    mtlist[i].Form.progressBar_load_test.Value = 0;
-                    SetState(mtlist[i].Form.progressBar_load_test, 1);//Make progress bar green
-                }
-                else if (Test_States[i].Load_Test == TestState.IN_PROGRESS)
-                {
-                    SetState(mtlist[i].Form.progressBar_load_test, 1);//Make progress bar green
-                }
-                else//Something went wrong
-                {
-                    SetState(mtlist[i].Form.progressBar_load_test, 2);//Make progress bar red
-                    smthWrng = true;
-                }
+                    if (Test_States[i].Load_Test == TestState.PASSED)//Full
+                    {
+                        mtlist[i].Form.progressBar_load_test.Value = mtlist[i].Form.progressBar_load_test.Maximum;
+                        SetState(mtlist[i].Form.progressBar_load_test, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].Load_Test == TestState.WAITING)//Empty
+                    {
+                        mtlist[i].Form.progressBar_load_test.Value = 0;
+                        SetState(mtlist[i].Form.progressBar_load_test, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].Load_Test == TestState.IN_PROGRESS)
+                    {
+                        SetState(mtlist[i].Form.progressBar_load_test, 1);//Make progress bar green
+                    }
+                    else//Something went wrong
+                    {
+                        SetState(mtlist[i].Form.progressBar_load_test, 2);//Make progress bar red
+                        smthWrng = true;
+                    }
 
-                if (Test_States[i].HV_Test == TestState.PASSED)//Full
-                {
-                    mtlist[i].Form.progressBar_HV_test.Value = mtlist[i].Form.progressBar_HV_test.Maximum;
-                    SetState(mtlist[i].Form.progressBar_HV_test, 1);//Make progress bar green
-                }
-                else if (Test_States[i].HV_Test == TestState.WAITING)//Empty
-                {
-                    mtlist[i].Form.progressBar_HV_test.Value = 0;
-                    SetState(mtlist[i].Form.progressBar_HV_test, 1);//Make progress bar green
-                }
-                else if (Test_States[i].HV_Test == TestState.IN_PROGRESS)
-                {
-                    SetState(mtlist[i].Form.progressBar_HV_test, 1);//Make progress bar green
-                }
-                else//Something went wrong
-                {
-                    SetState(mtlist[i].Form.progressBar_HV_test, 2);//Make progress bar red
-                    smthWrng = true;
-                }
+                    if (Test_States[i].HV_Test == TestState.PASSED)//Full
+                    {
+                        mtlist[i].Form.progressBar_HV_test.Value = mtlist[i].Form.progressBar_HV_test.Maximum;
+                        SetState(mtlist[i].Form.progressBar_HV_test, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].HV_Test == TestState.WAITING)//Empty
+                    {
+                        mtlist[i].Form.progressBar_HV_test.Value = 0;
+                        SetState(mtlist[i].Form.progressBar_HV_test, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].HV_Test == TestState.IN_PROGRESS)
+                    {
+                        SetState(mtlist[i].Form.progressBar_HV_test, 1);//Make progress bar green
+                    }
+                    else//Something went wrong
+                    {
+                        SetState(mtlist[i].Form.progressBar_HV_test, 2);//Make progress bar red
+                        smthWrng = true;
+                    }
 
-                if (Test_States[i].WIFI_Test == TestState.PASSED)//Full
-                {
-                    mtlist[i].Form.progressBar_Wifi_test.Value = mtlist[i].Form.progressBar_Wifi_test.Maximum;
-                    SetState(mtlist[i].Form.progressBar_Wifi_test, 1);//Make progress bar green
-                }
-                else if (Test_States[i].WIFI_Test == TestState.WAITING)//Empty
-                {
-                    mtlist[i].Form.progressBar_Wifi_test.Value = 0;
-                    SetState(mtlist[i].Form.progressBar_Wifi_test, 1);//Make progress bar green
-                }
-                else if (Test_States[i].WIFI_Test == TestState.IN_PROGRESS)
-                {
-                    SetState(mtlist[i].Form.progressBar_Wifi_test, 1);//Make progress bar green
-                }
-                else//Something went wrong
-                {
-                    SetState(mtlist[i].Form.progressBar_Wifi_test, 2);//Make progress bar red
-                    smthWrng = true;
-                }
+                    if (Test_States[i].WIFI_Test == TestState.PASSED)//Full
+                    {
+                        mtlist[i].Form.progressBar_Wifi_test.Value = mtlist[i].Form.progressBar_Wifi_test.Maximum;
+                        SetState(mtlist[i].Form.progressBar_Wifi_test, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].WIFI_Test == TestState.WAITING)//Empty
+                    {
+                        mtlist[i].Form.progressBar_Wifi_test.Value = 0;
+                        SetState(mtlist[i].Form.progressBar_Wifi_test, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].WIFI_Test == TestState.IN_PROGRESS)
+                    {
+                        SetState(mtlist[i].Form.progressBar_Wifi_test, 1);//Make progress bar green
+                    }
+                    else//Something went wrong
+                    {
+                        SetState(mtlist[i].Form.progressBar_Wifi_test, 2);//Make progress bar red
+                        smthWrng = true;
+                    }
 
-                if (Test_States[i].GSM_Test == TestState.PASSED)//Full
-                {
-                    mtlist[i].Form.progressBar_GSM_test.Value = mtlist[i].Form.progressBar_GSM_test.Maximum;
-                    SetState(mtlist[i].Form.progressBar_GSM_test, 1);//Make progress bar green
-                }
-                else if (Test_States[i].GSM_Test == TestState.WAITING)//Empty
-                {
-                    mtlist[i].Form.progressBar_GSM_test.Value = 0;
-                    SetState(mtlist[i].Form.progressBar_GSM_test, 1);//Make progress bar green
-                }
-                else if (Test_States[i].GSM_Test == TestState.IN_PROGRESS)
-                {
-                    SetState(mtlist[i].Form.progressBar_GSM_test, 1);//Make progress bar green
-                }
-                else//Something went wrong
-                {
-                    SetState(mtlist[i].Form.progressBar_GSM_test, 2);//Make progress bar red
-                    smthWrng = true;
-                }
+                    if (Test_States[i].GSM_Test == TestState.PASSED)//Full
+                    {
+                        mtlist[i].Form.progressBar_GSM_test.Value = mtlist[i].Form.progressBar_GSM_test.Maximum;
+                        SetState(mtlist[i].Form.progressBar_GSM_test, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].GSM_Test == TestState.WAITING)//Empty
+                    {
+                        mtlist[i].Form.progressBar_GSM_test.Value = 0;
+                        SetState(mtlist[i].Form.progressBar_GSM_test, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].GSM_Test == TestState.IN_PROGRESS)
+                    {
+                        SetState(mtlist[i].Form.progressBar_GSM_test, 1);//Make progress bar green
+                    }
+                    else//Something went wrong
+                    {
+                        SetState(mtlist[i].Form.progressBar_GSM_test, 2);//Make progress bar red
+                        smthWrng = true;
+                    }
 
-                if (Test_States[i].RFID_Test == TestState.PASSED)//Full
-                {
-                    mtlist[i].Form.progressBar_RFID_test.Value = mtlist[i].Form.progressBar_RFID_test.Maximum;
-                    SetState(mtlist[i].Form.progressBar_RFID_test, 1);//Make progress bar green
-                }
-                else if (Test_States[i].RFID_Test == TestState.WAITING)//Empty
-                {
-                    mtlist[i].Form.progressBar_RFID_test.Value = 0;
-                    SetState(mtlist[i].Form.progressBar_RFID_test, 1);//Make progress bar green
-                }
-                else if (Test_States[i].RFID_Test == TestState.IN_PROGRESS)
-                {
-                    SetState(mtlist[i].Form.progressBar_RFID_test, 1);//Make progress bar green
-                }
-                else//Something went wrong
-                {
-                    SetState(mtlist[i].Form.progressBar_RFID_test, 2);//Make progress bar red
-                    smthWrng = true;
-                }
+                    if (Test_States[i].RFID_Test == TestState.PASSED)//Full
+                    {
+                        mtlist[i].Form.progressBar_RFID_test.Value = mtlist[i].Form.progressBar_RFID_test.Maximum;
+                        SetState(mtlist[i].Form.progressBar_RFID_test, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].RFID_Test == TestState.WAITING)//Empty
+                    {
+                        mtlist[i].Form.progressBar_RFID_test.Value = 0;
+                        SetState(mtlist[i].Form.progressBar_RFID_test, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].RFID_Test == TestState.IN_PROGRESS)
+                    {
+                        SetState(mtlist[i].Form.progressBar_RFID_test, 1);//Make progress bar green
+                    }
+                    else//Something went wrong
+                    {
+                        SetState(mtlist[i].Form.progressBar_RFID_test, 2);//Make progress bar red
+                        smthWrng = true;
+                    }
 
-                if (Test_States[i].RCD_Test == TestState.PASSED)//Full
-                {
-                    mtlist[i].Form.progressBar_RCD_test.Value = mtlist[i].Form.progressBar_RCD_test.Maximum;
-                    SetState(mtlist[i].Form.progressBar_RCD_test, 1);//Make progress bar green
-                }
-                else if (Test_States[i].RCD_Test == TestState.WAITING)//Empty
-                {
-                    mtlist[i].Form.progressBar_RCD_test.Value = 0;
-                    SetState(mtlist[i].Form.progressBar_RCD_test, 1);//Make progress bar green
-                }
-                else if (Test_States[i].RCD_Test == TestState.IN_PROGRESS)
-                {
-                    SetState(mtlist[i].Form.progressBar_RCD_test, 1);//Make progress bar green
-                }
-                else//Something went wrong
-                {
-                    SetState(mtlist[i].Form.progressBar_RCD_test, 2);//Make progress bar red
-                    smthWrng = true;
-                }
+                    if (Test_States[i].RCD_Test == TestState.PASSED)//Full
+                    {
+                        mtlist[i].Form.progressBar_RCD_test.Value = mtlist[i].Form.progressBar_RCD_test.Maximum;
+                        SetState(mtlist[i].Form.progressBar_RCD_test, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].RCD_Test == TestState.WAITING)//Empty
+                    {
+                        mtlist[i].Form.progressBar_RCD_test.Value = 0;
+                        SetState(mtlist[i].Form.progressBar_RCD_test, 1);//Make progress bar green
+                    }
+                    else if (Test_States[i].RCD_Test == TestState.IN_PROGRESS)
+                    {
+                        SetState(mtlist[i].Form.progressBar_RCD_test, 1);//Make progress bar green
+                    }
+                    else//Something went wrong
+                    {
+                        SetState(mtlist[i].Form.progressBar_RCD_test, 2);//Make progress bar red
+                        smthWrng = true;
+                    }
 
-                //Progress bar total
-                mtlist[i].Form.progressBar_total.Value = 
-                    mtlist[i].Form.progressBar_evse_communication.Value + 
-                    mtlist[i].Form.progressBar_load_test.Value + 
-                    mtlist[i].Form.progressBar_HV_test.Value + 
-                    mtlist[i].Form.progressBar_Wifi_test.Value + 
-                    mtlist[i].Form.progressBar_GSM_test.Value + 
-                    mtlist[i].Form.progressBar_RFID_test.Value + 
-                    mtlist[i].Form.progressBar_RCD_test.Value;
+                    //Progress bar total
+                    mtlist[i].Form.progressBar_total.Value =
+                        mtlist[i].Form.progressBar_evse_communication.Value +
+                        mtlist[i].Form.progressBar_load_test.Value +
+                        mtlist[i].Form.progressBar_HV_test.Value +
+                        mtlist[i].Form.progressBar_Wifi_test.Value +
+                        mtlist[i].Form.progressBar_GSM_test.Value +
+                        mtlist[i].Form.progressBar_RFID_test.Value +
+                        mtlist[i].Form.progressBar_RCD_test.Value;
 
-                if (smthWrng)//If any of the tests went wrong, total progress bar becomes red
-                {
-                    SetState(mtlist[i].Form.progressBar_total, 2);//Make progress bar red
-                }
-                else
-                {
-                    SetState(mtlist[i].Form.progressBar_total, 1);//Make progress bar green
+                    if (smthWrng)//If any of the tests went wrong, total progress bar becomes red
+                    {
+                        SetState(mtlist[i].Form.progressBar_total, 2);//Make progress bar red
+                    }
+                    else
+                    {
+                        SetState(mtlist[i].Form.progressBar_total, 1);//Make progress bar green
+                    }
                 }
             }
 
@@ -2707,6 +2721,8 @@ namespace ArtiluxEOL
 
         public void device_state_indication(int dev_nr, Color color)
         {
+            //Prietaisu busenos lables pagrindiniame lange
+
             switch (dev_nr)
             {
                 case 0:
@@ -2731,18 +2747,21 @@ namespace ArtiluxEOL
                     lbl_barcode_3.BackColor = color;
                     break;
                 case 7:
-                    lbl_rfid_1.BackColor = color;
+                    lbl_printer.BackColor = color;
                     break;
                 case 8:
-                    lbl_rfid_2.BackColor = color;
+                    lbl_rfid_1.BackColor = color;
                     break;
                 case 9:
-                    lbl_rfid_3.BackColor = color;
+                    lbl_rfid_2.BackColor = color;
                     break;
                 case 10:
-                    lbl_evse.BackColor = color;
+                    lbl_rfid_3.BackColor = color;
                     break;
                 case 11:
+                    lbl_evse.BackColor = color;
+                    break;
+                case 12:
                     lbl_osc.BackColor = color;
                     break;
             }
@@ -3667,6 +3686,8 @@ namespace ArtiluxEOL
                         break;
                     case NetDev_Tab.OSCILOSCOPE:
                         break;
+                    case NetDev_Tab.PRINTER:
+                        break;
                 }
 
             }
@@ -3928,10 +3949,9 @@ namespace ArtiluxEOL
             bool state = false;
             if (init_done)
             {
-
                 for (int a = 0; a < CheckBox_dev_info.Length; a++)
                 {
-                    if (a < 4 || a > 9)
+                    if (a < 4 || a > 10 || a == 7)//Device 7 - spausdintuvas
                     {
                         state = CheckBox_dev_info[a].Checked;
 
@@ -3969,7 +3989,7 @@ namespace ArtiluxEOL
             Font textbox_font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 
             SocketDevList dev;
-            dev = new SocketDevList { Name = "MAIN_CONTROLLER", TestMsg = "TEST?", client = null, Ip = "192.168.11.85", Port_0 = 5566, Port_1 = 5567, State = 0, Enable = true, Connected = false };
+            dev = new SocketDevList { Name = "MAIN_CONTROLLER", TestMsg = "TEST?", client = null, Ip = "192.168.11.85", Port_0 = 5566, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
             dev = new SocketDevList { Name = "HV_TEST", TestMsg = "SYSTEM:TIME?", client = null, Ip = "192.168.11.150", Port_0 = 12312, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
@@ -3983,14 +4003,14 @@ namespace ArtiluxEOL
             network_dev.Add(dev);
             dev = new SocketDevList { Name = "BARCODE_3", TestMsg = "TEST?", client = null, Ip = "192.168.11.150", Port_0 = 11311, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
+            dev = new SocketDevList { Name = "PRINTER", TestMsg = "<ESC>!?", client = null, Ip = "192.168.11.39", Port_0 = 9100, Port_1 = 0, State = 0, Enable = true, Connected = false };
+            network_dev.Add(dev);
             dev = new SocketDevList { Name = "RFID_1", TestMsg = "", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
             dev = new SocketDevList { Name = "RFID_2", TestMsg = "", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
             dev = new SocketDevList { Name = "RFID_3", TestMsg = "", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
-            //dev = new SocketDevList { Name = "Power", TestMsg = "", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
-            //network_dev.Add(dev);
             dev = new SocketDevList { Name = "METREL", TestMsg = "BB;", client = null, Ip = "0", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
             network_dev.Add(dev);
             dev = new SocketDevList { Name = "OSCIL", TestMsg = "---", client = null, Ip = "0", Port_0 = 0, Port_1 = 0, State = 0, Enable = false, Connected = false };
@@ -4007,22 +4027,23 @@ namespace ArtiluxEOL
                 switch (x)
                 {
                     case 4:
-                    case 7:
+                    case 8:
                         TextBox_dev_info[x] = new System.Windows.Forms.TextBox { Enabled = true, Font = textbox_font, Location = new Point(x: 100, y: 45), Size = new Size(220, 24) };
                         break;
                     case 5:
-                    case 8:
+                    case 9:
                         TextBox_dev_info[x] = new System.Windows.Forms.TextBox { Enabled = true, Font = textbox_font, Location = new Point(x: 100, y: 85), Size = new Size(220, 24) };
                         break;
                     case 6:
-                    case 9:
+                    case 10:
                         TextBox_dev_info[x] = new System.Windows.Forms.TextBox { Enabled = true, Font = textbox_font, Location = new Point(x: 100, y: 120), Size = new Size(220, 24) };
                         break;
                 }
                 //////////////////////
 
                 //kuram devaisu en checbox, bet skipinam barcode ir rfid, juos enablinam su testo vietos chebox, Saved_workplaces variable laikom visa info
-                if (x < 4 || x > 9)
+                //device 7 yra spausdintuvas
+                if (x < 4 || x > 10 || x == 7)
                 {
                     CheckBox_dev_info[x] = new CheckBox { Checked = true, Location = new Point(x: 225, y: cbox_y_location) };
                     CheckBox_dev_info[x].CheckedChanged += new EventHandler(ShowCheckedCheckboxes);
@@ -4066,7 +4087,6 @@ namespace ArtiluxEOL
                 // priskiram ip ir porta i laukus
                 if (network_dev[x].Port_1 == 0)
                 {
-
                     TextBox_dev_info[x].Text = network_dev[x].Ip + ':' + network_dev[x].Port_0;//ip port setings
                 }
                 else
@@ -4084,12 +4104,13 @@ namespace ArtiluxEOL
             this.groupBox_Barcode.Controls.Add(TextBox_dev_info[4]);
             this.groupBox_Barcode.Controls.Add(TextBox_dev_info[5]);
             this.groupBox_Barcode.Controls.Add(TextBox_dev_info[6]);
+            this.groupBox_Printer.Controls.Add(TextBox_dev_info[7]);
 
-            this.groupBox_Rfid.Controls.Add(TextBox_dev_info[7]);
             this.groupBox_Rfid.Controls.Add(TextBox_dev_info[8]);
             this.groupBox_Rfid.Controls.Add(TextBox_dev_info[9]);
-            this.groupBox_Metrel_USB.Controls.Add(TextBox_dev_info[10]);
-            this.groupBox_Osc_USB.Controls.Add(TextBox_dev_info[11]);
+            this.groupBox_Rfid.Controls.Add(TextBox_dev_info[10]);
+            this.groupBox_Metrel_USB.Controls.Add(TextBox_dev_info[11]);
+            this.groupBox_Osc_USB.Controls.Add(TextBox_dev_info[12]);
 
             groupBoxBarcode2.Controls.Add(evse2_params);
 
@@ -4099,6 +4120,7 @@ namespace ArtiluxEOL
             NetworkDevConn.RunWorkerAsync();
             NetworkDevConn.WorkerSupportsCancellation = true;
             MainControllerTCP.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.MainControllerTCP_DoWork);
+            PrinterTCP.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.PrinterTCP_DoWork);
 
             HVgen.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.HVgen_DoWork);
             Specroscope.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.Specroscope_DoWork);
@@ -4192,7 +4214,6 @@ namespace ArtiluxEOL
         int send_err = 5;
         private void tmr_1hz_Tick(object sender, EventArgs e)
         {
-
             string[] PCportai = SerialPort.GetPortNames();
             string msg = "";
             int nr = (SerPorts.Count - 1); // paskutinio netikrinam, jis temporary
@@ -4656,7 +4677,7 @@ namespace ArtiluxEOL
         delegate void ShowWeightCallback(int svarst, float svoris);
         delegate void ShowStatusCallback(int svarst, string busena);
 
-        private void SP0_DataRx(object sender, SerialDataReceivedEventArgs e)
+        /*private void SP0_DataRx(object sender, SerialDataReceivedEventArgs e)
         {
             int xprt = PORT_SVARST_A1;
             read_serial_data(xprt); // skaitom visas komandas i buferi
@@ -4676,7 +4697,7 @@ namespace ArtiluxEOL
                     //float temp;
                 }
             }
-        }
+        }*/
 
         #endregion
 
@@ -4725,6 +4746,12 @@ namespace ArtiluxEOL
                     try
                     {
                         id = a + 1;
+
+                        if (Workplaces_reg.GetValue("Workplace" + id) == null)
+                        {
+                            break;
+                        }
+
                         monitor_id = Workplaces_reg.GetValue("Workplace" + id).ToString();
                         if (monitor_id.Equals("NONE"))
                         {

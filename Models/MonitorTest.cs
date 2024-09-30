@@ -321,11 +321,12 @@ namespace MonitorsTest.Models
         public const int BARCODE_1 = 4;
         public const int BARCODE_2 = 5;
         public const int BARCODE_3 = 6;
-        public const int RFID_1 = 7;
-        public const int RFID_2 = 8;
-        public const int RFID_3 = 9;
-        public const int EVSE = 10;
-        public const int OSCILOSCOPE = 11;
+        public const int PRINTER = 7;
+        public const int RFID_1 = 8;
+        public const int RFID_2 = 9;
+        public const int RFID_3 = 10;
+        public const int EVSE = 11;
+        public const int OSCILOSCOPE = 12;
     }
 
     public static class Siglent_param
@@ -365,5 +366,6 @@ namespace MonitorsTest.Models
         public const int BARCODE_1 = 4;
         public const int BARCODE_2 = 5;
         public const int BARCODE_3 = 6;
+        public const int PRINTER = 7;
     }
 }

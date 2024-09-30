@@ -65,7 +65,7 @@ namespace ArtiluxEOL
 
         public string[] Evse_param_type = new string[] { "READY", "EGD?", "ESD:", "IGB?", "EGW?", "EGL?", "ESA:", "EGM?", "EGR?" };
 
-
+        int Printer_Handler_Cycle_Counter = 0;
 
         public NetworkThreads()
         {
@@ -133,7 +133,7 @@ namespace ArtiluxEOL
                 foreach (var dev in Main.main.network_dev)//einam per dev lista, kurie enable ieskom tinkle, jei toki radom bandom jungtis
                 {
 
-                    if (dev.Enable && !dev.Connected && a < 7) //tikrinam tik jei enable, nuo 7 jau nebe tinklo devaisai - skip.
+                    if (dev.Enable && !dev.Connected && a < 8) //tikrinam tik jei enable, nuo 8 jau nebe tinklo devaisai - skip.
                     {
                         ret = Socket_.start_socket(Main.main.network_dev[a], 0);
 
@@ -174,6 +174,9 @@ namespace ArtiluxEOL
                                     Socket_.receive_socket(Main.main.network_dev[a]);
                                     Main.main.network_dev[a].State = Evse_State.EVSE_CONNECTED;
                                     break;
+                                case 7:
+                                    Main.main.PrinterTCP.RunWorkerAsync();
+                                    break;
                             }
                         }
                     }
@@ -191,6 +194,90 @@ namespace ArtiluxEOL
         }
         #endregion
 
+        #region PRINTER
+
+        public void PrinterTCP_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker bw = sender as BackgroundWorker;
+            int arg = 0;
+            e.Result = Printer_Socket_Thread(bw, arg);
+
+            if (bw.CancellationPending)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        public object Printer_Socket_Thread(BackgroundWorker bw, int arg)
+        {
+            int result = 0;
+            bool connection_closed = false;
+
+            var net_dev = Main.main.network_dev[DevType.PRINTER];
+            var main_func = Main.main;
+
+            while (!connection_closed)
+            {
+                switch (net_dev.SendReceiveState)
+                {
+                    case NetDev_SendState.SEND_BEGIN:
+                        break;
+                    case NetDev_SendState.SEND_WAIT:
+                        break;
+                    case NetDev_SendState.SEND_OK:
+                        net_dev.SendReceiveState = NetDev_SendState.RECEIVE_WAIT;
+                        break;
+                    case NetDev_SendState.SEND_FAIL:
+                        net_dev.SendReceiveState = NetDev_SendState.IDLE;
+                        System.Diagnostics.Debug.Print($"SEND_FAIL:{0}");
+                        break;
+                    case NetDev_SendState.RECEIVE_WAIT:
+                        break;
+                    case NetDev_SendState.RECEIVE_OK:
+                        net_dev.NewResp = true;
+                        net_dev.ReceiveRunning = false;
+                        net_dev.SendReceiveState = NetDev_SendState.IDLE;
+                        Socket_.receive_socket(net_dev);
+                        break;
+                    case NetDev_SendState.RECEIVE_FAIL:
+                        System.Diagnostics.Debug.Print($"RECEIVE_FAIL:{0}");
+                        break;
+                }
+                Printer_Ctrl_handle();
+                Thread.Sleep(100);
+            }
+            return result;
+        }
+
+        public void Printer_Ctrl_handle()
+        {
+            //System.Diagnostics.Debug.Print("Printer thread");
+
+            var net_dev = Main.main.network_dev[DevType.PRINTER];
+
+            if (net_dev.NewResp)
+            {
+                net_dev.NewResp = false;//Reset new responce flag
+
+                //System.Diagnostics.Debug.Print("Printer responce: " + net_dev.Resp);
+                System.Diagnostics.Debug.Print("Printer responded");
+            }
+            else if (Printer_Handler_Cycle_Counter >= 10)
+            {
+                Printer_Handler_Cycle_Counter = 0;
+
+                //net_dev.State = MainBoard_State.BUSY;
+                net_dev.Cmd = "<ESC>!S";
+                Socket_.send_socket(net_dev, net_dev.Cmd);
+                net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
+                System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
+
+            }
+
+            Printer_Handler_Cycle_Counter++;
+        }
+
+        #endregion
 
         #region MAIN_CONTROLLER
         public void MainControllerTCP_DoWork(object sender, DoWorkEventArgs e)
@@ -260,7 +347,6 @@ namespace ArtiluxEOL
 
         public void MAIN_Ctrl_handle()
         {
-
             var net_dev = Main.main.network_dev[DevType.MAIN_CONTROLLER];
             net_dev.State = MainBoard_State.IDLE;//Main controller idle (unless specified otherwise later in the code)
             string[] sepResps;//Stores the seperate responces from the main board
@@ -942,7 +1028,7 @@ namespace ArtiluxEOL
              * 17: Check EVSE data
              * 
              * 18: Set ITECH load to 5A
-             * 19: Small delay @5A
+             * 19: Short delay @5A
              * 20: EVSE data request
              * 21: Check EVSE data
              * 22: Delay @5A
@@ -950,7 +1036,7 @@ namespace ArtiluxEOL
              * 24: Check EVSE data
              * 
              * 25: Set ITECH load to 16A
-             * 26: Small delay @16A
+             * 26: Short delay @16A
              * 27: EVSE data request
              * 28: Check EVSE data
              * 29: Delay @16A
@@ -958,7 +1044,7 @@ namespace ArtiluxEOL
              * 31: Check EVSE data
              * 
              * 32: Set ITECH load to 32A
-             * 33: Small delay @32A
+             * 33: Short delay @32A
              * 34: EVSE data request
              * 35: Check EVSE data
              * 36: Delay @32A
@@ -1920,7 +2006,7 @@ namespace ArtiluxEOL
                         }
                         break;
 
-                    case 19://Small delay @5A
+                    case 19://Short delay @5A
                         if (!Main.Load_Test_One_Call)//Call these commands only one time
                         {
                             Main.Load_Test_Timer = unixTimeMilliseconds;
@@ -1929,7 +2015,7 @@ namespace ArtiluxEOL
 
                         if ((unixTimeMilliseconds - Main.Load_Test_Timer) > 2000)
                         {
-                            System.Diagnostics.Debug.Print("Small delay @5A");
+                            System.Diagnostics.Debug.Print("Short delay @5A");
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
@@ -2256,7 +2342,7 @@ namespace ArtiluxEOL
                         }
                         break;
 
-                    case 26://Small delay @16A
+                    case 26://Short delay @16A
                         if (!Main.Load_Test_One_Call)//Call these commands only one time
                         {
                             Main.Load_Test_Timer = unixTimeMilliseconds;
@@ -2265,7 +2351,7 @@ namespace ArtiluxEOL
 
                         if ((unixTimeMilliseconds - Main.Load_Test_Timer) > 2000)
                         {
-                            System.Diagnostics.Debug.Print("Small delay @16A");
+                            System.Diagnostics.Debug.Print("Short delay @16A");
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
@@ -2592,7 +2678,7 @@ namespace ArtiluxEOL
                         }
                         break;
 
-                    case 33://Small delay @32A
+                    case 33://Short delay @32A
                         if (!Main.Load_Test_One_Call)//Call these commands only one time
                         {
                             Main.Load_Test_Timer = unixTimeMilliseconds;
@@ -2601,7 +2687,7 @@ namespace ArtiluxEOL
 
                         if ((unixTimeMilliseconds - Main.Load_Test_Timer) > 2000)
                         {
-                            System.Diagnostics.Debug.Print("Small delay @32A");
+                            System.Diagnostics.Debug.Print("Short delay @32A");
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
