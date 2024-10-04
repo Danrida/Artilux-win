@@ -33,17 +33,17 @@ namespace ArtiluxEOL
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle25 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle26 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle27 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle28 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle29 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle30 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle31 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle32 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -862,6 +862,7 @@ namespace ArtiluxEOL
             this.tb_test_param_ihold_32a_max.TabIndex = 54;
             this.tb_test_param_ihold_32a_max.Text = "33,6";
             this.tb_test_param_ihold_32a_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_ihold_32a_max.TextChanged += new System.EventHandler(this.tb_test_param_ihold_32a_max_TextChanged);
             // 
             // tb_test_param_ihold_32a_min
             // 
@@ -872,6 +873,7 @@ namespace ArtiluxEOL
             this.tb_test_param_ihold_32a_min.TabIndex = 53;
             this.tb_test_param_ihold_32a_min.Text = "30,4";
             this.tb_test_param_ihold_32a_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_ihold_32a_min.TextChanged += new System.EventHandler(this.tb_test_param_ihold_32a_min_TextChanged);
             // 
             // label48
             // 
@@ -900,6 +902,7 @@ namespace ArtiluxEOL
             this.tb_test_param_ihold_6a_max.TabIndex = 50;
             this.tb_test_param_ihold_6a_max.Text = "6,3";
             this.tb_test_param_ihold_6a_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_ihold_6a_max.TextChanged += new System.EventHandler(this.tb_test_param_ihold_6a_max_TextChanged);
             // 
             // tb_test_param_ihold_6a_min
             // 
@@ -910,6 +913,7 @@ namespace ArtiluxEOL
             this.tb_test_param_ihold_6a_min.TabIndex = 49;
             this.tb_test_param_ihold_6a_min.Text = "5,7";
             this.tb_test_param_ihold_6a_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_ihold_6a_min.TextChanged += new System.EventHandler(this.tb_test_param_ihold_6a_min_TextChanged);
             // 
             // label46
             // 
@@ -938,6 +942,7 @@ namespace ArtiluxEOL
             this.tb_test_param_firmware_max.TabIndex = 46;
             this.tb_test_param_firmware_max.Text = "1.2.1";
             this.tb_test_param_firmware_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_firmware_max.TextChanged += new System.EventHandler(this.tb_test_param_firmware_max_TextChanged);
             // 
             // tb_test_param_firmware_min
             // 
@@ -948,6 +953,7 @@ namespace ArtiluxEOL
             this.tb_test_param_firmware_min.TabIndex = 45;
             this.tb_test_param_firmware_min.Text = "1.2.1";
             this.tb_test_param_firmware_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_firmware_min.TextChanged += new System.EventHandler(this.tb_test_param_firmware_min_TextChanged);
             // 
             // label44
             // 
@@ -976,6 +982,7 @@ namespace ArtiluxEOL
             this.tb_test_param_rfid_range_max.TabIndex = 42;
             this.tb_test_param_rfid_range_max.Text = "120";
             this.tb_test_param_rfid_range_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_rfid_range_max.TextChanged += new System.EventHandler(this.tb_test_param_rfid_range_max_TextChanged);
             // 
             // tb_test_param_rfid_range_min
             // 
@@ -986,6 +993,7 @@ namespace ArtiluxEOL
             this.tb_test_param_rfid_range_min.TabIndex = 41;
             this.tb_test_param_rfid_range_min.Text = "20";
             this.tb_test_param_rfid_range_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_rfid_range_min.TextChanged += new System.EventHandler(this.tb_test_param_rfid_range_min_TextChanged);
             // 
             // label42
             // 
@@ -1013,6 +1021,7 @@ namespace ArtiluxEOL
             this.tb_test_param_gsm_speed_max.Size = new System.Drawing.Size(63, 29);
             this.tb_test_param_gsm_speed_max.TabIndex = 38;
             this.tb_test_param_gsm_speed_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_gsm_speed_max.TextChanged += new System.EventHandler(this.tb_test_param_gsm_speed_max_TextChanged);
             // 
             // tb_test_param_gsm_speed_min
             // 
@@ -1023,6 +1032,7 @@ namespace ArtiluxEOL
             this.tb_test_param_gsm_speed_min.TabIndex = 37;
             this.tb_test_param_gsm_speed_min.Text = "50";
             this.tb_test_param_gsm_speed_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_gsm_speed_min.TextChanged += new System.EventHandler(this.tb_test_param_gsm_speed_min_TextChanged);
             // 
             // label40
             // 
@@ -1050,6 +1060,7 @@ namespace ArtiluxEOL
             this.tb_test_param_wifi_speed_max.Size = new System.Drawing.Size(63, 29);
             this.tb_test_param_wifi_speed_max.TabIndex = 34;
             this.tb_test_param_wifi_speed_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_wifi_speed_max.TextChanged += new System.EventHandler(this.tb_test_param_wifi_speed_max_TextChanged);
             // 
             // tb_test_param_wifi_speed_min
             // 
@@ -1060,6 +1071,7 @@ namespace ArtiluxEOL
             this.tb_test_param_wifi_speed_min.TabIndex = 33;
             this.tb_test_param_wifi_speed_min.Text = "1";
             this.tb_test_param_wifi_speed_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_wifi_speed_min.TextChanged += new System.EventHandler(this.tb_test_param_wifi_speed_min_TextChanged);
             // 
             // label38
             // 
@@ -1088,6 +1100,7 @@ namespace ArtiluxEOL
             this.tb_test_param_resid_dc_max.TabIndex = 30;
             this.tb_test_param_resid_dc_max.Text = "6";
             this.tb_test_param_resid_dc_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_resid_dc_max.TextChanged += new System.EventHandler(this.tb_test_param_resid_dc_max_TextChanged);
             // 
             // tb_test_param_resid_dc_min
             // 
@@ -1098,6 +1111,7 @@ namespace ArtiluxEOL
             this.tb_test_param_resid_dc_min.TabIndex = 29;
             this.tb_test_param_resid_dc_min.Text = "3";
             this.tb_test_param_resid_dc_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_resid_dc_min.TextChanged += new System.EventHandler(this.tb_test_param_resid_dc_min_TextChanged);
             // 
             // label36
             // 
@@ -1126,6 +1140,7 @@ namespace ArtiluxEOL
             this.tb_test_param_r_gnd_max.TabIndex = 26;
             this.tb_test_param_r_gnd_max.Text = "0,1";
             this.tb_test_param_r_gnd_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_r_gnd_max.TextChanged += new System.EventHandler(this.tb_test_param_r_gnd_max_TextChanged);
             // 
             // tb_test_param_r_gnd_min
             // 
@@ -1135,6 +1150,7 @@ namespace ArtiluxEOL
             this.tb_test_param_r_gnd_min.Size = new System.Drawing.Size(63, 29);
             this.tb_test_param_r_gnd_min.TabIndex = 25;
             this.tb_test_param_r_gnd_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_r_gnd_min.TextChanged += new System.EventHandler(this.tb_test_param_r_gnd_min_TextChanged);
             // 
             // label34
             // 
@@ -1239,7 +1255,7 @@ namespace ArtiluxEOL
             this.tb_test_param_pow_mrelay_on_max.Name = "tb_test_param_pow_mrelay_on_max";
             this.tb_test_param_pow_mrelay_on_max.Size = new System.Drawing.Size(63, 29);
             this.tb_test_param_pow_mrelay_on_max.TabIndex = 14;
-            this.tb_test_param_pow_mrelay_on_max.Text = "5,5";
+            this.tb_test_param_pow_mrelay_on_max.Text = "5.5";
             this.tb_test_param_pow_mrelay_on_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.tb_test_param_pow_mrelay_on_max.TextChanged += new System.EventHandler(this.tb_test_param_pow_mrelay_on_max_TextChanged);
             // 
@@ -1250,7 +1266,7 @@ namespace ArtiluxEOL
             this.tb_test_param_pow_mrelay_on_min.Name = "tb_test_param_pow_mrelay_on_min";
             this.tb_test_param_pow_mrelay_on_min.Size = new System.Drawing.Size(63, 29);
             this.tb_test_param_pow_mrelay_on_min.TabIndex = 13;
-            this.tb_test_param_pow_mrelay_on_min.Text = "4,5";
+            this.tb_test_param_pow_mrelay_on_min.Text = "4.5";
             this.tb_test_param_pow_mrelay_on_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.tb_test_param_pow_mrelay_on_min.TextChanged += new System.EventHandler(this.tb_test_param_pow_mrelay_on_min_TextChanged);
             // 
@@ -1917,15 +1933,15 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn4,
             this.dataGridViewTextBoxColumn5,
             this.dataGridViewTextBoxColumn6});
-            dataGridViewCellStyle25.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle25.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle25.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle25.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle25.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle25.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle25.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle25.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGrid_HV_result.DefaultCellStyle = dataGridViewCellStyle25;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGrid_HV_result.DefaultCellStyle = dataGridViewCellStyle1;
             this.dataGrid_HV_result.Location = new System.Drawing.Point(2, 270);
             this.dataGrid_HV_result.Margin = new System.Windows.Forms.Padding(2);
             this.dataGrid_HV_result.Name = "dataGrid_HV_result";
@@ -1988,8 +2004,8 @@ namespace ArtiluxEOL
             // dataGrid_HV_test
             // 
             this.dataGrid_HV_test.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle26.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_HV_test.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle26;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_HV_test.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle2;
             this.dataGrid_HV_test.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_HV_test.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_HV_test.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -2009,8 +2025,8 @@ namespace ArtiluxEOL
             this.dataGrid_HV_test.Name = "dataGrid_HV_test";
             this.dataGrid_HV_test.RowHeadersVisible = false;
             this.dataGrid_HV_test.RowHeadersWidth = 51;
-            dataGridViewCellStyle27.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_HV_test.RowsDefaultCellStyle = dataGridViewCellStyle27;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_HV_test.RowsDefaultCellStyle = dataGridViewCellStyle3;
             this.dataGrid_HV_test.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_HV_test.RowTemplate.Height = 35;
             this.dataGrid_HV_test.Size = new System.Drawing.Size(797, 188);
@@ -2164,14 +2180,14 @@ namespace ArtiluxEOL
             this.dataGrid_Spectrum.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Spectrum.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.dataGrid_Spectrum.BackgroundColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle28.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle28.BackColor = System.Drawing.SystemColors.ActiveBorder;
-            dataGridViewCellStyle28.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle28.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle28.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle28.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle28.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGrid_Spectrum.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle28;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGrid_Spectrum.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dataGrid_Spectrum.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGrid_Spectrum.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Column18,
@@ -2212,18 +2228,18 @@ namespace ArtiluxEOL
             // 
             // chart1
             // 
-            chartArea4.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea4);
-            legend4.Name = "Legend1";
-            this.chart1.Legends.Add(legend4);
+            chartArea1.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea1);
+            legend1.Name = "Legend1";
+            this.chart1.Legends.Add(legend1);
             this.chart1.Location = new System.Drawing.Point(5, 6);
             this.chart1.Margin = new System.Windows.Forms.Padding(2);
             this.chart1.Name = "chart1";
-            series4.ChartArea = "ChartArea1";
-            series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series4.Legend = "Legend1";
-            series4.Name = "Series1";
-            this.chart1.Series.Add(series4);
+            series1.ChartArea = "ChartArea1";
+            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series1.Legend = "Legend1";
+            series1.Name = "Series1";
+            this.chart1.Series.Add(series1);
             this.chart1.Size = new System.Drawing.Size(563, 370);
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart1";
@@ -2279,8 +2295,8 @@ namespace ArtiluxEOL
             // dataGrid_Load_Line
             // 
             this.dataGrid_Load_Line.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle29.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_Line.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle29;
+            dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_Line.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle5;
             this.dataGrid_Load_Line.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Load_Line.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_Load_Line.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -2297,8 +2313,8 @@ namespace ArtiluxEOL
             this.dataGrid_Load_Line.Name = "dataGrid_Load_Line";
             this.dataGrid_Load_Line.RowHeadersVisible = false;
             this.dataGrid_Load_Line.RowHeadersWidth = 51;
-            dataGridViewCellStyle30.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_Line.RowsDefaultCellStyle = dataGridViewCellStyle30;
+            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_Line.RowsDefaultCellStyle = dataGridViewCellStyle6;
             this.dataGrid_Load_Line.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_Load_Line.RowTemplate.Height = 35;
             this.dataGrid_Load_Line.Size = new System.Drawing.Size(443, 171);
@@ -2357,8 +2373,8 @@ namespace ArtiluxEOL
             // dataGrid_Load_load
             // 
             this.dataGrid_Load_load.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle31.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_load.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle31;
+            dataGridViewCellStyle7.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_load.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle7;
             this.dataGrid_Load_load.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Load_load.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_Load_load.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -2377,8 +2393,8 @@ namespace ArtiluxEOL
             this.dataGrid_Load_load.Name = "dataGrid_Load_load";
             this.dataGrid_Load_load.RowHeadersVisible = false;
             this.dataGrid_Load_load.RowHeadersWidth = 51;
-            dataGridViewCellStyle32.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_load.RowsDefaultCellStyle = dataGridViewCellStyle32;
+            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_load.RowsDefaultCellStyle = dataGridViewCellStyle8;
             this.dataGrid_Load_load.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_Load_load.RowTemplate.Height = 35;
             this.dataGrid_Load_load.Size = new System.Drawing.Size(737, 179);

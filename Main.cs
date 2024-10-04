@@ -152,6 +152,8 @@ namespace ArtiluxEOL
         public int Label_Printer_State = Printer_State.PRINTER_READY; // Current label printer state
         public int Label_Printer_Warning = Printer_Warning.PRNTR_WRN_NONE; // Current label printer warning
 
+        bool Loading_Test_Parameters = true; // Flag when test parameters are being loaded from registers to ignore their text box events
+
         #region <<< Nustatymu langas >>>
 
         System.Windows.Forms.TextBox[] TextBox_dev_info = new System.Windows.Forms.TextBox[13];//IP ivedimo laukai (sukuriami is kodo)
@@ -547,10 +549,25 @@ namespace ArtiluxEOL
             
             */
 
-            //For testing
+            //FOR TESTING
             Test_States[0].Done_Loading = true;
             Test_States[1].Done_Loading = true;
             Test_States[2].Done_Loading = true;
+
+            loadTestParameters(); // Load values from registers for the test parameters
+
+            if (CompareVersions("2.8.15", "2.8.15") > 0)
+            {
+                System.Diagnostics.Debug.Print("Newer");
+            }
+            else if (CompareVersions("2.8.15", "2.8.15") < 0)
+            {
+                System.Diagnostics.Debug.Print("Older");
+            }
+            else
+            {
+                System.Diagnostics.Debug.Print("Same");
+            }
         }
 
         private void UpdateFunction(object source, EventArgs e)//Repeat every 500ms
@@ -2608,7 +2625,6 @@ namespace ArtiluxEOL
 
             devList.DevEvse = new DevEvse_struc[3];//label pointeris
 
-
             //  PWR relay, EVSE mode, EVSE fault
             int x_point = 70;
             int y_point = 35;
@@ -2842,7 +2858,9 @@ namespace ArtiluxEOL
             popup.Show();
         }
 
-            #region Test progress bars
+        #endregion
+
+        #region Test progress bars
 
         public void Update_Progress_Bar_RCD_Test()
         {
@@ -3059,7 +3077,6 @@ namespace ArtiluxEOL
             SendMessage(pBar.Handle, 1040, (IntPtr)state, IntPtr.Zero);
         }
 
-            #endregion
         #endregion
 
         #region Picoscope
@@ -3098,7 +3115,7 @@ namespace ArtiluxEOL
                         }
                         else
                         {
-                            System.Diagnostics.Debug.Print("Looking for devices...");
+                            //System.Diagnostics.Debug.Print("Looking for Picoscope);
                         }
                     }
                     else
@@ -4925,25 +4942,262 @@ namespace ArtiluxEOL
 
             Test_Param_reg.SetValue(paramName, paramVal);
             Test_Param_reg.Close();
+        }
 
-            /*int id = 0;
-            
+        private void loadTestParameters()
+        {
+            Test_Param_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Test_Parameters");
 
-            for (int a = 0; a < WorkplacesCount; a++)
+            if (Test_Param_reg == null)
             {
-                id = a + 1;
-                try
+                Test_Param_reg.Close();
+                return; // Nothing saved in this PC, exit
+            }
+
+            Loading_Test_Parameters = true; // Values will now be added from registers- ignore text box events while this is true
+
+            if (Test_Param_reg.GetValue("Power_Main_Relay_Off_Min") != null)
+            {
+                tb_test_param_pow_mrelay_off_min.Text = Test_Param_reg.GetValue("Power_Main_Relay_Off_Min").ToString();
+
+                if (tb_test_param_pow_mrelay_off_min.Text == "<none>")
                 {
-                    Workplaces_reg.SetValue("Workplace" + id, cBoxWplace[a].SelectedItem.ToString());
-                    Workplaces_reg.SetValue("WP_" + id + "_EN", SavedWorkplaces[a].Enable);
-                    System.Diagnostics.Debug.Print($"WPLACE {id}" + $": = {SavedWorkplaces[a].WorplaceMonitorID}");
-                }
-                catch (Exception e)
-                {
-                    dbg_print(DbgType.MAIN, "Update_work_place_exception, a: " + a, Color.LightCoral);
+                    tb_test_param_pow_mrelay_off_min.Text = "";
                 }
             }
-            Workplaces_reg.Close();*/
+
+            if (Test_Param_reg.GetValue("Power_Main_Relay_Off_Max") != null)
+            {
+                tb_test_param_pow_mrelay_off_max.Text = Test_Param_reg.GetValue("Power_Main_Relay_Off_Max").ToString();
+
+                if (tb_test_param_pow_mrelay_off_max.Text == "<none>")
+                {
+                    tb_test_param_pow_mrelay_off_max.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Power_Main_Relay_On_Min") != null)
+            {
+                tb_test_param_pow_mrelay_on_min.Text = Test_Param_reg.GetValue("Power_Main_Relay_On_Min").ToString();
+
+                if (tb_test_param_pow_mrelay_on_min.Text == "<none>")
+                {
+                    tb_test_param_pow_mrelay_on_min.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Power_Main_Relay_On_Max") != null)
+            {
+                tb_test_param_pow_mrelay_on_max.Text = Test_Param_reg.GetValue("Power_Main_Relay_On_Max").ToString();
+
+                if (tb_test_param_pow_mrelay_on_max.Text == "<none>")
+                {
+                    tb_test_param_pow_mrelay_on_max.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Insulation_AC_Min") != null)
+            {
+                tb_test_param_insul_ac_min.Text = Test_Param_reg.GetValue("Insulation_AC_Min").ToString();
+
+                if (tb_test_param_insul_ac_min.Text == "<none>")
+                {
+                    tb_test_param_insul_ac_min.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Insulation_AC_Max") != null)
+            {
+                tb_test_param_insul_ac_max.Text = Test_Param_reg.GetValue("Insulation_AC_Max").ToString();
+
+                if (tb_test_param_insul_ac_max.Text == "<none>")
+                {
+                    tb_test_param_insul_ac_max.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Insulation_DC_Min") != null)
+            {
+                tb_test_param_insul_dc_min.Text = Test_Param_reg.GetValue("Insulation_DC_Min").ToString();
+
+                if (tb_test_param_insul_dc_min.Text == "<none>")
+                {
+                    tb_test_param_insul_dc_min.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Insulation_DC_Max") != null)
+            {
+                tb_test_param_insul_dc_max.Text = Test_Param_reg.GetValue("Insulation_DC_Max").ToString();
+
+                if (tb_test_param_insul_dc_max.Text == "<none>")
+                {
+                    tb_test_param_insul_dc_max.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Ground_Resistance_Min") != null)
+            {
+                tb_test_param_r_gnd_min.Text = Test_Param_reg.GetValue("Ground_Resistance_Min").ToString();
+
+                if (tb_test_param_r_gnd_min.Text == "<none>")
+                {
+                    tb_test_param_r_gnd_min.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Ground_Resistance_Max") != null)
+            {
+                tb_test_param_r_gnd_max.Text = Test_Param_reg.GetValue("Ground_Resistance_Max").ToString();
+
+                if (tb_test_param_r_gnd_max.Text == "<none>")
+                {
+                    tb_test_param_r_gnd_max.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Residual_DC_Current_Min") != null)
+            {
+                tb_test_param_resid_dc_min.Text = Test_Param_reg.GetValue("Residual_DC_Current_Min").ToString();
+
+                if (tb_test_param_resid_dc_min.Text == "<none>")
+                {
+                    tb_test_param_resid_dc_min.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Residual_DC_Current_Max") != null)
+            {
+                tb_test_param_resid_dc_max.Text = Test_Param_reg.GetValue("Residual_DC_Current_Max").ToString();
+
+                if (tb_test_param_resid_dc_max.Text == "<none>")
+                {
+                    tb_test_param_resid_dc_max.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("WiFi_Speed_Min") != null)
+            {
+                tb_test_param_wifi_speed_min.Text = Test_Param_reg.GetValue("WiFi_Speed_Min").ToString();
+
+                if (tb_test_param_wifi_speed_min.Text == "<none>")
+                {
+                    tb_test_param_wifi_speed_min.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("WiFi_Speed_Max") != null)
+            {
+                tb_test_param_wifi_speed_max.Text = Test_Param_reg.GetValue("WiFi_Speed_Max").ToString();
+
+                if (tb_test_param_wifi_speed_max.Text == "<none>")
+                {
+                    tb_test_param_wifi_speed_max.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("GSM_Speed_Min") != null)
+            {
+                tb_test_param_gsm_speed_min.Text = Test_Param_reg.GetValue("GSM_Speed_Min").ToString();
+
+                if (tb_test_param_gsm_speed_min.Text == "<none>")
+                {
+                    tb_test_param_gsm_speed_min.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("GSM_Speed_Max") != null)
+            {
+                tb_test_param_gsm_speed_max.Text = Test_Param_reg.GetValue("GSM_Speed_Max").ToString();
+
+                if (tb_test_param_gsm_speed_max.Text == "<none>")
+                {
+                    tb_test_param_gsm_speed_max.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("RFID_Range_Min") != null)
+            {
+                tb_test_param_rfid_range_min.Text = Test_Param_reg.GetValue("RFID_Range_Min").ToString();
+
+                if (tb_test_param_rfid_range_min.Text == "<none>")
+                {
+                    tb_test_param_rfid_range_min.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("RFID_Range_Max") != null)
+            {
+                tb_test_param_rfid_range_max.Text = Test_Param_reg.GetValue("RFID_Range_Max").ToString();
+
+                if (tb_test_param_rfid_range_max.Text == "<none>")
+                {
+                    tb_test_param_rfid_range_max.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Firmware_Version_Min") != null)
+            {
+                tb_test_param_firmware_min.Text = Test_Param_reg.GetValue("Firmware_Version_Min").ToString();
+
+                if (tb_test_param_firmware_min.Text == "<none>")
+                {
+                    tb_test_param_firmware_min.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Firmware_Version_Max") != null)
+            {
+                tb_test_param_firmware_max.Text = Test_Param_reg.GetValue("Firmware_Version_Max").ToString();
+
+                if (tb_test_param_firmware_max.Text == "<none>")
+                {
+                    tb_test_param_firmware_max.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Current_Hold_6A_Min") != null)
+            {
+                tb_test_param_ihold_6a_min.Text = Test_Param_reg.GetValue("Current_Hold_6A_Min").ToString();
+
+                if (tb_test_param_ihold_6a_min.Text == "<none>")
+                {
+                    tb_test_param_ihold_6a_min.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Current_Hold_6A_Max") != null)
+            {
+                tb_test_param_ihold_6a_max.Text = Test_Param_reg.GetValue("Current_Hold_6A_Max").ToString();
+
+                if (tb_test_param_ihold_6a_max.Text == "<none>")
+                {
+                    tb_test_param_ihold_6a_max.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Current_Hold_32A_Min") != null)
+            {
+                tb_test_param_ihold_32a_min.Text = Test_Param_reg.GetValue("Current_Hold_32A_Min").ToString();
+
+                if (tb_test_param_ihold_32a_min.Text == "<none>")
+                {
+                    tb_test_param_ihold_32a_min.Text = "";
+                }
+            }
+
+            if (Test_Param_reg.GetValue("Current_Hold_32A_Max") != null)
+            {
+                tb_test_param_ihold_32a_max.Text = Test_Param_reg.GetValue("Current_Hold_32A_Max").ToString();
+
+                if (tb_test_param_ihold_32a_max.Text == "<none>")
+                {
+                    tb_test_param_ihold_32a_max.Text = "";
+                }
+            }
+
+            Test_Param_reg.Close();
+            Loading_Test_Parameters = false; // Loading values from registers complete- text box events can now trigger
         }
 
         #endregion
@@ -6096,6 +6350,31 @@ namespace ArtiluxEOL
 
         #endregion
 
+        #region Tools
+
+        public static int CompareVersions(string ver, string refVer)
+        {
+            string[] v1Parts = ver.Split('.');
+            string[] v2Parts = refVer.Split('.');
+
+            int maxLength = Math.Max(v1Parts.Length, v2Parts.Length);
+
+            for (int i = 0; i < maxLength; i++)
+            {
+                int v1 = i < v1Parts.Length ? int.Parse(v1Parts[i]) : 0;
+                int v2 = i < v2Parts.Length ? int.Parse(v2Parts[i]) : 0;
+
+                if (v1 > v2)
+                    return 1; // ver is newer than refVer
+                if (v1 < v2)
+                    return -1; // ver is older than refVer
+            }
+
+            return 0; // ver is the same as refVer
+        }
+
+        #endregion
+
         #region Buttons
 
         private void button5_Click_1(object sender, EventArgs e)
@@ -6364,6 +6643,8 @@ namespace ArtiluxEOL
 
         private void tb_test_param_pow_mrelay_off_min_TextChanged(object sender, EventArgs e)
         {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
             string valToSave = "<none>";
 
             if (tb_test_param_pow_mrelay_off_min.Text != "")
@@ -6376,6 +6657,8 @@ namespace ArtiluxEOL
 
         private void tb_test_param_pow_mrelay_off_max_TextChanged(object sender, EventArgs e)
         {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
             string valToSave = "<none>";
 
             if (tb_test_param_pow_mrelay_off_max.Text != "")
@@ -6388,6 +6671,8 @@ namespace ArtiluxEOL
 
         private void tb_test_param_pow_mrelay_on_min_TextChanged(object sender, EventArgs e)
         {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
             string valToSave = "<none>";
 
             if (tb_test_param_pow_mrelay_on_min.Text != "")
@@ -6400,6 +6685,8 @@ namespace ArtiluxEOL
 
         private void tb_test_param_pow_mrelay_on_max_TextChanged(object sender, EventArgs e)
         {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
             string valToSave = "<none>";
 
             if (tb_test_param_pow_mrelay_on_max.Text != "")
@@ -6412,6 +6699,8 @@ namespace ArtiluxEOL
 
         private void tb_test_param_insul_ac_min_TextChanged(object sender, EventArgs e)
         {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
             string valToSave = "<none>";
 
             if (tb_test_param_insul_ac_min.Text != "")
@@ -6424,6 +6713,8 @@ namespace ArtiluxEOL
 
         private void tb_test_param_insul_ac_max_TextChanged(object sender, EventArgs e)
         {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
             string valToSave = "<none>";
 
             if (tb_test_param_insul_ac_max.Text != "")
@@ -6436,6 +6727,8 @@ namespace ArtiluxEOL
 
         private void tb_test_param_insul_dc_min_TextChanged(object sender, EventArgs e)
         {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
             string valToSave = "<none>";
 
             if (tb_test_param_insul_dc_min.Text != "")
@@ -6448,6 +6741,8 @@ namespace ArtiluxEOL
 
         private void tb_test_param_insul_dc_max_TextChanged(object sender, EventArgs e)
         {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
             string valToSave = "<none>";
 
             if (tb_test_param_insul_dc_max.Text != "")
@@ -6456,6 +6751,230 @@ namespace ArtiluxEOL
             }
 
             saveTestParameter("Insulation_DC_Max", valToSave);
+        }
+
+        private void tb_test_param_r_gnd_min_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_r_gnd_min.Text != "")
+            {
+                valToSave = tb_test_param_r_gnd_min.Text;
+            }
+
+            saveTestParameter("Ground_Resistance_Min", valToSave);
+        }
+
+        private void tb_test_param_r_gnd_max_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_r_gnd_max.Text != "")
+            {
+                valToSave = tb_test_param_r_gnd_max.Text;
+            }
+
+            saveTestParameter("Ground_Resistance_Max", valToSave);
+        }
+
+        private void tb_test_param_resid_dc_min_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_resid_dc_min.Text != "")
+            {
+                valToSave = tb_test_param_resid_dc_min.Text;
+            }
+
+            saveTestParameter("Residual_DC_Current_Min", valToSave);
+        }
+
+        private void tb_test_param_resid_dc_max_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_resid_dc_max.Text != "")
+            {
+                valToSave = tb_test_param_resid_dc_max.Text;
+            }
+
+            saveTestParameter("Residual_DC_Current_Max", valToSave);
+        }
+
+        private void tb_test_param_wifi_speed_min_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_wifi_speed_min.Text != "")
+            {
+                valToSave = tb_test_param_wifi_speed_min.Text;
+            }
+
+            saveTestParameter("WiFi_Speed_Min", valToSave);
+        }
+
+        private void tb_test_param_wifi_speed_max_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_wifi_speed_max.Text != "")
+            {
+                valToSave = tb_test_param_wifi_speed_max.Text;
+            }
+
+            saveTestParameter("WiFi_Speed_Max", valToSave);
+        }
+
+        private void tb_test_param_gsm_speed_min_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_gsm_speed_min.Text != "")
+            {
+                valToSave = tb_test_param_gsm_speed_min.Text;
+            }
+
+            saveTestParameter("GSM_Speed_Min", valToSave);
+        }
+
+        private void tb_test_param_gsm_speed_max_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_gsm_speed_max.Text != "")
+            {
+                valToSave = tb_test_param_gsm_speed_max.Text;
+            }
+
+            saveTestParameter("GSM_Speed_Max", valToSave);
+        }
+
+        private void tb_test_param_rfid_range_min_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_rfid_range_min.Text != "")
+            {
+                valToSave = tb_test_param_rfid_range_min.Text;
+            }
+
+            saveTestParameter("RFID_Range_Min", valToSave);
+        }
+
+        private void tb_test_param_rfid_range_max_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_rfid_range_max.Text != "")
+            {
+                valToSave = tb_test_param_rfid_range_max.Text;
+            }
+
+            saveTestParameter("RFID_Range_Max", valToSave);
+        }
+
+        private void tb_test_param_firmware_min_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_firmware_min.Text != "")
+            {
+                valToSave = tb_test_param_firmware_min.Text;
+            }
+
+            saveTestParameter("Firmware_Version_Min", valToSave);
+        }
+
+        private void tb_test_param_firmware_max_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_firmware_max.Text != "")
+            {
+                valToSave = tb_test_param_firmware_max.Text;
+            }
+
+            saveTestParameter("Firmware_Version_Max", valToSave);
+        }
+
+        private void tb_test_param_ihold_6a_min_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_ihold_6a_min.Text != "")
+            {
+                valToSave = tb_test_param_ihold_6a_min.Text;
+            }
+
+            saveTestParameter("Current_Hold_6A_Min", valToSave);
+        }
+
+        private void tb_test_param_ihold_6a_max_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_ihold_6a_max.Text != "")
+            {
+                valToSave = tb_test_param_ihold_6a_max.Text;
+            }
+
+            saveTestParameter("Current_Hold_6A_Max", valToSave);
+        }
+
+        private void tb_test_param_ihold_32a_min_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_ihold_32a_min.Text != "")
+            {
+                valToSave = tb_test_param_ihold_32a_min.Text;
+            }
+
+            saveTestParameter("Current_Hold_32A_Min", valToSave);
+        }
+
+        private void tb_test_param_ihold_32a_max_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            string valToSave = "<none>";
+
+            if (tb_test_param_ihold_32a_max.Text != "")
+            {
+                valToSave = tb_test_param_ihold_32a_max.Text;
+            }
+
+            saveTestParameter("Current_Hold_32A_Max", valToSave);
         }
 
         #endregion
