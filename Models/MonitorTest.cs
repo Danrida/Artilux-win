@@ -392,4 +392,28 @@ namespace MonitorsTest.Models
         public const int PRNTR_WRN_RS232_BUFFER_FULL = 0;
         public const int PRNTR_WRN_UNHEALTHY_DOTS = 0;
     }
+
+    public class JSON_Entry_Test
+    {
+        public string TestName { get; set; }
+        public string MeasuredValueUnit { get; set; }
+        public float MeasuredValueRangeMin { get; set; }
+        public float MeasuredValueRangeMax { get; set; }
+        public float MeasuredValue { get; set; }
+        public bool TestResult { get; set; }
+    }
+
+    public class JSON_Entry_Report
+    {
+        public string Date { get; set; }
+        public string WorkerId { get; set; }
+        public int TestSlot { get; set; }
+        public string ProductName { get; set; }
+        public string SerialNumber { get; set; }
+        public string BatchNumber { get; set; }
+        public int BatchSize { get; set; }
+        public string MacAddress { get; set; }
+        public bool TestResult { get; set; }
+        public List<JSON_Entry_Test> Tests { get; set; }
+    }
 }

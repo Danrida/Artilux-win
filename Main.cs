@@ -556,18 +556,122 @@ namespace ArtiluxEOL
 
             loadTestParameters(); // Load values from registers for the test parameters
 
-            if (CompareVersions("2.8.15", "2.8.15") > 0)
+            //FOR TESTING
+
+            JSON_Entry_Report newEntry = new JSON_Entry_Report
             {
-                System.Diagnostics.Debug.Print("Newer");
-            }
-            else if (CompareVersions("2.8.15", "2.8.15") < 0)
+                Date = DateTime.Now.ToString("yyyy-MM-dd"),
+                WorkerId = "616479",
+                TestSlot = 2,
+                ProductName = "EVAKA HOME PRO",
+                SerialNumber = "800001252",
+                BatchNumber = "1",
+                BatchSize = 100,
+                MacAddress = "00:1B:44:11:3A:B7",
+                TestResult = true,
+                Tests = new List<JSON_Entry_Test>
             {
-                System.Diagnostics.Debug.Print("Older");
+                new JSON_Entry_Test
+                {
+                    TestName = "Power consumption from L1 when main relay OFF",
+                    MeasuredValueUnit = "W",
+                    MeasuredValueRangeMin = 3f,
+                    MeasuredValueRangeMax = 4f,
+                    MeasuredValue = 3.1f,
+                    TestResult = true
+                },
+                new JSON_Entry_Test
+                {
+                    TestName = "Power consumption from L1 when main relay ON",
+                    MeasuredValueUnit = "W",
+                    MeasuredValueRangeMin = 4.5f,
+                    MeasuredValueRangeMax = 5.5f,
+                    MeasuredValue = 5.1f,
+                    TestResult = true
+                },
+                new JSON_Entry_Test
+                {
+                    TestName = "Relay dielectric insulation strength test at 1500v AC IEC 61439-1:2021 10.9.1 and 10.9.2",
+                    MeasuredValueUnit = "Mon",
+                    MeasuredValueRangeMin = 1f,
+                    MeasuredValueRangeMax = float.PositiveInfinity,
+                    MeasuredValue = 3.2f,
+                    TestResult = true
+                },
+                new JSON_Entry_Test
+                {
+                    TestName = "IEC 61439-1:2021 11.9 DC @550v",
+                    MeasuredValueUnit = "Mon",
+                    MeasuredValueRangeMin = 1f,
+                    MeasuredValueRangeMax = float.PositiveInfinity,
+                    MeasuredValue = 1.6f,
+                    TestResult = true
+                },
+                new JSON_Entry_Test
+                {
+                    TestName = "IEC 61851-1:2017 communications, signal states A, B, C CP. Detecting relay state sequence using regenerative load unit IT8230-350-180",
+                    MeasuredValueUnit = "Boolean",
+                    MeasuredValueRangeMin = 0f,
+                    MeasuredValueRangeMax = 1f,
+                    MeasuredValue = 1f,
+                    TestResult = true
+                },
+                new JSON_Entry_Test
+                {
+                    TestName = "IEC 61439-1:2021 10.5.2. Grounding resistance measure using Electrical Safety Tester GPT-9804",
+                    MeasuredValueUnit = "ohm",
+                    MeasuredValueRangeMin = float.NegativeInfinity,
+                    MeasuredValueRangeMax = 0.085f,
+                    MeasuredValue = 1f,
+                    TestResult = true
+                },
+                new JSON_Entry_Test
+                {
+                    TestName = "IEC 62955 Residual DC current up to 6ma test",
+                    MeasuredValueUnit = "mA",
+                    MeasuredValueRangeMin = 3,
+                    MeasuredValueRangeMax = 6f,
+                    MeasuredValue = 5.5f,
+                    TestResult = true
+                },
+                new JSON_Entry_Test
+                {
+                    TestName = "Wi-Fi connect",
+                    MeasuredValueUnit = "Boolean",
+                    MeasuredValueRangeMin = 0f,
+                    MeasuredValueRangeMax = 1f,
+                    MeasuredValue = 1f,
+                    TestResult = true
+                },
+                new JSON_Entry_Test
+                {
+                    TestName = "Wi-Fi data transfer",
+                    MeasuredValueUnit = "MB/s",
+                    MeasuredValueRangeMin = 1,
+                    MeasuredValueRangeMax = float.PositiveInfinity,
+                    MeasuredValue = 2.2f,
+                    TestResult = true
+                },
+                new JSON_Entry_Test
+                {
+                    TestName = "GSM connect",
+                    MeasuredValueUnit = "Boolean",
+                    MeasuredValueRangeMin = 0f,
+                    MeasuredValueRangeMax = 1f,
+                    MeasuredValue = 1f,
+                    TestResult = true
+                },
+                new JSON_Entry_Test
+                {
+                    TestName = "GSM data transfer",
+                    MeasuredValueUnit = "kB/s",
+                    MeasuredValueRangeMin = 50,
+                    MeasuredValueRangeMax = float.PositiveInfinity,
+                    MeasuredValue = 153f,
+                    TestResult = true
+                }
             }
-            else
-            {
-                System.Diagnostics.Debug.Print("Same");
-            }
+            };
         }
 
         private void UpdateFunction(object source, EventArgs e)//Repeat every 500ms
