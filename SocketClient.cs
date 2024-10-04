@@ -30,30 +30,11 @@ namespace ArtiluxEOL
             InitializeComponent();
         }
 
-        /*public SocketClient(Form callingForm)
-        {
-            InitializeComponent();
-        }*/
-
         public long UnixTimeNow()
         {
 
             var timeSpan = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
             return (long)timeSpan.TotalSeconds;
-        }
-
-        public static uint ConvertFromIpAddressToInteger(string ipAddress)
-        {
-            var address = IPAddress.Parse(ipAddress);
-            byte[] bytes = address.GetAddressBytes();
-
-            // flip big-endian(network order) to little-endian
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(bytes);
-            }
-
-            return BitConverter.ToUInt32(bytes, 0);
         }
 
         public class ObjectState
@@ -75,32 +56,6 @@ namespace ArtiluxEOL
 
             private static SocketDevList net_dev;
 
-            /*public static void tt()
-            {
-                //mainForm.dbg_print("s");
-
-            }*/
-
-            public static bool ping(SocketDevList dev, int port)
-            {
-                TcpClient client;
-
-                try
-                {
-                    var isPortOpen = IsPortOpen(dev.Ip, dev.Port_0);
-                    Console.WriteLine(isPortOpen ? "{0} : open" : "{0} : close", port);
-
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"No_Ping:{0}");
-                    client = null;
-                    return false;
-                }
-
-            }
-
             private static bool IsPortOpen(string ipAddress, int port)
             {
                 var tcpClient = new TcpClient();
@@ -116,33 +71,6 @@ namespace ArtiluxEOL
                 {
                     return false;
                 }
-            }
-
-            public static int GetAvailablePort(string ip, int p)
-            {
-                IPAddress ipAddress = IPAddress.Parse(ip);
-
-                TcpListener l = new TcpListener(ipAddress, 0);
-                l.Start();
-                int port = ((IPEndPoint)l.LocalEndpoint).Port;
-                l.Stop();
-                Console.WriteLine($"Available port found: {port}");
-                return port;
-            }
-
-            static bool isPortAvailable()
-            {
-                var availablePorts = new List<int>();
-                var properties = IPGlobalProperties.GetIPGlobalProperties();
-
-                IPEndPoint[] endPoints = properties.GetActiveTcpListeners();
-                foreach (IPEndPoint e in endPoints)
-                {
-                    int port = 0;
-                    port = e.Port;
-                    System.Diagnostics.Debug.Print($"port: {port}");
-                }
-                return true;
             }
 
             public static int StartClient(SocketDevList dev, int port)
@@ -353,6 +281,7 @@ namespace ArtiluxEOL
                     }
                     net_dev.RespPktCount++;
                     _ = ReceiveAsync(net_dev);
+                    System.Diagnostics.Debug.Print("RX data no \\n char");
                 }
             }
 

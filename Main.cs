@@ -60,9 +60,9 @@ namespace ArtiluxEOL
         static RegistryKey Config_reg;
         static RegistryKey Workplaces_reg;
         static RegistryKey Periphery_reg;
+        static RegistryKey Test_Param_reg;
 
-        bool debug_network = false;
-        bool debug_usb = false;
+        //bool debug_usb = false;
 
         public bool init_done = false;
         //public static Main main_win;
@@ -147,6 +147,10 @@ namespace ArtiluxEOL
 
         public DevList devList;
         public Test_struc[] Test = new Test_struc[3];
+
+        public string Label_Printer_Command = ""; // Printer command (TSLP protocol), if not empty then it is a flag to print
+        public int Label_Printer_State = Printer_State.PRINTER_READY; // Current label printer state
+        public int Label_Printer_Warning = Printer_Warning.PRNTR_WRN_NONE; // Current label printer warning
 
         #region <<< Nustatymu langas >>>
 
@@ -2247,16 +2251,7 @@ namespace ArtiluxEOL
                     currForm.StartPosition = FormStartPosition.Manual;//Set start position mode to manual
                     currForm.Left = leftOffset + (Monitor1_Width / 2) - (currForm.Width / 2);//Move to center of the first screen
                     currForm.Top = (Monitor1_Height / 2) - (currForm.Height / 2);//Move to center of the first screen
-
-                    if (checkBox_fullscreen.Checked)
-                    {
-                        currForm.FormBorderStyle = FormBorderStyle.None;
-                    }
-                    else
-                    {
-                        currForm.FormBorderStyle = FormBorderStyle.Sizable;
-                    }
-
+                    currForm.FormBorderStyle = FormBorderStyle.None;
                     currForm.WindowState = FormWindowState.Maximized;//Maximize the screen
                     currForm.SetupUI();
                 }
@@ -2283,16 +2278,7 @@ namespace ArtiluxEOL
                     currForm.StartPosition = FormStartPosition.Manual;//Set start position mode to manual
                     currForm.Left = leftOffset + ((Monitor2_Width / 2) - (currForm.Width / 2));//Move to center of the second screen
                     currForm.Top = (Monitor2_Height / 2) - (currForm.Height / 2);//Move to center of the second screen
-
-                    if (checkBox_fullscreen.Checked)
-                    {
-                        currForm.FormBorderStyle = FormBorderStyle.None;
-                    }
-                    else
-                    {
-                        currForm.FormBorderStyle = FormBorderStyle.Sizable;
-                    }
-
+                    currForm.FormBorderStyle = FormBorderStyle.None;
                     currForm.WindowState = FormWindowState.Maximized;//Maximize the screen
                     currForm.SetupUI();
                 }
@@ -2319,24 +2305,11 @@ namespace ArtiluxEOL
                     currForm.StartPosition = FormStartPosition.Manual;//Set start position mode to manual
                     currForm.Left = leftOffset + ((Monitor3_Width / 2) - (currForm.Width / 2));//Move to center of the third screen
                     currForm.Top = (Monitor3_Height / 2) - (currForm.Height / 2);//Move to center of the third screen
-
-                    if (checkBox_fullscreen.Checked)
-                    {
-                        currForm.FormBorderStyle = FormBorderStyle.None;
-                    }
-                    else
-                    {
-                        currForm.FormBorderStyle = FormBorderStyle.Sizable;
-                    }
-
+                    currForm.FormBorderStyle = FormBorderStyle.None;
                     currForm.WindowState = FormWindowState.Maximized;//Maximize the screen
                     currForm.SetupUI();
                 }
             }
-
-            //System.Diagnostics.Debug.Print("Main is on= " + Screen.FromControl(this));
-            //System.Diagnostics.Debug.Print("Main location X= " + this.Location.X);
-
         }
 
         private void UpdateGraphicsOperationalWorkplaces()
@@ -2447,15 +2420,10 @@ namespace ArtiluxEOL
             {
                 if (monTest.Form != null && monTest.MonitorOnline && !monTest.FormHidden && monTest.Form.WindowState != FormWindowState.Maximized)
                 {
-                    monTest.Form.WindowState = FormWindowState.Maximized;
-
-                    if (checkBox_fullscreen.Checked)
+                    if (RUN_TEST_MODE == false)
                     {
                         monTest.Form.FormBorderStyle = FormBorderStyle.None;
-                    }
-                    else
-                    {
-                        monTest.Form.FormBorderStyle = FormBorderStyle.Sizable;
+                        monTest.Form.WindowState = FormWindowState.Maximized;
                     }
                 }
             }
@@ -2534,6 +2502,12 @@ namespace ArtiluxEOL
                         mtlist.Add(mt);
 
                         WindowModal tm = new WindowModal(mt);
+
+                        if (RUN_TEST_MODE) // Created form in test mode is minimized on startup
+                        {
+                            tm.WindowState = FormWindowState.Minimized;
+                        }
+
                         mt.Form = tm;
 
                         if (Original_Modal_Form_Background != tm.BackColor)
@@ -4701,7 +4675,7 @@ namespace ArtiluxEOL
 
         #endregion
 
-        #region -=Param save/load from reg=-
+        #region -=Save/load=-
         private void regUpdateWplace()
         {
             int id = 0;
@@ -4720,10 +4694,7 @@ namespace ArtiluxEOL
                 {
                     dbg_print(DbgType.MAIN, "Update_work_place_exception, a: " + a, Color.LightCoral);
                 }
-
-
             }
-
             Workplaces_reg.Close();
         }
 
@@ -4864,9 +4835,7 @@ namespace ArtiluxEOL
 
             }
         }
-        #endregion
 
-        #region -=Periphery save/load=-
         private void regReadPeriphery()
         {
             int phe_count = 0;
@@ -4943,6 +4912,38 @@ namespace ArtiluxEOL
             Periphery_reg.Close();
 
             System.Diagnostics.Debug.Print($"UPDATE: = {phe_nr} ip: = {network_dev[phe_nr].Ip} port_0: = {network_dev[phe_nr].Port_0} port_1: = {network_dev[phe_nr].Port_1} en: = {network_dev[phe_nr].Enable}");
+        }
+
+        private void saveTestParameter(string paramName, string paramVal)
+        {
+            Test_Param_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\Test_Parameters", true);
+
+            if (Test_Param_reg == null)
+            {
+                Test_Param_reg = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Artilux\Test_Parameters");
+            }
+
+            Test_Param_reg.SetValue(paramName, paramVal);
+            Test_Param_reg.Close();
+
+            /*int id = 0;
+            
+
+            for (int a = 0; a < WorkplacesCount; a++)
+            {
+                id = a + 1;
+                try
+                {
+                    Workplaces_reg.SetValue("Workplace" + id, cBoxWplace[a].SelectedItem.ToString());
+                    Workplaces_reg.SetValue("WP_" + id + "_EN", SavedWorkplaces[a].Enable);
+                    System.Diagnostics.Debug.Print($"WPLACE {id}" + $": = {SavedWorkplaces[a].WorplaceMonitorID}");
+                }
+                catch (Exception e)
+                {
+                    dbg_print(DbgType.MAIN, "Update_work_place_exception, a: " + a, Color.LightCoral);
+                }
+            }
+            Workplaces_reg.Close();*/
         }
 
         #endregion
@@ -6201,15 +6202,6 @@ namespace ArtiluxEOL
             NetworkThreads.Generate_Test_Pulse(textBox_pulse_length.Text);
         }
 
-        private void btn_popup_Click(object sender, EventArgs e)
-        {
-
-            dbg_print(DbgType.MAIN, "TEST", Color.MediumPurple);
-
-            Popup_msg popup = new Popup_msg("TEST", "asdsd", Color.SpringGreen, 2);
-            popup.Show();
-        }
-
         private void button_reset_modular_I_Click(object sender, EventArgs e)
         {
             Reset_Work_Position(0);
@@ -6302,6 +6294,168 @@ namespace ArtiluxEOL
         private void radioButton_RCD_L3_CheckedChanged(object sender, EventArgs e)
         {
             RCD_Phase_Set(3);
+        }
+
+        private void button_print_label_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string Model_Name = "EVAKA HOME PRO";
+                string Unit_Specs = "22kW, 3phase, 32A, IP54, IK08";
+                string Unit_Color = "Black";
+                string Ser_Number = "800001252";
+                string Prod_Date = "2024 08";
+                string Barcode = "4779026723380";
+
+                // Create process start info
+                ProcessStartInfo start = new ProcessStartInfo();
+                start.FileName = @"C:\Users\Artilux\AppData\Local\Programs\Python\Python312\python.exe"; // Python executable (assumed to be in PATH)
+                string script = @"C:\Users\Artilux\Desktop\Artilux-win\LabelGenerator.py";
+                //start.Arguments = @"C:\Users\Artilux\Desktop\Artilux-win\LabelGenerator.py" + numberI + " " + numberII + " " + numberIII; ; // Pass the three integers
+
+                start.Arguments = $"\"{script}\" \"{Model_Name}\" \"{Unit_Specs}\" \"{Unit_Color}\" \"{Ser_Number}\" \"{Prod_Date}\" \"{Barcode}\"";
+
+                start.WorkingDirectory = Directory.GetCurrentDirectory(); // Set the working directory
+                start.UseShellExecute = false; // Required for RedirectStandardOutput
+                start.RedirectStandardOutput = true; // Capture the script's output
+                start.RedirectStandardError = true; // Capture any error output
+                start.CreateNoWindow = true; // Do not show a window
+
+                // Start the process and capture its output
+                using (Process process = Process.Start(start))
+                {
+                    using (StreamReader reader = process.StandardOutput)
+                    {
+                        Label_Printer_Command = reader.ReadToEnd();
+                        if (!string.IsNullOrEmpty(Label_Printer_Command))
+                        {
+                            MessageBox.Show(Label_Printer_Command);
+                        }
+                        else
+                        {
+                            // In case no output is received, check for errors
+                            using (StreamReader errorReader = process.StandardError)
+                            {
+                                string errorOutput = errorReader.ReadToEnd();
+                                if (!string.IsNullOrEmpty(errorOutput))
+                                {
+                                    MessageBox.Show("Error: " + errorOutput);
+                                }
+                                else
+                                {
+                                    MessageBox.Show("No output from script.");
+                                }
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message);
+                return;
+            }
+        }
+
+        #endregion
+
+        #region Testu parametru laukai
+
+        private void tb_test_param_pow_mrelay_off_min_TextChanged(object sender, EventArgs e)
+        {
+            string valToSave = "<none>";
+
+            if (tb_test_param_pow_mrelay_off_min.Text != "")
+            {
+                valToSave = tb_test_param_pow_mrelay_off_min.Text;
+            }
+
+            saveTestParameter("Power_Main_Relay_Off_Min", valToSave);
+        }
+
+        private void tb_test_param_pow_mrelay_off_max_TextChanged(object sender, EventArgs e)
+        {
+            string valToSave = "<none>";
+
+            if (tb_test_param_pow_mrelay_off_max.Text != "")
+            {
+                valToSave = tb_test_param_pow_mrelay_off_max.Text;
+            }
+
+            saveTestParameter("Power_Main_Relay_Off_Max", valToSave);
+        }
+
+        private void tb_test_param_pow_mrelay_on_min_TextChanged(object sender, EventArgs e)
+        {
+            string valToSave = "<none>";
+
+            if (tb_test_param_pow_mrelay_on_min.Text != "")
+            {
+                valToSave = tb_test_param_pow_mrelay_on_min.Text;
+            }
+
+            saveTestParameter("Power_Main_Relay_On_Min", valToSave);
+        }
+
+        private void tb_test_param_pow_mrelay_on_max_TextChanged(object sender, EventArgs e)
+        {
+            string valToSave = "<none>";
+
+            if (tb_test_param_pow_mrelay_on_max.Text != "")
+            {
+                valToSave = tb_test_param_pow_mrelay_on_max.Text;
+            }
+
+            saveTestParameter("Power_Main_Relay_On_Max", valToSave);
+        }
+
+        private void tb_test_param_insul_ac_min_TextChanged(object sender, EventArgs e)
+        {
+            string valToSave = "<none>";
+
+            if (tb_test_param_insul_ac_min.Text != "")
+            {
+                valToSave = tb_test_param_insul_ac_min.Text;
+            }
+
+            saveTestParameter("Insulation_AC_Min", valToSave);
+        }
+
+        private void tb_test_param_insul_ac_max_TextChanged(object sender, EventArgs e)
+        {
+            string valToSave = "<none>";
+
+            if (tb_test_param_insul_ac_max.Text != "")
+            {
+                valToSave = tb_test_param_insul_ac_max.Text;
+            }
+
+            saveTestParameter("Insulation_AC_Max", valToSave);
+        }
+
+        private void tb_test_param_insul_dc_min_TextChanged(object sender, EventArgs e)
+        {
+            string valToSave = "<none>";
+
+            if (tb_test_param_insul_dc_min.Text != "")
+            {
+                valToSave = tb_test_param_insul_dc_min.Text;
+            }
+
+            saveTestParameter("Insulation_DC_Min", valToSave);
+        }
+
+        private void tb_test_param_insul_dc_max_TextChanged(object sender, EventArgs e)
+        {
+            string valToSave = "<none>";
+
+            if (tb_test_param_insul_dc_max.Text != "")
+            {
+                valToSave = tb_test_param_insul_dc_max.Text;
+            }
+
+            saveTestParameter("Insulation_DC_Max", valToSave);
         }
 
         #endregion

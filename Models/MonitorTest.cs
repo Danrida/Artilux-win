@@ -273,13 +273,13 @@ namespace MonitorsTest.Models
         public float FREQUENCY = 0;//Frequency value
     }
 
-    public static class EV_Mode_State
+    /*public static class EV_Mode_State
     {
         public const int EV_READY = 0;
         public const int EV_CONNECTED = 1;
         public const int EV_CHARGING = 2;
         public const int EV_FAULT = 3;
-    }
+    }*/
 
     public static class NetDev_SendState
     {
@@ -367,5 +367,29 @@ namespace MonitorsTest.Models
         public const int BARCODE_2 = 5;
         public const int BARCODE_3 = 6;
         public const int PRINTER = 7;
+    }
+
+    public static class Printer_State
+    {
+        public const int PRINTER_READY = 0;
+        public const int PRINTER_PAUSE = 0;
+        public const int PRINTER_BACKING_LABEL = 0;
+        public const int PRINTER_CUTTING = 0;
+        public const int PRINTER_ERROR = 0;
+        public const int PRINTER_FORM_FEED = 0;
+        public const int PRINTER_WAITING_FOR_KEY_PRESS = 0;
+        public const int PRINTER_WAITING_FOR_LABEL_TAKE = 0;
+        public const int PRINTER_PRINTING = 0;
+        public const int PRINTER_IMAGING = 0;
+    }
+
+    public static class Printer_Warning
+    {
+        public const int PRNTR_WRN_NONE = 0;
+        public const int PRNTR_WRN_PAPER_LOW = 0;
+        public const int PRNTR_WRN_RIBBON_LOW = 0;
+        public const int PRNTR_WRN_RESERVED = 0;
+        public const int PRNTR_WRN_RS232_BUFFER_FULL = 0;
+        public const int PRNTR_WRN_UNHEALTHY_DOTS = 0;
     }
 }

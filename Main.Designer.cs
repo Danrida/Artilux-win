@@ -33,20 +33,21 @@ namespace ArtiluxEOL
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle25 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle26 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle27 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle28 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle29 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle30 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle31 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle32 = new System.Windows.Forms.DataGridViewCellStyle();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.button_print_label = new System.Windows.Forms.Button();
             this.button_reset_modular_III = new System.Windows.Forms.Button();
             this.button_reset_modular_II = new System.Windows.Forms.Button();
             this.button_reset_modular_I = new System.Windows.Forms.Button();
@@ -62,7 +63,6 @@ namespace ArtiluxEOL
             this.lbl_evse1 = new System.Windows.Forms.Label();
             this.lbl_barcode_1 = new System.Windows.Forms.Label();
             this.lbl_rfid_1 = new System.Windows.Forms.Label();
-            this.btn_popup = new System.Windows.Forms.Button();
             this.metrel_skip_btn = new System.Windows.Forms.Button();
             this.metrel_break_btn = new System.Windows.Forms.Button();
             this.Met_proceed_btn = new System.Windows.Forms.Button();
@@ -82,7 +82,56 @@ namespace ArtiluxEOL
             this.lbl_hvgen = new System.Windows.Forms.Label();
             this.lbl_osc = new System.Windows.Forms.Label();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.checkBox_fullscreen = new System.Windows.Forms.CheckBox();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.label47 = new System.Windows.Forms.Label();
+            this.tb_test_param_ihold_32a_max = new System.Windows.Forms.TextBox();
+            this.tb_test_param_ihold_32a_min = new System.Windows.Forms.TextBox();
+            this.label48 = new System.Windows.Forms.Label();
+            this.label45 = new System.Windows.Forms.Label();
+            this.tb_test_param_ihold_6a_max = new System.Windows.Forms.TextBox();
+            this.tb_test_param_ihold_6a_min = new System.Windows.Forms.TextBox();
+            this.label46 = new System.Windows.Forms.Label();
+            this.label43 = new System.Windows.Forms.Label();
+            this.tb_test_param_firmware_max = new System.Windows.Forms.TextBox();
+            this.tb_test_param_firmware_min = new System.Windows.Forms.TextBox();
+            this.label44 = new System.Windows.Forms.Label();
+            this.label41 = new System.Windows.Forms.Label();
+            this.tb_test_param_rfid_range_max = new System.Windows.Forms.TextBox();
+            this.tb_test_param_rfid_range_min = new System.Windows.Forms.TextBox();
+            this.label42 = new System.Windows.Forms.Label();
+            this.label39 = new System.Windows.Forms.Label();
+            this.tb_test_param_gsm_speed_max = new System.Windows.Forms.TextBox();
+            this.tb_test_param_gsm_speed_min = new System.Windows.Forms.TextBox();
+            this.label40 = new System.Windows.Forms.Label();
+            this.label37 = new System.Windows.Forms.Label();
+            this.tb_test_param_wifi_speed_max = new System.Windows.Forms.TextBox();
+            this.tb_test_param_wifi_speed_min = new System.Windows.Forms.TextBox();
+            this.label38 = new System.Windows.Forms.Label();
+            this.label35 = new System.Windows.Forms.Label();
+            this.tb_test_param_resid_dc_max = new System.Windows.Forms.TextBox();
+            this.tb_test_param_resid_dc_min = new System.Windows.Forms.TextBox();
+            this.label36 = new System.Windows.Forms.Label();
+            this.label33 = new System.Windows.Forms.Label();
+            this.tb_test_param_r_gnd_max = new System.Windows.Forms.TextBox();
+            this.tb_test_param_r_gnd_min = new System.Windows.Forms.TextBox();
+            this.label34 = new System.Windows.Forms.Label();
+            this.label31 = new System.Windows.Forms.Label();
+            this.tb_test_param_insul_dc_max = new System.Windows.Forms.TextBox();
+            this.tb_test_param_insul_dc_min = new System.Windows.Forms.TextBox();
+            this.label32 = new System.Windows.Forms.Label();
+            this.label29 = new System.Windows.Forms.Label();
+            this.tb_test_param_insul_ac_max = new System.Windows.Forms.TextBox();
+            this.tb_test_param_insul_ac_min = new System.Windows.Forms.TextBox();
+            this.label30 = new System.Windows.Forms.Label();
+            this.label27 = new System.Windows.Forms.Label();
+            this.tb_test_param_pow_mrelay_on_max = new System.Windows.Forms.TextBox();
+            this.tb_test_param_pow_mrelay_on_min = new System.Windows.Forms.TextBox();
+            this.label28 = new System.Windows.Forms.Label();
+            this.label26 = new System.Windows.Forms.Label();
+            this.label25 = new System.Windows.Forms.Label();
+            this.tb_test_param_pow_mrelay_off_max = new System.Windows.Forms.TextBox();
+            this.tb_test_param_pow_mrelay_off_min = new System.Windows.Forms.TextBox();
+            this.label24 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.saveWplace = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -248,6 +297,7 @@ namespace ArtiluxEOL
             this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
             this.tabPage2.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.groupBox_Printer.SuspendLayout();
@@ -303,13 +353,13 @@ namespace ArtiluxEOL
             // tabPage1
             // 
             this.tabPage1.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.tabPage1.Controls.Add(this.button_print_label);
             this.tabPage1.Controls.Add(this.button_reset_modular_III);
             this.tabPage1.Controls.Add(this.button_reset_modular_II);
             this.tabPage1.Controls.Add(this.button_reset_modular_I);
             this.tabPage1.Controls.Add(this.Test_lizdas_3);
             this.tabPage1.Controls.Add(this.Test_lizdas_2);
             this.tabPage1.Controls.Add(this.Test_lizdas_1);
-            this.tabPage1.Controls.Add(this.btn_popup);
             this.tabPage1.Controls.Add(this.metrel_skip_btn);
             this.tabPage1.Controls.Add(this.metrel_break_btn);
             this.tabPage1.Controls.Add(this.Met_proceed_btn);
@@ -327,6 +377,17 @@ namespace ArtiluxEOL
             this.tabPage1.Size = new System.Drawing.Size(984, 613);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Pagrindinis";
+            // 
+            // button_print_label
+            // 
+            this.button_print_label.BackColor = System.Drawing.Color.LightCyan;
+            this.button_print_label.Location = new System.Drawing.Point(322, 401);
+            this.button_print_label.Name = "button_print_label";
+            this.button_print_label.Size = new System.Drawing.Size(203, 113);
+            this.button_print_label.TabIndex = 17;
+            this.button_print_label.Text = "Print label";
+            this.button_print_label.UseVisualStyleBackColor = false;
+            this.button_print_label.Click += new System.EventHandler(this.button_print_label_Click);
             // 
             // button_reset_modular_III
             // 
@@ -490,17 +551,6 @@ namespace ArtiluxEOL
             this.lbl_rfid_1.Size = new System.Drawing.Size(178, 29);
             this.lbl_rfid_1.TabIndex = 11;
             this.lbl_rfid_1.Text = "           RF-ID";
-            // 
-            // btn_popup
-            // 
-            this.btn_popup.Location = new System.Drawing.Point(888, 564);
-            this.btn_popup.Margin = new System.Windows.Forms.Padding(2);
-            this.btn_popup.Name = "btn_popup";
-            this.btn_popup.Size = new System.Drawing.Size(92, 45);
-            this.btn_popup.TabIndex = 9;
-            this.btn_popup.Text = "popup";
-            this.btn_popup.UseVisualStyleBackColor = true;
-            this.btn_popup.Click += new System.EventHandler(this.btn_popup_Click);
             // 
             // metrel_skip_btn
             // 
@@ -723,7 +773,7 @@ namespace ArtiluxEOL
             // tabPage2
             // 
             this.tabPage2.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.tabPage2.Controls.Add(this.checkBox_fullscreen);
+            this.tabPage2.Controls.Add(this.groupBox4);
             this.tabPage2.Controls.Add(this.groupBox1);
             this.tabPage2.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tabPage2.Location = new System.Drawing.Point(4, 44);
@@ -734,17 +784,534 @@ namespace ArtiluxEOL
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Nustatymai";
             // 
-            // checkBox_fullscreen
+            // groupBox4
             // 
-            this.checkBox_fullscreen.AutoSize = true;
-            this.checkBox_fullscreen.Checked = true;
-            this.checkBox_fullscreen.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox_fullscreen.Location = new System.Drawing.Point(71, 308);
-            this.checkBox_fullscreen.Name = "checkBox_fullscreen";
-            this.checkBox_fullscreen.Size = new System.Drawing.Size(174, 30);
-            this.checkBox_fullscreen.TabIndex = 5;
-            this.checkBox_fullscreen.Text = "Pilnas ekranas";
-            this.checkBox_fullscreen.UseVisualStyleBackColor = true;
+            this.groupBox4.Controls.Add(this.label47);
+            this.groupBox4.Controls.Add(this.tb_test_param_ihold_32a_max);
+            this.groupBox4.Controls.Add(this.tb_test_param_ihold_32a_min);
+            this.groupBox4.Controls.Add(this.label48);
+            this.groupBox4.Controls.Add(this.label45);
+            this.groupBox4.Controls.Add(this.tb_test_param_ihold_6a_max);
+            this.groupBox4.Controls.Add(this.tb_test_param_ihold_6a_min);
+            this.groupBox4.Controls.Add(this.label46);
+            this.groupBox4.Controls.Add(this.label43);
+            this.groupBox4.Controls.Add(this.tb_test_param_firmware_max);
+            this.groupBox4.Controls.Add(this.tb_test_param_firmware_min);
+            this.groupBox4.Controls.Add(this.label44);
+            this.groupBox4.Controls.Add(this.label41);
+            this.groupBox4.Controls.Add(this.tb_test_param_rfid_range_max);
+            this.groupBox4.Controls.Add(this.tb_test_param_rfid_range_min);
+            this.groupBox4.Controls.Add(this.label42);
+            this.groupBox4.Controls.Add(this.label39);
+            this.groupBox4.Controls.Add(this.tb_test_param_gsm_speed_max);
+            this.groupBox4.Controls.Add(this.tb_test_param_gsm_speed_min);
+            this.groupBox4.Controls.Add(this.label40);
+            this.groupBox4.Controls.Add(this.label37);
+            this.groupBox4.Controls.Add(this.tb_test_param_wifi_speed_max);
+            this.groupBox4.Controls.Add(this.tb_test_param_wifi_speed_min);
+            this.groupBox4.Controls.Add(this.label38);
+            this.groupBox4.Controls.Add(this.label35);
+            this.groupBox4.Controls.Add(this.tb_test_param_resid_dc_max);
+            this.groupBox4.Controls.Add(this.tb_test_param_resid_dc_min);
+            this.groupBox4.Controls.Add(this.label36);
+            this.groupBox4.Controls.Add(this.label33);
+            this.groupBox4.Controls.Add(this.tb_test_param_r_gnd_max);
+            this.groupBox4.Controls.Add(this.tb_test_param_r_gnd_min);
+            this.groupBox4.Controls.Add(this.label34);
+            this.groupBox4.Controls.Add(this.label31);
+            this.groupBox4.Controls.Add(this.tb_test_param_insul_dc_max);
+            this.groupBox4.Controls.Add(this.tb_test_param_insul_dc_min);
+            this.groupBox4.Controls.Add(this.label32);
+            this.groupBox4.Controls.Add(this.label29);
+            this.groupBox4.Controls.Add(this.tb_test_param_insul_ac_max);
+            this.groupBox4.Controls.Add(this.tb_test_param_insul_ac_min);
+            this.groupBox4.Controls.Add(this.label30);
+            this.groupBox4.Controls.Add(this.label27);
+            this.groupBox4.Controls.Add(this.tb_test_param_pow_mrelay_on_max);
+            this.groupBox4.Controls.Add(this.tb_test_param_pow_mrelay_on_min);
+            this.groupBox4.Controls.Add(this.label28);
+            this.groupBox4.Controls.Add(this.label26);
+            this.groupBox4.Controls.Add(this.label25);
+            this.groupBox4.Controls.Add(this.tb_test_param_pow_mrelay_off_max);
+            this.groupBox4.Controls.Add(this.tb_test_param_pow_mrelay_off_min);
+            this.groupBox4.Controls.Add(this.label24);
+            this.groupBox4.Location = new System.Drawing.Point(343, 19);
+            this.groupBox4.Margin = new System.Windows.Forms.Padding(2);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox4.Size = new System.Drawing.Size(637, 464);
+            this.groupBox4.TabIndex = 6;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Testų parametrai";
+            // 
+            // label47
+            // 
+            this.label47.AutoSize = true;
+            this.label47.Location = new System.Drawing.Point(566, 429);
+            this.label47.Name = "label47";
+            this.label47.Size = new System.Drawing.Size(27, 26);
+            this.label47.TabIndex = 55;
+            this.label47.Text = "A";
+            // 
+            // tb_test_param_ihold_32a_max
+            // 
+            this.tb_test_param_ihold_32a_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_ihold_32a_max.Location = new System.Drawing.Point(497, 428);
+            this.tb_test_param_ihold_32a_max.Name = "tb_test_param_ihold_32a_max";
+            this.tb_test_param_ihold_32a_max.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_ihold_32a_max.TabIndex = 54;
+            this.tb_test_param_ihold_32a_max.Text = "33,6";
+            this.tb_test_param_ihold_32a_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // tb_test_param_ihold_32a_min
+            // 
+            this.tb_test_param_ihold_32a_min.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_ihold_32a_min.Location = new System.Drawing.Point(428, 428);
+            this.tb_test_param_ihold_32a_min.Name = "tb_test_param_ihold_32a_min";
+            this.tb_test_param_ihold_32a_min.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_ihold_32a_min.TabIndex = 53;
+            this.tb_test_param_ihold_32a_min.Text = "30,4";
+            this.tb_test_param_ihold_32a_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // label48
+            // 
+            this.label48.AutoSize = true;
+            this.label48.Location = new System.Drawing.Point(5, 429);
+            this.label48.Name = "label48";
+            this.label48.Size = new System.Drawing.Size(314, 26);
+            this.label48.TabIndex = 52;
+            this.label48.Text = "Krovimo srovės testas prie 32A";
+            // 
+            // label45
+            // 
+            this.label45.AutoSize = true;
+            this.label45.Location = new System.Drawing.Point(566, 394);
+            this.label45.Name = "label45";
+            this.label45.Size = new System.Drawing.Size(27, 26);
+            this.label45.TabIndex = 51;
+            this.label45.Text = "A";
+            // 
+            // tb_test_param_ihold_6a_max
+            // 
+            this.tb_test_param_ihold_6a_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_ihold_6a_max.Location = new System.Drawing.Point(497, 393);
+            this.tb_test_param_ihold_6a_max.Name = "tb_test_param_ihold_6a_max";
+            this.tb_test_param_ihold_6a_max.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_ihold_6a_max.TabIndex = 50;
+            this.tb_test_param_ihold_6a_max.Text = "6,3";
+            this.tb_test_param_ihold_6a_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // tb_test_param_ihold_6a_min
+            // 
+            this.tb_test_param_ihold_6a_min.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_ihold_6a_min.Location = new System.Drawing.Point(428, 393);
+            this.tb_test_param_ihold_6a_min.Name = "tb_test_param_ihold_6a_min";
+            this.tb_test_param_ihold_6a_min.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_ihold_6a_min.TabIndex = 49;
+            this.tb_test_param_ihold_6a_min.Text = "5,7";
+            this.tb_test_param_ihold_6a_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // label46
+            // 
+            this.label46.AutoSize = true;
+            this.label46.Location = new System.Drawing.Point(5, 394);
+            this.label46.Name = "label46";
+            this.label46.Size = new System.Drawing.Size(302, 26);
+            this.label46.TabIndex = 48;
+            this.label46.Text = "Krovimo srovės testas prie 6A";
+            // 
+            // label43
+            // 
+            this.label43.AutoSize = true;
+            this.label43.Location = new System.Drawing.Point(566, 359);
+            this.label43.Name = "label43";
+            this.label43.Size = new System.Drawing.Size(23, 26);
+            this.label43.TabIndex = 47;
+            this.label43.Text = "v";
+            // 
+            // tb_test_param_firmware_max
+            // 
+            this.tb_test_param_firmware_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_firmware_max.Location = new System.Drawing.Point(497, 358);
+            this.tb_test_param_firmware_max.Name = "tb_test_param_firmware_max";
+            this.tb_test_param_firmware_max.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_firmware_max.TabIndex = 46;
+            this.tb_test_param_firmware_max.Text = "1.2.1";
+            this.tb_test_param_firmware_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // tb_test_param_firmware_min
+            // 
+            this.tb_test_param_firmware_min.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_firmware_min.Location = new System.Drawing.Point(428, 358);
+            this.tb_test_param_firmware_min.Name = "tb_test_param_firmware_min";
+            this.tb_test_param_firmware_min.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_firmware_min.TabIndex = 45;
+            this.tb_test_param_firmware_min.Text = "1.2.1";
+            this.tb_test_param_firmware_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // label44
+            // 
+            this.label44.AutoSize = true;
+            this.label44.Location = new System.Drawing.Point(5, 359);
+            this.label44.Name = "label44";
+            this.label44.Size = new System.Drawing.Size(282, 26);
+            this.label44.TabIndex = 44;
+            this.label44.Text = "Programinės įrangos versija";
+            // 
+            // label41
+            // 
+            this.label41.AutoSize = true;
+            this.label41.Location = new System.Drawing.Point(566, 324);
+            this.label41.Name = "label41";
+            this.label41.Size = new System.Drawing.Size(50, 26);
+            this.label41.TabIndex = 43;
+            this.label41.Text = "mm";
+            // 
+            // tb_test_param_rfid_range_max
+            // 
+            this.tb_test_param_rfid_range_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_rfid_range_max.Location = new System.Drawing.Point(497, 323);
+            this.tb_test_param_rfid_range_max.Name = "tb_test_param_rfid_range_max";
+            this.tb_test_param_rfid_range_max.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_rfid_range_max.TabIndex = 42;
+            this.tb_test_param_rfid_range_max.Text = "120";
+            this.tb_test_param_rfid_range_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // tb_test_param_rfid_range_min
+            // 
+            this.tb_test_param_rfid_range_min.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_rfid_range_min.Location = new System.Drawing.Point(428, 323);
+            this.tb_test_param_rfid_range_min.Name = "tb_test_param_rfid_range_min";
+            this.tb_test_param_rfid_range_min.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_rfid_range_min.TabIndex = 41;
+            this.tb_test_param_rfid_range_min.Text = "20";
+            this.tb_test_param_rfid_range_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // label42
+            // 
+            this.label42.AutoSize = true;
+            this.label42.Location = new System.Drawing.Point(5, 324);
+            this.label42.Name = "label42";
+            this.label42.Size = new System.Drawing.Size(251, 26);
+            this.label42.TabIndex = 40;
+            this.label42.Text = "RFID skaitymo atstumas";
+            // 
+            // label39
+            // 
+            this.label39.AutoSize = true;
+            this.label39.Location = new System.Drawing.Point(566, 289);
+            this.label39.Name = "label39";
+            this.label39.Size = new System.Drawing.Size(55, 26);
+            this.label39.TabIndex = 39;
+            this.label39.Text = "kB/s";
+            // 
+            // tb_test_param_gsm_speed_max
+            // 
+            this.tb_test_param_gsm_speed_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_gsm_speed_max.Location = new System.Drawing.Point(497, 288);
+            this.tb_test_param_gsm_speed_max.Name = "tb_test_param_gsm_speed_max";
+            this.tb_test_param_gsm_speed_max.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_gsm_speed_max.TabIndex = 38;
+            this.tb_test_param_gsm_speed_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // tb_test_param_gsm_speed_min
+            // 
+            this.tb_test_param_gsm_speed_min.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_gsm_speed_min.Location = new System.Drawing.Point(428, 288);
+            this.tb_test_param_gsm_speed_min.Name = "tb_test_param_gsm_speed_min";
+            this.tb_test_param_gsm_speed_min.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_gsm_speed_min.TabIndex = 37;
+            this.tb_test_param_gsm_speed_min.Text = "50";
+            this.tb_test_param_gsm_speed_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // label40
+            // 
+            this.label40.AutoSize = true;
+            this.label40.Location = new System.Drawing.Point(5, 289);
+            this.label40.Name = "label40";
+            this.label40.Size = new System.Drawing.Size(289, 26);
+            this.label40.TabIndex = 36;
+            this.label40.Text = "GSM duomenų srauto greitis";
+            // 
+            // label37
+            // 
+            this.label37.AutoSize = true;
+            this.label37.Location = new System.Drawing.Point(566, 254);
+            this.label37.Name = "label37";
+            this.label37.Size = new System.Drawing.Size(62, 26);
+            this.label37.TabIndex = 35;
+            this.label37.Text = "MB/s";
+            // 
+            // tb_test_param_wifi_speed_max
+            // 
+            this.tb_test_param_wifi_speed_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_wifi_speed_max.Location = new System.Drawing.Point(497, 253);
+            this.tb_test_param_wifi_speed_max.Name = "tb_test_param_wifi_speed_max";
+            this.tb_test_param_wifi_speed_max.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_wifi_speed_max.TabIndex = 34;
+            this.tb_test_param_wifi_speed_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // tb_test_param_wifi_speed_min
+            // 
+            this.tb_test_param_wifi_speed_min.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_wifi_speed_min.Location = new System.Drawing.Point(428, 253);
+            this.tb_test_param_wifi_speed_min.Name = "tb_test_param_wifi_speed_min";
+            this.tb_test_param_wifi_speed_min.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_wifi_speed_min.TabIndex = 33;
+            this.tb_test_param_wifi_speed_min.Text = "1";
+            this.tb_test_param_wifi_speed_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // label38
+            // 
+            this.label38.AutoSize = true;
+            this.label38.Location = new System.Drawing.Point(5, 254);
+            this.label38.Name = "label38";
+            this.label38.Size = new System.Drawing.Size(290, 26);
+            this.label38.TabIndex = 32;
+            this.label38.Text = "Wi-Fi duomenų srauto greitis";
+            // 
+            // label35
+            // 
+            this.label35.AutoSize = true;
+            this.label35.Location = new System.Drawing.Point(566, 219);
+            this.label35.Name = "label35";
+            this.label35.Size = new System.Drawing.Size(46, 26);
+            this.label35.TabIndex = 31;
+            this.label35.Text = "mA";
+            // 
+            // tb_test_param_resid_dc_max
+            // 
+            this.tb_test_param_resid_dc_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_resid_dc_max.Location = new System.Drawing.Point(497, 218);
+            this.tb_test_param_resid_dc_max.Name = "tb_test_param_resid_dc_max";
+            this.tb_test_param_resid_dc_max.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_resid_dc_max.TabIndex = 30;
+            this.tb_test_param_resid_dc_max.Text = "6";
+            this.tb_test_param_resid_dc_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // tb_test_param_resid_dc_min
+            // 
+            this.tb_test_param_resid_dc_min.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_resid_dc_min.Location = new System.Drawing.Point(428, 218);
+            this.tb_test_param_resid_dc_min.Name = "tb_test_param_resid_dc_min";
+            this.tb_test_param_resid_dc_min.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_resid_dc_min.TabIndex = 29;
+            this.tb_test_param_resid_dc_min.Text = "3";
+            this.tb_test_param_resid_dc_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // label36
+            // 
+            this.label36.AutoSize = true;
+            this.label36.Location = new System.Drawing.Point(5, 219);
+            this.label36.Name = "label36";
+            this.label36.Size = new System.Drawing.Size(196, 26);
+            this.label36.TabIndex = 28;
+            this.label36.Text = "DC nuotekio testas";
+            // 
+            // label33
+            // 
+            this.label33.AutoSize = true;
+            this.label33.Location = new System.Drawing.Point(566, 184);
+            this.label33.Name = "label33";
+            this.label33.Size = new System.Drawing.Size(55, 26);
+            this.label33.TabIndex = 27;
+            this.label33.Text = "ohm";
+            // 
+            // tb_test_param_r_gnd_max
+            // 
+            this.tb_test_param_r_gnd_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_r_gnd_max.Location = new System.Drawing.Point(497, 183);
+            this.tb_test_param_r_gnd_max.Name = "tb_test_param_r_gnd_max";
+            this.tb_test_param_r_gnd_max.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_r_gnd_max.TabIndex = 26;
+            this.tb_test_param_r_gnd_max.Text = "0,1";
+            this.tb_test_param_r_gnd_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // tb_test_param_r_gnd_min
+            // 
+            this.tb_test_param_r_gnd_min.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_r_gnd_min.Location = new System.Drawing.Point(428, 183);
+            this.tb_test_param_r_gnd_min.Name = "tb_test_param_r_gnd_min";
+            this.tb_test_param_r_gnd_min.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_r_gnd_min.TabIndex = 25;
+            this.tb_test_param_r_gnd_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // label34
+            // 
+            this.label34.AutoSize = true;
+            this.label34.Location = new System.Drawing.Point(5, 184);
+            this.label34.Name = "label34";
+            this.label34.Size = new System.Drawing.Size(259, 26);
+            this.label34.TabIndex = 24;
+            this.label34.Text = "Įžeminimo varža prie 10A";
+            // 
+            // label31
+            // 
+            this.label31.AutoSize = true;
+            this.label31.Location = new System.Drawing.Point(566, 151);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(54, 26);
+            this.label31.TabIndex = 23;
+            this.label31.Text = "Mon";
+            // 
+            // tb_test_param_insul_dc_max
+            // 
+            this.tb_test_param_insul_dc_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_insul_dc_max.Location = new System.Drawing.Point(497, 148);
+            this.tb_test_param_insul_dc_max.Name = "tb_test_param_insul_dc_max";
+            this.tb_test_param_insul_dc_max.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_insul_dc_max.TabIndex = 22;
+            this.tb_test_param_insul_dc_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_insul_dc_max.TextChanged += new System.EventHandler(this.tb_test_param_insul_dc_max_TextChanged);
+            // 
+            // tb_test_param_insul_dc_min
+            // 
+            this.tb_test_param_insul_dc_min.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_insul_dc_min.Location = new System.Drawing.Point(428, 148);
+            this.tb_test_param_insul_dc_min.Name = "tb_test_param_insul_dc_min";
+            this.tb_test_param_insul_dc_min.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_insul_dc_min.TabIndex = 21;
+            this.tb_test_param_insul_dc_min.Text = "1";
+            this.tb_test_param_insul_dc_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_insul_dc_min.TextChanged += new System.EventHandler(this.tb_test_param_insul_dc_min_TextChanged);
+            // 
+            // label32
+            // 
+            this.label32.AutoSize = true;
+            this.label32.Location = new System.Drawing.Point(5, 151);
+            this.label32.Name = "label32";
+            this.label32.Size = new System.Drawing.Size(308, 26);
+            this.label32.TabIndex = 20;
+            this.label32.Text = "Izoliacijos testas prie 550V DC";
+            // 
+            // label29
+            // 
+            this.label29.AutoSize = true;
+            this.label29.Location = new System.Drawing.Point(566, 114);
+            this.label29.Name = "label29";
+            this.label29.Size = new System.Drawing.Size(54, 26);
+            this.label29.TabIndex = 19;
+            this.label29.Text = "Mon";
+            // 
+            // tb_test_param_insul_ac_max
+            // 
+            this.tb_test_param_insul_ac_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_insul_ac_max.Location = new System.Drawing.Point(497, 113);
+            this.tb_test_param_insul_ac_max.Name = "tb_test_param_insul_ac_max";
+            this.tb_test_param_insul_ac_max.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_insul_ac_max.TabIndex = 18;
+            this.tb_test_param_insul_ac_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_insul_ac_max.TextChanged += new System.EventHandler(this.tb_test_param_insul_ac_max_TextChanged);
+            // 
+            // tb_test_param_insul_ac_min
+            // 
+            this.tb_test_param_insul_ac_min.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_insul_ac_min.Location = new System.Drawing.Point(428, 113);
+            this.tb_test_param_insul_ac_min.Name = "tb_test_param_insul_ac_min";
+            this.tb_test_param_insul_ac_min.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_insul_ac_min.TabIndex = 17;
+            this.tb_test_param_insul_ac_min.Text = "1";
+            this.tb_test_param_insul_ac_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_insul_ac_min.TextChanged += new System.EventHandler(this.tb_test_param_insul_ac_min_TextChanged);
+            // 
+            // label30
+            // 
+            this.label30.AutoSize = true;
+            this.label30.Location = new System.Drawing.Point(5, 114);
+            this.label30.Name = "label30";
+            this.label30.Size = new System.Drawing.Size(319, 26);
+            this.label30.TabIndex = 16;
+            this.label30.Text = "Izoliacijos testas prie 1500V AC";
+            // 
+            // label27
+            // 
+            this.label27.AutoSize = true;
+            this.label27.Location = new System.Drawing.Point(566, 79);
+            this.label27.Name = "label27";
+            this.label27.Size = new System.Drawing.Size(33, 26);
+            this.label27.TabIndex = 15;
+            this.label27.Text = "W";
+            // 
+            // tb_test_param_pow_mrelay_on_max
+            // 
+            this.tb_test_param_pow_mrelay_on_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_pow_mrelay_on_max.Location = new System.Drawing.Point(497, 78);
+            this.tb_test_param_pow_mrelay_on_max.Name = "tb_test_param_pow_mrelay_on_max";
+            this.tb_test_param_pow_mrelay_on_max.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_pow_mrelay_on_max.TabIndex = 14;
+            this.tb_test_param_pow_mrelay_on_max.Text = "5,5";
+            this.tb_test_param_pow_mrelay_on_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_pow_mrelay_on_max.TextChanged += new System.EventHandler(this.tb_test_param_pow_mrelay_on_max_TextChanged);
+            // 
+            // tb_test_param_pow_mrelay_on_min
+            // 
+            this.tb_test_param_pow_mrelay_on_min.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_pow_mrelay_on_min.Location = new System.Drawing.Point(428, 78);
+            this.tb_test_param_pow_mrelay_on_min.Name = "tb_test_param_pow_mrelay_on_min";
+            this.tb_test_param_pow_mrelay_on_min.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_pow_mrelay_on_min.TabIndex = 13;
+            this.tb_test_param_pow_mrelay_on_min.Text = "4,5";
+            this.tb_test_param_pow_mrelay_on_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_pow_mrelay_on_min.TextChanged += new System.EventHandler(this.tb_test_param_pow_mrelay_on_min_TextChanged);
+            // 
+            // label28
+            // 
+            this.label28.AutoSize = true;
+            this.label28.Location = new System.Drawing.Point(5, 79);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(322, 26);
+            this.label28.TabIndex = 12;
+            this.label28.Text = "Energijos sąnaudos pagr. rėlė įj.";
+            // 
+            // label26
+            // 
+            this.label26.AutoSize = true;
+            this.label26.Location = new System.Drawing.Point(566, 44);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(33, 26);
+            this.label26.TabIndex = 11;
+            this.label26.Text = "W";
+            // 
+            // label25
+            // 
+            this.label25.AutoSize = true;
+            this.label25.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label25.Location = new System.Drawing.Point(435, 19);
+            this.label25.Name = "label25";
+            this.label25.Size = new System.Drawing.Size(110, 20);
+            this.label25.TabIndex = 10;
+            this.label25.Text = "NUO        IKI";
+            // 
+            // tb_test_param_pow_mrelay_off_max
+            // 
+            this.tb_test_param_pow_mrelay_off_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_pow_mrelay_off_max.Location = new System.Drawing.Point(497, 43);
+            this.tb_test_param_pow_mrelay_off_max.Name = "tb_test_param_pow_mrelay_off_max";
+            this.tb_test_param_pow_mrelay_off_max.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_pow_mrelay_off_max.TabIndex = 9;
+            this.tb_test_param_pow_mrelay_off_max.Text = "4";
+            this.tb_test_param_pow_mrelay_off_max.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_pow_mrelay_off_max.TextChanged += new System.EventHandler(this.tb_test_param_pow_mrelay_off_max_TextChanged);
+            // 
+            // tb_test_param_pow_mrelay_off_min
+            // 
+            this.tb_test_param_pow_mrelay_off_min.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_test_param_pow_mrelay_off_min.Location = new System.Drawing.Point(428, 43);
+            this.tb_test_param_pow_mrelay_off_min.Name = "tb_test_param_pow_mrelay_off_min";
+            this.tb_test_param_pow_mrelay_off_min.Size = new System.Drawing.Size(63, 29);
+            this.tb_test_param_pow_mrelay_off_min.TabIndex = 8;
+            this.tb_test_param_pow_mrelay_off_min.Text = "3";
+            this.tb_test_param_pow_mrelay_off_min.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_test_param_pow_mrelay_off_min.TextChanged += new System.EventHandler(this.tb_test_param_pow_mrelay_off_min_TextChanged);
+            // 
+            // label24
+            // 
+            this.label24.AutoSize = true;
+            this.label24.Location = new System.Drawing.Point(5, 44);
+            this.label24.Name = "label24";
+            this.label24.Size = new System.Drawing.Size(333, 26);
+            this.label24.TabIndex = 0;
+            this.label24.Text = "Energijos sąnaudos pagr. rėlė išj.";
             // 
             // groupBox1
             // 
@@ -764,7 +1331,7 @@ namespace ArtiluxEOL
             // saveWplace
             // 
             this.saveWplace.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.saveWplace.Location = new System.Drawing.Point(106, 228);
+            this.saveWplace.Location = new System.Drawing.Point(123, 246);
             this.saveWplace.Margin = new System.Windows.Forms.Padding(2);
             this.saveWplace.Name = "saveWplace";
             this.saveWplace.Size = new System.Drawing.Size(92, 34);
@@ -1350,15 +1917,15 @@ namespace ArtiluxEOL
             this.dataGridViewTextBoxColumn4,
             this.dataGridViewTextBoxColumn5,
             this.dataGridViewTextBoxColumn6});
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGrid_HV_result.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle25.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle25.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle25.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle25.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle25.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle25.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle25.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle25.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGrid_HV_result.DefaultCellStyle = dataGridViewCellStyle25;
             this.dataGrid_HV_result.Location = new System.Drawing.Point(2, 270);
             this.dataGrid_HV_result.Margin = new System.Windows.Forms.Padding(2);
             this.dataGrid_HV_result.Name = "dataGrid_HV_result";
@@ -1421,8 +1988,8 @@ namespace ArtiluxEOL
             // dataGrid_HV_test
             // 
             this.dataGrid_HV_test.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_HV_test.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle26.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_HV_test.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle26;
             this.dataGrid_HV_test.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_HV_test.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_HV_test.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1442,8 +2009,8 @@ namespace ArtiluxEOL
             this.dataGrid_HV_test.Name = "dataGrid_HV_test";
             this.dataGrid_HV_test.RowHeadersVisible = false;
             this.dataGrid_HV_test.RowHeadersWidth = 51;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_HV_test.RowsDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle27.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_HV_test.RowsDefaultCellStyle = dataGridViewCellStyle27;
             this.dataGrid_HV_test.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_HV_test.RowTemplate.Height = 35;
             this.dataGrid_HV_test.Size = new System.Drawing.Size(797, 188);
@@ -1597,14 +2164,14 @@ namespace ArtiluxEOL
             this.dataGrid_Spectrum.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Spectrum.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.dataGrid_Spectrum.BackgroundColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.ActiveBorder;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGrid_Spectrum.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle28.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle28.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            dataGridViewCellStyle28.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle28.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle28.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle28.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle28.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGrid_Spectrum.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle28;
             this.dataGrid_Spectrum.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGrid_Spectrum.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Column18,
@@ -1645,18 +2212,18 @@ namespace ArtiluxEOL
             // 
             // chart1
             // 
-            chartArea1.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea1);
-            legend1.Name = "Legend1";
-            this.chart1.Legends.Add(legend1);
+            chartArea4.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea4);
+            legend4.Name = "Legend1";
+            this.chart1.Legends.Add(legend4);
             this.chart1.Location = new System.Drawing.Point(5, 6);
             this.chart1.Margin = new System.Windows.Forms.Padding(2);
             this.chart1.Name = "chart1";
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series1.Legend = "Legend1";
-            series1.Name = "Series1";
-            this.chart1.Series.Add(series1);
+            series4.ChartArea = "ChartArea1";
+            series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series4.Legend = "Legend1";
+            series4.Name = "Series1";
+            this.chart1.Series.Add(series4);
             this.chart1.Size = new System.Drawing.Size(563, 370);
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart1";
@@ -1712,8 +2279,8 @@ namespace ArtiluxEOL
             // dataGrid_Load_Line
             // 
             this.dataGrid_Load_Line.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_Line.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle29.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_Line.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle29;
             this.dataGrid_Load_Line.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Load_Line.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_Load_Line.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1730,8 +2297,8 @@ namespace ArtiluxEOL
             this.dataGrid_Load_Line.Name = "dataGrid_Load_Line";
             this.dataGrid_Load_Line.RowHeadersVisible = false;
             this.dataGrid_Load_Line.RowHeadersWidth = 51;
-            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_Line.RowsDefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle30.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_Line.RowsDefaultCellStyle = dataGridViewCellStyle30;
             this.dataGrid_Load_Line.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_Load_Line.RowTemplate.Height = 35;
             this.dataGrid_Load_Line.Size = new System.Drawing.Size(443, 171);
@@ -1790,8 +2357,8 @@ namespace ArtiluxEOL
             // dataGrid_Load_load
             // 
             this.dataGrid_Load_load.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle7.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_load.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle7;
+            dataGridViewCellStyle31.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_load.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle31;
             this.dataGrid_Load_load.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGrid_Load_load.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             this.dataGrid_Load_load.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1810,8 +2377,8 @@ namespace ArtiluxEOL
             this.dataGrid_Load_load.Name = "dataGrid_Load_load";
             this.dataGrid_Load_load.RowHeadersVisible = false;
             this.dataGrid_Load_load.RowHeadersWidth = 51;
-            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGrid_Load_load.RowsDefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle32.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGrid_Load_load.RowsDefaultCellStyle = dataGridViewCellStyle32;
             this.dataGrid_Load_load.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataGrid_Load_load.RowTemplate.Height = 35;
             this.dataGrid_Load_load.Size = new System.Drawing.Size(737, 179);
@@ -2259,9 +2826,9 @@ namespace ArtiluxEOL
             this.cbAdmin.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbAdmin.Location = new System.Drawing.Point(44, 76);
             this.cbAdmin.Name = "cbAdmin";
-            this.cbAdmin.Size = new System.Drawing.Size(141, 17);
+            this.cbAdmin.Size = new System.Drawing.Size(135, 17);
             this.cbAdmin.TabIndex = 2;
-            this.cbAdmin.Text = "Aadministratoriaus teises";
+            this.cbAdmin.Text = "Administratoriaus teises";
             this.cbAdmin.UseVisualStyleBackColor = true;
             // 
             // panelTestResult
@@ -2459,7 +3026,8 @@ namespace ArtiluxEOL
             this.panel2.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
-            this.tabPage2.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.tabPage3.ResumeLayout(false);
@@ -2568,7 +3136,6 @@ namespace ArtiluxEOL
         public System.ComponentModel.BackgroundWorker MainControllerTCP;
         public System.ComponentModel.BackgroundWorker PrinterTCP;
         private System.ComponentModel.BackgroundWorker MainControllerMODBUS;
-        private System.Windows.Forms.Button btn_popup;
         public System.ComponentModel.BackgroundWorker HVgen;
         public System.ComponentModel.BackgroundWorker Specroscope;
         private System.Windows.Forms.TabPage tabPage4;
@@ -2694,7 +3261,6 @@ namespace ArtiluxEOL
         private System.Windows.Forms.TextBox textBox_pulse_length;
         private Label label22;
         private Label label_Estop;
-        private CheckBox checkBox_fullscreen;
         private System.Windows.Forms.Button button_reset_modular_III;
         private System.Windows.Forms.Button button_reset_modular_II;
         private System.Windows.Forms.Button button_reset_modular_I;
@@ -2714,6 +3280,57 @@ namespace ArtiluxEOL
         private GroupBox groupBox_Printer;
         private Label label23;
         private Label lbl_printer;
+        private System.Windows.Forms.Button button_print_label;
+        private GroupBox groupBox4;
+        private Label label24;
+        private System.Windows.Forms.TextBox tb_test_param_pow_mrelay_off_min;
+        private System.Windows.Forms.TextBox tb_test_param_pow_mrelay_off_max;
+        private Label label27;
+        private System.Windows.Forms.TextBox tb_test_param_pow_mrelay_on_max;
+        private System.Windows.Forms.TextBox tb_test_param_pow_mrelay_on_min;
+        private Label label28;
+        private Label label26;
+        private Label label25;
+        private Label label29;
+        private System.Windows.Forms.TextBox tb_test_param_insul_ac_max;
+        private System.Windows.Forms.TextBox tb_test_param_insul_ac_min;
+        private Label label30;
+        private Label label31;
+        private System.Windows.Forms.TextBox tb_test_param_insul_dc_max;
+        private System.Windows.Forms.TextBox tb_test_param_insul_dc_min;
+        private Label label32;
+        private Label label33;
+        private System.Windows.Forms.TextBox tb_test_param_r_gnd_max;
+        private System.Windows.Forms.TextBox tb_test_param_r_gnd_min;
+        private Label label34;
+        private Label label35;
+        private System.Windows.Forms.TextBox tb_test_param_resid_dc_max;
+        private System.Windows.Forms.TextBox tb_test_param_resid_dc_min;
+        private Label label36;
+        private Label label37;
+        private System.Windows.Forms.TextBox tb_test_param_wifi_speed_max;
+        private System.Windows.Forms.TextBox tb_test_param_wifi_speed_min;
+        private Label label38;
+        private Label label41;
+        private System.Windows.Forms.TextBox tb_test_param_rfid_range_max;
+        private System.Windows.Forms.TextBox tb_test_param_rfid_range_min;
+        private Label label42;
+        private Label label39;
+        private System.Windows.Forms.TextBox tb_test_param_gsm_speed_max;
+        private System.Windows.Forms.TextBox tb_test_param_gsm_speed_min;
+        private Label label40;
+        private Label label43;
+        private System.Windows.Forms.TextBox tb_test_param_firmware_max;
+        private System.Windows.Forms.TextBox tb_test_param_firmware_min;
+        private Label label44;
+        private Label label45;
+        private System.Windows.Forms.TextBox tb_test_param_ihold_6a_max;
+        private System.Windows.Forms.TextBox tb_test_param_ihold_6a_min;
+        private Label label46;
+        private Label label47;
+        private System.Windows.Forms.TextBox tb_test_param_ihold_32a_max;
+        private System.Windows.Forms.TextBox tb_test_param_ihold_32a_min;
+        private Label label48;
     }
 }
 

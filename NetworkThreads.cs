@@ -22,7 +22,6 @@ namespace ArtiluxEOL
 {
     public partial class NetworkThreads : Component
     {
-
         UInt16 CMD_RETRANSMIT_L = 3;
         UInt16 CMD_RETRANSMIT_H = 10;
 
@@ -65,8 +64,6 @@ namespace ArtiluxEOL
 
         public string[] Evse_param_type = new string[] { "READY", "EGD?", "ESD:", "IGB?", "EGW?", "EGL?", "ESA:", "EGM?", "EGR?" };
 
-        int Printer_Handler_Cycle_Counter = 0;
-
         public NetworkThreads()
         {
             InitializeComponent();
@@ -75,6 +72,8 @@ namespace ArtiluxEOL
         SocketClient Socket_ = new SocketClient();
 
         public DevList dev_list;
+
+        int Printer_Status_Poll_Delay_Couter = 0;
 
         #region <ieskom tinklo devaisu>
 
@@ -251,7 +250,7 @@ namespace ArtiluxEOL
 
         public void Printer_Ctrl_handle()
         {
-            //System.Diagnostics.Debug.Print("Printer thread");
+            Printer_Status_Poll_Delay_Couter++;
 
             var net_dev = Main.main.network_dev[DevType.PRINTER];
 
@@ -259,22 +258,101 @@ namespace ArtiluxEOL
             {
                 net_dev.NewResp = false;//Reset new responce flag
 
-                //System.Diagnostics.Debug.Print("Printer responce: " + net_dev.Resp);
-                System.Diagnostics.Debug.Print("Printer responded");
+                char[] statusChars = net_dev.Resp.Substring(1, 4).ToCharArray();
+
+                switch (statusChars[0]) // First status byte of the printer
+                {
+                    default:
+                        System.Diagnostics.Debug.Print("Unknown label printer state received");
+                        break;
+
+                    case '@':
+                        Main.main.Label_Printer_State = Printer_State.PRINTER_READY;
+                        break;
+
+                    case '`':
+                        Main.main.Label_Printer_State = Printer_State.PRINTER_PAUSE;
+                        break;
+
+                    case 'B':
+                        Main.main.Label_Printer_State = Printer_State.PRINTER_BACKING_LABEL;
+                        break;
+
+                    case 'C':
+                        Main.main.Label_Printer_State = Printer_State.PRINTER_CUTTING;
+                        break;
+
+                    case 'E':
+                        Main.main.Label_Printer_State = Printer_State.PRINTER_ERROR;
+                        break;
+
+                    case 'F':
+                        Main.main.Label_Printer_State = Printer_State.PRINTER_FORM_FEED;
+                        break;
+
+                    case 'K':
+                        Main.main.Label_Printer_State = Printer_State.PRINTER_WAITING_FOR_KEY_PRESS;
+                        break;
+
+                    case 'L':
+                        Main.main.Label_Printer_State = Printer_State.PRINTER_WAITING_FOR_LABEL_TAKE;
+                        break;
+
+                    case 'P':
+                        Main.main.Label_Printer_State = Printer_State.PRINTER_PRINTING;
+                        break;
+
+                    case 'W':
+                        Main.main.Label_Printer_State = Printer_State.PRINTER_IMAGING;
+                        break;
+                }
+
+                switch (statusChars[1]) // Second status byte of the printer
+                {
+                    default:
+                        System.Diagnostics.Debug.Print("Unknown label printer warning received");
+                        break;
+
+                    case '@':
+                        Main.main.Label_Printer_Warning = Printer_Warning.PRNTR_WRN_NONE;
+                        break;
+
+                    case 'A':
+                        Main.main.Label_Printer_Warning = Printer_Warning.PRNTR_WRN_PAPER_LOW;
+                        break;
+
+                    case 'B':
+                        Main.main.Label_Printer_Warning = Printer_Warning.PRNTR_WRN_RIBBON_LOW;
+                        break;
+
+                    case 'D':
+                        Main.main.Label_Printer_Warning = Printer_Warning.PRNTR_WRN_RESERVED;
+                        break;
+
+                    case 'H':
+                        Main.main.Label_Printer_Warning = Printer_Warning.PRNTR_WRN_RS232_BUFFER_FULL;
+                        break;
+
+                    case '`':
+                        Main.main.Label_Printer_Warning = Printer_Warning.PRNTR_WRN_UNHEALTHY_DOTS;
+                        break;
+                }
+
             }
-            else if (Printer_Handler_Cycle_Counter >= 10)
+
+            if (Main.main.Label_Printer_Command.Length > 0) // If a string command exists for the printer send it
             {
-                Printer_Handler_Cycle_Counter = 0;
-
-                //net_dev.State = MainBoard_State.BUSY;
-                net_dev.Cmd = "<ESC>!S";
+                System.Diagnostics.Debug.Print("Printer send");
+                net_dev.Cmd = Main.main.Label_Printer_Command;
                 Socket_.send_socket(net_dev, net_dev.Cmd);
-                net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
-                System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
-
+                Main.main.Label_Printer_Command = "";
+                Printer_Status_Poll_Delay_Couter = 0;
             }
-
-            Printer_Handler_Cycle_Counter++;
+            else if(Printer_Status_Poll_Delay_Couter > 20) // Poll printer status some time after last command was sent
+            {
+                net_dev.Cmd = "\x1B!S";
+                Socket_.send_socket(net_dev, net_dev.Cmd);
+            }
         }
 
         #endregion
@@ -622,7 +700,7 @@ namespace ArtiluxEOL
                                     tmpRL.ATTEMPTS++;//Next attempt
                                     net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
                                     net_dev.Cmd = tmpRL.COM_ID + ":" + tmpRL.NAME + ":" + tmpRL.SET;//Generate TCP command (000:RLXX:1/0)
-                                    Socket_.send_socket(net_dev, net_dev.Cmd);//#sendit
+                                    Socket_.send_socket(net_dev, net_dev.Cmd);
                                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
                                     System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
                                     break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
@@ -639,7 +717,7 @@ namespace ArtiluxEOL
                                     tmpRL.ATTEMPTS++;//Next attempt
                                     net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
                                     net_dev.Cmd = tmpRL.COM_ID + ":" + tmpRL.NAME + ":?";//Generate TCP command (000:RLXX:?)
-                                    Socket_.send_socket(net_dev, net_dev.Cmd);//#sendit
+                                    Socket_.send_socket(net_dev, net_dev.Cmd);
                                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
                                     System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
                                     break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
@@ -661,7 +739,7 @@ namespace ArtiluxEOL
                                     tmpNmrc.ATTEMPTS++;//Next attempt
                                     net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
                                     net_dev.Cmd = tmpNmrc.COM_ID + ":" + tmpNmrc.NAME + ":" + tmpNmrc.SET;//Generate TCP command (000:XXXX:0/1/2/3...)
-                                    Socket_.send_socket(net_dev, net_dev.Cmd);//#sendit
+                                    Socket_.send_socket(net_dev, net_dev.Cmd);
                                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
                                     System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
                                     break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
@@ -678,7 +756,7 @@ namespace ArtiluxEOL
                                     tmpNmrc.ATTEMPTS++;//Next attempt
                                     net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
                                     net_dev.Cmd = tmpNmrc.COM_ID + ":" + tmpNmrc.NAME + ":?";//Generate TCP command (000:XXXX:?)
-                                    Socket_.send_socket(net_dev, net_dev.Cmd);//#sendit
+                                    Socket_.send_socket(net_dev, net_dev.Cmd);
                                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
                                     System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
                                     break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
@@ -3607,14 +3685,6 @@ namespace ArtiluxEOL
 
 
             return value;
-        }
-
-        public static bool check_is_numbers(string stringValue)
-        {
-            var pattern = @"^-?[0-9]+(?:\.[0-9]+)?$";
-            var regex = new Regex(pattern);
-
-            return regex.IsMatch(stringValue);
         }
 
         #region SPECTROSCOPE

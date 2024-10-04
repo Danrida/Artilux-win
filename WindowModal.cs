@@ -18,7 +18,6 @@ namespace ArtiluxEOL
 {
     public partial class WindowModal : Form
     {
-
         public static WindowModal WindowMod;
 
         static int py = 10;
@@ -56,6 +55,7 @@ namespace ArtiluxEOL
 
             progressBar_total.Maximum = progressBar_evse_communication.Maximum + progressBar_load_test.Maximum + progressBar_HV_test.Maximum + progressBar_Wifi_test.Maximum + progressBar_GSM_test.Maximum + progressBar_RFID_test.Maximum + progressBar_RCD_test.Maximum;
         }
+
         public WindowModal(MonitorTest mt)
         {
             WindowMod = this;
@@ -69,6 +69,7 @@ namespace ArtiluxEOL
             label_info = new Label[3, 10];
             //lbl_ptr = new int[5];//label pointeris
         }
+
         private void panel2_Paint(object sender, PaintEventArgs e)
         {
             Graphics gra = this.panel2.CreateGraphics();
@@ -102,6 +103,7 @@ namespace ArtiluxEOL
         {
             
         }
+
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (label_info[mtl.Id, 0] != null)//If modal windows were created
