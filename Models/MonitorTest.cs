@@ -152,6 +152,7 @@ namespace MonitorsTest.Models
         public int current;
         public int freq;
     }
+
     public struct DevLoad_struc
     {
         public bool state;
@@ -165,6 +166,7 @@ namespace MonitorsTest.Models
         public string result;
         public string test_type;
     }
+
     public struct DevSpectrum_struc
     {
         public string min;
@@ -354,6 +356,7 @@ namespace MonitorsTest.Models
         public static bool HV_GEN { get; set; }
         public static bool SPECTRO { get; set; }
         public static bool LOAD { get; set; }
+        public static bool PRINTER { get; set; }
         public static bool PING { get; set; }
     }
 
@@ -372,34 +375,34 @@ namespace MonitorsTest.Models
     public static class Printer_State
     {
         public const int PRINTER_READY = 0;
-        public const int PRINTER_PAUSE = 0;
-        public const int PRINTER_BACKING_LABEL = 0;
-        public const int PRINTER_CUTTING = 0;
-        public const int PRINTER_ERROR = 0;
-        public const int PRINTER_FORM_FEED = 0;
-        public const int PRINTER_WAITING_FOR_KEY_PRESS = 0;
-        public const int PRINTER_WAITING_FOR_LABEL_TAKE = 0;
-        public const int PRINTER_PRINTING = 0;
-        public const int PRINTER_IMAGING = 0;
+        public const int PRINTER_PAUSE = 1;
+        public const int PRINTER_BACKING_LABEL = 2;
+        public const int PRINTER_CUTTING = 3;
+        public const int PRINTER_ERROR = 4;
+        public const int PRINTER_FORM_FEED = 5;
+        public const int PRINTER_WAITING_FOR_KEY_PRESS = 6;
+        public const int PRINTER_WAITING_FOR_LABEL_TAKE = 7;
+        public const int PRINTER_PRINTING = 8;
+        public const int PRINTER_IMAGING = 9;
     }
 
     public static class Printer_Warning
     {
         public const int PRNTR_WRN_NONE = 0;
-        public const int PRNTR_WRN_PAPER_LOW = 0;
-        public const int PRNTR_WRN_RIBBON_LOW = 0;
-        public const int PRNTR_WRN_RESERVED = 0;
-        public const int PRNTR_WRN_RS232_BUFFER_FULL = 0;
-        public const int PRNTR_WRN_UNHEALTHY_DOTS = 0;
+        public const int PRNTR_WRN_PAPER_LOW = 1;
+        public const int PRNTR_WRN_RIBBON_LOW = 2;
+        public const int PRNTR_WRN_RESERVED = 3;
+        public const int PRNTR_WRN_RS232_BUFFER_FULL = 4;
+        public const int PRNTR_WRN_UNHEALTHY_DOTS = 5;
     }
 
     public class JSON_Entry_Test
     {
         public string TestName { get; set; }
         public string MeasuredValueUnit { get; set; }
-        public float MeasuredValueRangeMin { get; set; }
-        public float MeasuredValueRangeMax { get; set; }
-        public float MeasuredValue { get; set; }
+        public string MeasuredValueRangeMin { get; set; }
+        public string MeasuredValueRangeMax { get; set; }
+        public string MeasuredValue { get; set; }
         public bool TestResult { get; set; }
     }
 
@@ -415,5 +418,16 @@ namespace MonitorsTest.Models
         public string MacAddress { get; set; }
         public bool TestResult { get; set; }
         public List<JSON_Entry_Test> Tests { get; set; }
+    }
+
+    public struct TestReports
+    {
+        public string Path { get; set; }
+        public JSON_Entry_Report Data { get; set; }
+    }
+
+    public static class App_Setting
+    {
+        public const int APP_SET_DIR_REPORT = 0;
     }
 }

@@ -157,8 +157,6 @@ namespace ArtiluxEOL
 
             System.Diagnostics.Debug.Print($"Running...");
 
-            Action timeoutAction = null;
-
             ThreadPool.QueueUserWorkItem(state =>
             {
                 // request actions/keys after test started with some delay.
@@ -205,7 +203,7 @@ namespace ArtiluxEOL
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.Print($"Autosec start failed!!! ");
+                    System.Diagnostics.Debug.Print($"Autosec start failed: "+ex);
                 }
             }
         }

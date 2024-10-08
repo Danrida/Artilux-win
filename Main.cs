@@ -41,6 +41,17 @@ using System.Runtime.Remoting.Contexts;
 using System.Security.Policy;
 using Newtonsoft.Json.Linq;
 using System.Data.SqlClient;
+using System.Text.Json;
+using System.Net.Mail;
+using static Ion.Sdk.Ici.BlackBox.Predefined;
+using System.Runtime.InteropServices.ComTypes;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Layout.Properties;
+using iText.IO.Font.Constants;
+using iText.Kernel.Colors;
+using iText.IO.Image;
 
 
 namespace ArtiluxEOL
@@ -61,6 +72,7 @@ namespace ArtiluxEOL
         static RegistryKey Workplaces_reg;
         static RegistryKey Periphery_reg;
         static RegistryKey Test_Param_reg;
+        static RegistryKey App_Setting_reg;
 
         //bool debug_usb = false;
 
@@ -153,6 +165,14 @@ namespace ArtiluxEOL
         public int Label_Printer_Warning = Printer_Warning.PRNTR_WRN_NONE; // Current label printer warning
 
         bool Loading_Test_Parameters = true; // Flag when test parameters are being loaded from registers to ignore their text box events
+
+        public TestReports[] testReports = new TestReports[3];
+
+        JsonSerializerOptions Json_Options = new JsonSerializerOptions
+        {
+            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals,
+            WriteIndented = true
+        };
 
         #region <<< Nustatymu langas >>>
 
@@ -420,9 +440,9 @@ namespace ArtiluxEOL
 
         string[] DetectedMonitors = new string[0];//Array of serial numbers for all detected monitors. Serials are added if new hardware is detected, never removed. This array is used for detecting new monitors during runtime (in case the application was launched without all monitors present)
 
-        Color Original_Modal_Form_Background;
-        Color Modal_Form_Color_Pass = Color.FromArgb(190, 255, 190);
-        Color Modal_Form_Color_Fail = Color.FromArgb(255, 190, 190);
+        System.Drawing.Color Original_Modal_Form_Background;
+        System.Drawing.Color Modal_Form_Color_Pass = System.Drawing.Color.FromArgb(190, 255, 190);
+        System.Drawing.Color Modal_Form_Color_Fail = System.Drawing.Color.FromArgb(255, 190, 190);
 
         #endregion
 
@@ -541,137 +561,15 @@ namespace ArtiluxEOL
             Test_States.Add(new EVSETestState());
             Test_States.Add(new EVSETestState());
 
-            /*
-            
-            Skaitiklis
-            Skaitiklis rodo kai vieta neveikia
-            EVSE Done_Loading
-            
-            */
-
             //FOR TESTING
             Test_States[0].Done_Loading = true;
             Test_States[1].Done_Loading = true;
             Test_States[2].Done_Loading = true;
 
             loadTestParameters(); // Load values from registers for the test parameters
+            loadAppSettings(); // Load application settings from the registers
 
-            //FOR TESTING
-
-            JSON_Entry_Report newEntry = new JSON_Entry_Report
-            {
-                Date = DateTime.Now.ToString("yyyy-MM-dd"),
-                WorkerId = "616479",
-                TestSlot = 2,
-                ProductName = "EVAKA HOME PRO",
-                SerialNumber = "800001252",
-                BatchNumber = "1",
-                BatchSize = 100,
-                MacAddress = "00:1B:44:11:3A:B7",
-                TestResult = true,
-                Tests = new List<JSON_Entry_Test>
-            {
-                new JSON_Entry_Test
-                {
-                    TestName = "Power consumption from L1 when main relay OFF",
-                    MeasuredValueUnit = "W",
-                    MeasuredValueRangeMin = 3f,
-                    MeasuredValueRangeMax = 4f,
-                    MeasuredValue = 3.1f,
-                    TestResult = true
-                },
-                new JSON_Entry_Test
-                {
-                    TestName = "Power consumption from L1 when main relay ON",
-                    MeasuredValueUnit = "W",
-                    MeasuredValueRangeMin = 4.5f,
-                    MeasuredValueRangeMax = 5.5f,
-                    MeasuredValue = 5.1f,
-                    TestResult = true
-                },
-                new JSON_Entry_Test
-                {
-                    TestName = "Relay dielectric insulation strength test at 1500v AC IEC 61439-1:2021 10.9.1 and 10.9.2",
-                    MeasuredValueUnit = "Mon",
-                    MeasuredValueRangeMin = 1f,
-                    MeasuredValueRangeMax = float.PositiveInfinity,
-                    MeasuredValue = 3.2f,
-                    TestResult = true
-                },
-                new JSON_Entry_Test
-                {
-                    TestName = "IEC 61439-1:2021 11.9 DC @550v",
-                    MeasuredValueUnit = "Mon",
-                    MeasuredValueRangeMin = 1f,
-                    MeasuredValueRangeMax = float.PositiveInfinity,
-                    MeasuredValue = 1.6f,
-                    TestResult = true
-                },
-                new JSON_Entry_Test
-                {
-                    TestName = "IEC 61851-1:2017 communications, signal states A, B, C CP. Detecting relay state sequence using regenerative load unit IT8230-350-180",
-                    MeasuredValueUnit = "Boolean",
-                    MeasuredValueRangeMin = 0f,
-                    MeasuredValueRangeMax = 1f,
-                    MeasuredValue = 1f,
-                    TestResult = true
-                },
-                new JSON_Entry_Test
-                {
-                    TestName = "IEC 61439-1:2021 10.5.2. Grounding resistance measure using Electrical Safety Tester GPT-9804",
-                    MeasuredValueUnit = "ohm",
-                    MeasuredValueRangeMin = float.NegativeInfinity,
-                    MeasuredValueRangeMax = 0.085f,
-                    MeasuredValue = 1f,
-                    TestResult = true
-                },
-                new JSON_Entry_Test
-                {
-                    TestName = "IEC 62955 Residual DC current up to 6ma test",
-                    MeasuredValueUnit = "mA",
-                    MeasuredValueRangeMin = 3,
-                    MeasuredValueRangeMax = 6f,
-                    MeasuredValue = 5.5f,
-                    TestResult = true
-                },
-                new JSON_Entry_Test
-                {
-                    TestName = "Wi-Fi connect",
-                    MeasuredValueUnit = "Boolean",
-                    MeasuredValueRangeMin = 0f,
-                    MeasuredValueRangeMax = 1f,
-                    MeasuredValue = 1f,
-                    TestResult = true
-                },
-                new JSON_Entry_Test
-                {
-                    TestName = "Wi-Fi data transfer",
-                    MeasuredValueUnit = "MB/s",
-                    MeasuredValueRangeMin = 1,
-                    MeasuredValueRangeMax = float.PositiveInfinity,
-                    MeasuredValue = 2.2f,
-                    TestResult = true
-                },
-                new JSON_Entry_Test
-                {
-                    TestName = "GSM connect",
-                    MeasuredValueUnit = "Boolean",
-                    MeasuredValueRangeMin = 0f,
-                    MeasuredValueRangeMax = 1f,
-                    MeasuredValue = 1f,
-                    TestResult = true
-                },
-                new JSON_Entry_Test
-                {
-                    TestName = "GSM data transfer",
-                    MeasuredValueUnit = "kB/s",
-                    MeasuredValueRangeMin = 50,
-                    MeasuredValueRangeMax = float.PositiveInfinity,
-                    MeasuredValue = 153f,
-                    TestResult = true
-                }
-            }
-            };
+            //Create_Report_JSON("616479", 0, "EVAKA HOME PRO", "800001252", "1", 100, "00:1B:44:11:3A:B7");
         }
 
         private void UpdateFunction(object source, EventArgs e)//Repeat every 500ms
@@ -2084,14 +1982,14 @@ namespace ArtiluxEOL
             {
                 if (E_Stop_Signal.STATE != 0)
                 {
-                    mtlist[i].Form.Update_Test_Label("Negalimas, avarinis STOP", Color.IndianRed);
+                    mtlist[i].Form.Update_Test_Label("Negalimas, avarinis STOP", System.Drawing.Color.IndianRed);
                     mtlist[i].Form.BackColor = Modal_Form_Color_Fail;
                 }
                 else if (!EVSE_Operational[i])
                 {
                     if (mtlist[i].Form != null)
                     {
-                        mtlist[i].Form.Update_Test_Label("Negalimas, darbo vieta neaktyvi", Color.IndianRed);
+                        mtlist[i].Form.Update_Test_Label("Negalimas, darbo vieta neaktyvi", System.Drawing.Color.IndianRed);
                         mtlist[i].Form.BackColor = Modal_Form_Color_Fail;
                     }
                 }
@@ -2100,23 +1998,23 @@ namespace ArtiluxEOL
                     switch (Test_States[i].Testing_State)
                     {
                         default:
-                            mtlist[i].Form.Update_Test_Label("Nežinoma būsena", Color.IndianRed);
+                            mtlist[i].Form.Update_Test_Label("Nežinoma būsena", System.Drawing.Color.IndianRed);
                             mtlist[i].Form.BackColor = Original_Modal_Form_Background;
                             break;
 
                         case TestState.WAITING:
-                            mtlist[i].Form.Update_Test_Label("Pasiruošes", Color.MediumBlue);
+                            mtlist[i].Form.Update_Test_Label("Pasiruošes", System.Drawing.Color.MediumBlue);
                             mtlist[i].Form.BackColor = Original_Modal_Form_Background;
                             break;
 
                         case TestState.IN_PROGRESS:
-                            mtlist[i].Form.Update_Test_Label("Vykdoma", Color.MediumSeaGreen);
+                            mtlist[i].Form.Update_Test_Label("Vykdoma", System.Drawing.Color.MediumSeaGreen);
                             mtlist[i].Form.BackColor = Original_Modal_Form_Background;
                             mtlist[i].Form.Update_Timer_Label(Test_States[i].Test_Start_Time);
                             break;
 
                         case TestState.PASSED:
-                            mtlist[i].Form.Update_Test_Label("Bandymas išlaikytas", Color.MediumSeaGreen);
+                            mtlist[i].Form.Update_Test_Label("Bandymas išlaikytas", System.Drawing.Color.MediumSeaGreen);
                             mtlist[i].Form.BackColor = Modal_Form_Color_Pass;
                             break;
 
@@ -2129,7 +2027,7 @@ namespace ArtiluxEOL
                                 displayText += Test_States[i].Fail_Reason;
                             }
 
-                            mtlist[i].Form.Update_Test_Label(displayText, Color.IndianRed);
+                            mtlist[i].Form.Update_Test_Label(displayText, System.Drawing.Color.IndianRed);
                             mtlist[i].Form.BackColor = Modal_Form_Color_Fail;
                             break;
 
@@ -2142,7 +2040,7 @@ namespace ArtiluxEOL
                                 displayText += Test_States[i].Fail_Reason;
                             }
 
-                            mtlist[i].Form.Update_Test_Label(displayText, Color.IndianRed);
+                            mtlist[i].Form.Update_Test_Label(displayText, System.Drawing.Color.IndianRed);
                             mtlist[i].Form.BackColor = Modal_Form_Color_Fail;
                             break;
 
@@ -2155,7 +2053,7 @@ namespace ArtiluxEOL
                                 displayText += Test_States[i].Fail_Reason;
                             }
 
-                            mtlist[i].Form.Update_Test_Label(displayText, Color.IndianRed);
+                            mtlist[i].Form.Update_Test_Label(displayText, System.Drawing.Color.IndianRed);
                             mtlist[i].Form.BackColor = Modal_Form_Color_Fail;
                             break;
                     }
@@ -2439,29 +2337,29 @@ namespace ArtiluxEOL
             {
                 if (mtlist[0].MonitorOnline)
                 {
-                    Test_lizdas_1.BackColor = Color.Transparent;
+                    Test_lizdas_1.BackColor = System.Drawing.Color.Transparent;
                 }
                 else
                 {
-                    Test_lizdas_1.BackColor = Color.IndianRed;
+                    Test_lizdas_1.BackColor = System.Drawing.Color.IndianRed;
                 }
 
                 if (mtlist[1].MonitorOnline)
                 {
-                    Test_lizdas_2.BackColor = Color.Transparent;
+                    Test_lizdas_2.BackColor = System.Drawing.Color.Transparent;
                 }
                 else
                 {
-                    Test_lizdas_2.BackColor = Color.IndianRed;
+                    Test_lizdas_2.BackColor = System.Drawing.Color.IndianRed;
                 }
 
                 if (mtlist[2].MonitorOnline)
                 {
-                    Test_lizdas_3.BackColor = Color.Transparent;
+                    Test_lizdas_3.BackColor = System.Drawing.Color.Transparent;
                 }
                 else
                 {
-                    Test_lizdas_3.BackColor = Color.IndianRed;
+                    Test_lizdas_3.BackColor = System.Drawing.Color.IndianRed;
                 }
             }
         }
@@ -2679,7 +2577,7 @@ namespace ArtiluxEOL
 
                 if (idIsNew)//Add new id to DetectedMonitors array
                 {
-                    dbg_print(DbgType.MAIN, "MONITOR--" + id, Color.MediumPurple);
+                    dbg_print(DbgType.MAIN, "MONITOR--" + id, System.Drawing.Color.MediumPurple);
 
                     string[] tmpArr = new string[(DetectedMonitors.Length + 1)];
 
@@ -2813,7 +2711,7 @@ namespace ArtiluxEOL
             }
         }
 
-        public void device_state_indication(int dev_nr, Color color)
+        public void device_state_indication(int dev_nr, System.Drawing.Color color)
         {
             //Prietaisu busenos lables pagrindiniame lange
 
@@ -2956,7 +2854,7 @@ namespace ArtiluxEOL
             this.Invoke(new Action(() => { con.Enabled = true; }));
         }
 
-        public void show_msg(string msg, Color _color)
+        public void show_msg(string msg, System.Drawing.Color _color)
         {
             Popup_msg popup = new Popup_msg("", msg, _color, 2);
             popup.Show();
@@ -3191,13 +3089,13 @@ namespace ArtiluxEOL
             {
                 if (Pico_Measuring == false)//Dont ping when measuring is in progress
                 {
-                    oscillo_form.label_Measuring1.BackColor = Color.Transparent;
-                    oscillo_form.label_Measuring2.BackColor = Color.Transparent;
+                    oscillo_form.label_Measuring1.BackColor = System.Drawing.Color.Transparent;
+                    oscillo_form.label_Measuring2.BackColor = System.Drawing.Color.Transparent;
                     Int16 pingResp = (Int16)Imports.PingUnit(handle);
 
                     if (pingResp != 0)
                     {
-                        lbl_osc.BackColor = Color.LightCoral;
+                        lbl_osc.BackColor = System.Drawing.Color.LightCoral;
                         Imports.CloseUnit(handle);
                         Pico_Status = Imports.EnumerateUnits(out count, serials, ref serialsLength);
 
@@ -3224,7 +3122,7 @@ namespace ArtiluxEOL
                     }
                     else
                     {
-                        lbl_osc.BackColor = Color.SpringGreen;
+                        lbl_osc.BackColor = System.Drawing.Color.SpringGreen;
 
                         if (Form_Focused == false)//Focus on this window (Picoscope splash screen hides this application after startup)
                         {
@@ -3240,13 +3138,13 @@ namespace ArtiluxEOL
                 {
                     if (Lable_Measuring_Blink_State)
                     {
-                        oscillo_form.label_Measuring1.BackColor = Color.LightGreen;
-                        oscillo_form.label_Measuring2.BackColor = Color.LightGreen;
+                        oscillo_form.label_Measuring1.BackColor = System.Drawing.Color.LightGreen;
+                        oscillo_form.label_Measuring2.BackColor = System.Drawing.Color.LightGreen;
                     }
                     else
                     {
-                        oscillo_form.label_Measuring1.BackColor = Color.Transparent;
-                        oscillo_form.label_Measuring2.BackColor = Color.Transparent;
+                        oscillo_form.label_Measuring1.BackColor = System.Drawing.Color.Transparent;
+                        oscillo_form.label_Measuring2.BackColor = System.Drawing.Color.Transparent;
                     }
                     Lable_Measuring_Blink_State = !Lable_Measuring_Blink_State;
 
@@ -3680,7 +3578,7 @@ namespace ArtiluxEOL
         #endregion
 
         #region Debug list
-        public void dbg_print(bool dbg_type, string str, Color color)
+        public void dbg_print(bool dbg_type, string str, System.Drawing.Color color)
         {
             if (!dbg_type)//einam lauk jei dbg isjungtas
             {
@@ -3809,19 +3707,19 @@ namespace ArtiluxEOL
                 {
                     if (network_dev[NetDev_Tab.BARCODE_1 + a].Connected || network_dev[NetDev_Tab.RFID_1 + a].Connected)
                     {
-                        device_state_indication(NetDev_Tab.BARCODE_1 + a, Color.SpringGreen);//pazymim raudonai, jei rasim pakeisim i zalia
-                        device_state_indication(NetDev_Tab.RFID_1 + a, Color.SpringGreen);//pazymim raudonai, jei rasim pakeisim i zalia
+                        device_state_indication(NetDev_Tab.BARCODE_1 + a, System.Drawing.Color.SpringGreen);//pazymim raudonai, jei rasim pakeisim i zalia
+                        device_state_indication(NetDev_Tab.RFID_1 + a, System.Drawing.Color.SpringGreen);//pazymim raudonai, jei rasim pakeisim i zalia
                     }
                     else
                     {
-                        device_state_indication(NetDev_Tab.BARCODE_1 + a, Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia
-                        device_state_indication(NetDev_Tab.RFID_1 + a, Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia
+                        device_state_indication(NetDev_Tab.BARCODE_1 + a, System.Drawing.Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia
+                        device_state_indication(NetDev_Tab.RFID_1 + a, System.Drawing.Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia
                     }
                 }
                 else
                 {
-                    device_state_indication(NetDev_Tab.BARCODE_1 + a, Color.Gainsboro);//pazymim zymim pilkai
-                    device_state_indication(NetDev_Tab.RFID_1 + a, Color.Gainsboro);//pazymim zymim pilkai
+                    device_state_indication(NetDev_Tab.BARCODE_1 + a, System.Drawing.Color.Gainsboro);//pazymim zymim pilkai
+                    device_state_indication(NetDev_Tab.RFID_1 + a, System.Drawing.Color.Gainsboro);//pazymim zymim pilkai
                 }
             }
 
@@ -3842,14 +3740,14 @@ namespace ArtiluxEOL
                     if (state)
                     {
                         evse_fault[a] = true;//i buff sudeti reles is eiles pagel fault mygtukus
-                        dbg_print(DbgType.MAIN, "Evse_fault_on:" + a, Color.Blue);
+                        dbg_print(DbgType.MAIN, "Evse_fault_on:" + a, System.Drawing.Color.Blue);
                     }
                     else
                     {
                         if (evse_fault[a])
                         {
                             evse_fault[a] = false;
-                            dbg_print(DbgType.MAIN, "Evse_fault_off:" + a, Color.Blue);
+                            dbg_print(DbgType.MAIN, "Evse_fault_off:" + a, System.Drawing.Color.Blue);
                         }
                     }
 
@@ -3895,14 +3793,14 @@ namespace ArtiluxEOL
                     if (state)
                     {
                         ls[a] = true;
-                        dbg_print(DbgType.MAIN, "LS_checkbox_on:" + a, Color.Blue);
+                        dbg_print(DbgType.MAIN, "LS_checkbox_on:" + a, System.Drawing.Color.Blue);
                     }
                     else
                     {
                         if (ls[a])
                         {
                             ls[a] = false;
-                            dbg_print(DbgType.MAIN, "LS_checkbox_off:" + a, Color.Blue);
+                            dbg_print(DbgType.MAIN, "LS_checkbox_off:" + a, System.Drawing.Color.Blue);
                         }
                     }
 
@@ -3948,7 +3846,7 @@ namespace ArtiluxEOL
                         if (evse_mode_before != a)
                         {
                             evse_mode_before = a;
-                            dbg_print(DbgType.MAIN, "Evse_mode:" + a, Color.Gray);
+                            dbg_print(DbgType.MAIN, "Evse_mode:" + a, System.Drawing.Color.Gray);
                             evse_mode_index = a + 1;
                             CP_Selector_Set(a);
                         }
@@ -3972,7 +3870,7 @@ namespace ArtiluxEOL
                         if (power_relay_before != a)
                         {
                             power_relay_before = a;
-                            dbg_print(DbgType.MAIN, "CheckRelayRadioBtn:" + a, Color.Gray);
+                            dbg_print(DbgType.MAIN, "CheckRelayRadioBtn:" + a, System.Drawing.Color.Gray);
                             main_power_relay_index = a + 1;
                             LS_Selector_Set(main_power_relay_index);//Starts at 1
                         }
@@ -3997,7 +3895,7 @@ namespace ArtiluxEOL
                         if (pp_select_before != a)
                         {
                             pp_select_before = a;
-                            dbg_print(DbgType.MAIN, "CheckPPSelRadioBtn:" + a, Color.Gray);
+                            dbg_print(DbgType.MAIN, "CheckPPSelRadioBtn:" + a, System.Drawing.Color.Gray);
                             pp_select_index = a + 1;
                             PP_Selector_Set(a);
                         }
@@ -4022,7 +3920,7 @@ namespace ArtiluxEOL
                         if (tp_select_before != a)
                         {
                             tp_select_before = a;
-                            dbg_print(DbgType.MAIN, "CheckTPSelRadioBtn:" + a, Color.Gray);
+                            dbg_print(DbgType.MAIN, "CheckTPSelRadioBtn:" + a, System.Drawing.Color.Gray);
                             tp_select_index = a + 1;
                             TP_Selector_Set(a);
                         }
@@ -4061,16 +3959,16 @@ namespace ArtiluxEOL
                         {
                             if (network_dev[a].Connected)
                             {
-                                device_state_indication(a, Color.SpringGreen);//pazymim raudonai, jei rasim pakeisim i zalia
+                                device_state_indication(a, System.Drawing.Color.SpringGreen);//pazymim raudonai, jei rasim pakeisim i zalia
                             }
                             else
                             {
-                                device_state_indication(a, Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia
+                                device_state_indication(a, System.Drawing.Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia
                             }
                         }
                         else
                         {
-                            device_state_indication(a, Color.Gainsboro);//pazymim zymim pilkai 
+                            device_state_indication(a, System.Drawing.Color.Gainsboro);//pazymim zymim pilkai 
                         }
                     }
                 }
@@ -4169,7 +4067,7 @@ namespace ArtiluxEOL
 
                     if (CheckBox_dev_info[x].Checked)
                     {
-                        device_state_indication(x, Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia 
+                        device_state_indication(x, System.Drawing.Color.LightCoral);//pazymim raudonai, jei rasim pakeisim i zalia 
                     }
 
                     cbox_y_location += 64;
@@ -4316,8 +4214,8 @@ namespace ArtiluxEOL
             // jai sumazejo portu
             if (portsFoundBefore > PCportai.Length)
             {
-                dbg_print(DbgType.USB, "", Color.DimGray);
-                dbg_print(DbgType.USB, "-DISCONNECTED " + (portsFoundBefore - PCportai.Length) + "-\n", Color.LightCoral);
+                dbg_print(DbgType.USB, "", System.Drawing.Color.DimGray);
+                dbg_print(DbgType.USB, "-DISCONNECTED " + (portsFoundBefore - PCportai.Length) + "-\n", System.Drawing.Color.LightCoral);
                 for (int a = 0; a < nr; a++)
                 {
                     //dbg_print("\r\n"+PCportai.Count().ToString());
@@ -4339,11 +4237,11 @@ namespace ArtiluxEOL
                             if (!toks_yra)
                             {
                                 SerPorts[a].port_active = false;
-                                dbg_print(DbgType.USB, "  close port " + SerPorts[a].port.PortName.ToString(), Color.LightCoral);
+                                dbg_print(DbgType.USB, "  close port " + SerPorts[a].port.PortName.ToString(), System.Drawing.Color.LightCoral);
                                 if (a == PORT_ALKOTEST)
                                 {
                                     //Alko_serial_close_end();
-                                    lbl_evse.BackColor = Color.LightCoral;
+                                    lbl_evse.BackColor = System.Drawing.Color.LightCoral;
                                 }
                             }
 
@@ -4360,8 +4258,8 @@ namespace ArtiluxEOL
             // atsirado naujas(ji) portas(ai)
             else if (portsFoundBefore < PCportai.Length)
             {
-                dbg_print(DbgType.USB, "", Color.DimGray);
-                dbg_print(DbgType.USB, "-CONNECTED " + (PCportai.Length - portsFoundBefore) + "-", Color.SpringGreen);
+                dbg_print(DbgType.USB, "", System.Drawing.Color.DimGray);
+                dbg_print(DbgType.USB, "-CONNECTED " + (PCportai.Length - portsFoundBefore) + "-", System.Drawing.Color.SpringGreen);
                 for (int b = 0; b < PCportai.Count(); b++)
                 {
                     bool nenaudojamas = true;
@@ -4458,13 +4356,13 @@ namespace ArtiluxEOL
                                     {
                                         msg += " ... ! KLAIDA - jau atidarytas !";
                                     }
-                                    dbg_print(DbgType.USB, msg, Color.LightCoral);
+                                    dbg_print(DbgType.USB, msg, System.Drawing.Color.LightCoral);
                                     //}
 
                                 }
                                 if (!priskirtas_sekmingai) // jai niekam nepavyko priskirti bet portas grazino ID, informuojam apie tai
                                 {
-                                    dbg_print(DbgType.USB, "  neatpazintas " + SerPorts[nr].port.PortName + " ID ... skip", Color.LightCoral);
+                                    dbg_print(DbgType.USB, "  neatpazintas " + SerPorts[nr].port.PortName + " ID ... skip", System.Drawing.Color.LightCoral);
                                     //SerPorts[nr].port.Dispose();
                                     try
                                     {
@@ -4488,11 +4386,11 @@ namespace ArtiluxEOL
 
             if (SerPorts[METERL_PORT].port_active)
             {
-                lbl_evse.BackColor = Color.SpringGreen;
+                lbl_evse.BackColor = System.Drawing.Color.SpringGreen;
             }
             else
             {
-                lbl_evse.BackColor = Color.LightCoral;
+                lbl_evse.BackColor = System.Drawing.Color.LightCoral;
             }
 
             if (send_err > 0)
@@ -4520,7 +4418,7 @@ namespace ArtiluxEOL
                     }
                     catch (Exception ex)
                     {
-                        dbg_print(DbgType.USB, "Exc!_USB_SEND  :", Color.LightCoral);
+                        dbg_print(DbgType.USB, "Exc!_USB_SEND  :", System.Drawing.Color.LightCoral);
                         Console.WriteLine(ex);
                         SerPorts[nr].port_active = false;
 
@@ -4533,7 +4431,7 @@ namespace ArtiluxEOL
                             Console.WriteLine(ex1);
 
                         }
-                        dbg_print(DbgType.USB, "! ERROR port " + SerPorts[nr].port.PortName + " lost", Color.LightCoral);
+                        dbg_print(DbgType.USB, "! ERROR port " + SerPorts[nr].port.PortName + " lost", System.Drawing.Color.LightCoral);
                     }
                 }
                 else
@@ -4560,7 +4458,7 @@ namespace ArtiluxEOL
                         SerPorts[a].timeout--;
                         if (SerPorts[a].timeout == 0)
                         {
-                            dbg_print(DbgType.USB, "! Port " + SerPorts[a].port.PortName + " timeout", Color.DimGray);
+                            dbg_print(DbgType.USB, "! Port " + SerPorts[a].port.PortName + " timeout", System.Drawing.Color.DimGray);
                             SerPorts[a].port_active = false;
                             try
                             {
@@ -4593,7 +4491,7 @@ namespace ArtiluxEOL
                 {
                     SerPorts[nr].port.Open();
                 }
-                catch (Exception) { dbg_print(DbgType.USB, d + " ...FAIL !", Color.LightCoral); return false; }
+                catch (Exception) { dbg_print(DbgType.USB, d + " ...FAIL !", System.Drawing.Color.LightCoral); return false; }
 
                 //jeigu atidareme isvalome bufferi
                 if (SerPorts[nr].port.IsOpen)
@@ -4610,12 +4508,12 @@ namespace ArtiluxEOL
                 {
                     search_dev_nr++;
                     get = send_receive(devices_info[usb_dev_ptr] + "\r\n");
-                    dbg_print(DbgType.USB, get, Color.DimGray);
+                    dbg_print(DbgType.USB, get, System.Drawing.Color.DimGray);
 
                     if (get.Length > 2)
                     {
                         id = get.Substring(2, (get.Length - 2)).ToUpper().Trim();
-                        dbg_print(DbgType.USB, d + " ...OK, " + " ID=\"" + id + "\"", Color.DimGray);
+                        dbg_print(DbgType.USB, d + " ...OK, " + " ID=\"" + id + "\"", System.Drawing.Color.DimGray);
                         SerPorts[nr].id = id;
                         found_ser_nr = usb_dev_ptr;
                         return true;
@@ -4625,7 +4523,7 @@ namespace ArtiluxEOL
 
                         if (usb_dev_ptr == (all_dev_count - 1))
                         {
-                            dbg_print(DbgType.USB, d + " ...TIMEOUT !", Color.Gold);
+                            dbg_print(DbgType.USB, d + " ...TIMEOUT !", System.Drawing.Color.Gold);
                             try
                             {
                                 SerPorts[nr].port.Close();
@@ -4640,7 +4538,7 @@ namespace ArtiluxEOL
                         }
                         else
                         {
-                            dbg_print(DbgType.USB, d + " ...FIND NEXT !", Color.DimGray);
+                            dbg_print(DbgType.USB, d + " ...FIND NEXT !", System.Drawing.Color.DimGray);
                         }
                     }
                     usb_dev_ptr++;
@@ -4649,7 +4547,7 @@ namespace ArtiluxEOL
             }
             else
             {
-                dbg_print(DbgType.USB, d + " ...jau aktyvus! kas per...UAZDAROM!", Color.LightCoral);
+                dbg_print(DbgType.USB, d + " ...jau aktyvus! kas per...UAZDAROM!", System.Drawing.Color.LightCoral);
                 SerPorts[nr].port_active = false;
                 return false;
             }
@@ -4689,12 +4587,12 @@ namespace ArtiluxEOL
                             SerPorts[SerPorts.Count - 1].port.Read(uart_data, 0, uart_data.Length);
                             line = System.Text.Encoding.UTF8.GetString(uart_data);
 
-                            dbg_print(DbgType.USB, "getting answer.." + bytesCount.ToString(), Color.DimGray);
-                            dbg_print(DbgType.USB, line, Color.DimGray);
+                            dbg_print(DbgType.USB, "getting answer.." + bytesCount.ToString(), System.Drawing.Color.DimGray);
+                            dbg_print(DbgType.USB, line, System.Drawing.Color.DimGray);
                         }
                         catch (Exception ex)
                         {
-                            dbg_print(DbgType.USB, "! ERROR reading port " + SerPorts[SerPorts.Count - 1].port.PortName, Color.LightCoral);
+                            dbg_print(DbgType.USB, "! ERROR reading port " + SerPorts[SerPorts.Count - 1].port.PortName, System.Drawing.Color.LightCoral);
                             Console.WriteLine(ex);
                             return "";
                         }
@@ -4739,7 +4637,7 @@ namespace ArtiluxEOL
 
                 }
                 SerPorts[pnr].port_active = false;
-                dbg_print(DbgType.USB, "! EROOR ! port " + SerPorts[pnr].port.PortName + " disconnected", Color.LightCoral);
+                dbg_print(DbgType.USB, "! EROOR ! port " + SerPorts[pnr].port.PortName + " disconnected", System.Drawing.Color.LightCoral);
                 Console.WriteLine(ex);
             }
 
@@ -4813,7 +4711,7 @@ namespace ArtiluxEOL
                 }
                 catch (Exception e)
                 {
-                    dbg_print(DbgType.MAIN, "Update_work_place_exception, a: " + a, Color.LightCoral);
+                    dbg_print(DbgType.MAIN, "Update_work_place_exception, a: " + a, System.Drawing.Color.LightCoral);
                 }
             }
             Workplaces_reg.Close();
@@ -4860,7 +4758,7 @@ namespace ArtiluxEOL
                     }
                     catch (Exception e)
                     {
-                        dbg_print(DbgType.MAIN, "Read_work_place_exception", Color.LightCoral);
+                        dbg_print(DbgType.MAIN, "Read_work_place_exception", System.Drawing.Color.LightCoral);
                     }
 
                 }
@@ -4872,7 +4770,7 @@ namespace ArtiluxEOL
                 Workplaces_reg = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Artilux\Workplaces");
 
                 wp_count = ml.Count;
-                dbg_print(DbgType.MAIN, "wp_count: " + wp_count, Color.Gray);
+                dbg_print(DbgType.MAIN, "wp_count: " + wp_count, System.Drawing.Color.Gray);
                 //System.Diagnostics.Debug.Print($"wp_count: = {wp_count}");
                 Workplaces_reg.SetValue("NumWorkPlaces", wp_count);
                 for (int a = 0; a < 3; a++)
@@ -4888,13 +4786,13 @@ namespace ArtiluxEOL
                     }
                     catch (Exception e)
                     {
-                        dbg_print(DbgType.MAIN, "WPlace create fail", Color.LightCoral);
+                        dbg_print(DbgType.MAIN, "WPlace create fail", System.Drawing.Color.LightCoral);
                         Workplaces_reg.Close();
                         return;
                     }
 
                 }
-                dbg_print(DbgType.MAIN, "REG_not_found: Create", Color.Violet);
+                dbg_print(DbgType.MAIN, "REG_not_found: Create", System.Drawing.Color.Violet);
                 Workplaces_reg.Close();
             }
         }
@@ -5054,7 +4952,6 @@ namespace ArtiluxEOL
 
             if (Test_Param_reg == null)
             {
-                Test_Param_reg.Close();
                 return; // Nothing saved in this PC, exit
             }
 
@@ -5304,6 +5201,49 @@ namespace ArtiluxEOL
             Loading_Test_Parameters = false; // Loading values from registers complete- text box events can now trigger
         }
 
+        private void saveAppSetting(int settingID)
+        {
+            App_Setting_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\App_settings", true);
+
+            if (App_Setting_reg == null)
+            {
+                App_Setting_reg = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Artilux\App_settings");
+            }
+
+            switch (settingID)
+            {
+                default:
+                    System.Diagnostics.Debug.Print("Invalid setting ID");
+                    break;
+
+                case App_Setting.APP_SET_DIR_REPORT: // Save report directory
+                    App_Setting_reg.SetValue("Dir_Report", tb_report_directory.Text);
+                    break;
+            }
+
+            App_Setting_reg.Close();
+        }
+
+        private void loadAppSettings()
+        {
+            App_Setting_reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Artilux\App_settings");
+
+            if (App_Setting_reg == null)
+            {
+                return; // Nothing saved in this PC, exit
+            }
+
+            Loading_Test_Parameters = true; // Values will now be added from registers- ignore text box events while this is true
+
+            if (App_Setting_reg.GetValue("Dir_Report") != null)
+            {
+                tb_report_directory.Text = App_Setting_reg.GetValue("Dir_Report").ToString();
+            }
+
+            App_Setting_reg.Close();
+            Loading_Test_Parameters = false; // Loading values from registers complete- text box events can now trigger
+        }
+
         #endregion
 
         #region -=Metrel test btn=-
@@ -5399,12 +5339,12 @@ namespace ArtiluxEOL
             if (String.Equals("PASS ", split_result[1]))//lyginam stringus, ar uzsetinom parametra
             {
                 //test_pass = true;
-                style.BackColor = Color.SpringGreen;
+                style.BackColor = System.Drawing.Color.SpringGreen;
                 dataGrid_HV_result.Rows[0].Cells[2].Style = style;
                 System.Diagnostics.Debug.Print($"TEST_PASS");
             }
             else
-                style.BackColor = Color.LightCoral;
+                style.BackColor = System.Drawing.Color.LightCoral;
             {
                 dataGrid_HV_result.Rows[0].Cells[2].Style = style;
             }
@@ -5477,7 +5417,7 @@ namespace ArtiluxEOL
                     }
                     else
                     {
-                        //show_msg("Blogi parametrai, galimos vertes 1-40A", Color.LightCoral);
+                        //show_msg("Blogi parametrai, galimos vertes 1-40A", System.Drawing.Color.LightCoral);
                     }
                 }
             }
@@ -5645,12 +5585,12 @@ namespace ArtiluxEOL
                         if (ret == 0)
                         {
                             network_dev[a].Connected = true;
-                            device_state_indication(a, Color.SpringGreen);//jei prisijungem indikuojam zaliai
+                            device_state_indication(a, System.Drawing.Color.SpringGreen);//jei prisijungem indikuojam zaliai
                         }
                         else
                         {
                             network_dev[a].Connected = false;
-                            device_state_indication(a, Color.LightCoral);//jei neprisijungem indikuojam raudonai
+                            device_state_indication(a, System.Drawing.Color.LightCoral);//jei neprisijungem indikuojam raudonai
                         }
                     }
 
@@ -5833,40 +5773,40 @@ namespace ArtiluxEOL
             string[] CP_sel_btn_names = { "radBtn_ev_0", "radBtn_ev_1", "radBtn_ev_2", "radBtn_ev_3" };//CP selector button names
             string[] TP_sel_btn_names = { "radBtn_tp_0", "radBtn_tp_1", "radBtn_tp_2" };//TP selector button names
 
-            Color[,] PP_sel_btn_colors = {//PP selector button colors depending on PP selector state
-                                            {Color.LightGreen, Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent },//PP_Selector = 0
-                                            {Color.Transparent, Color.LightGreen, Color.Transparent, Color.Transparent, Color.Transparent },//PP_Selector = 1
-                                            {Color.Transparent, Color.Transparent, Color.LightGreen, Color.Transparent, Color.Transparent },//PP_Selector = 2
-                                            {Color.Transparent, Color.Transparent, Color.Transparent, Color.LightGreen, Color.Transparent },//PP_Selector = 3
-                                            {Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent, Color.LightGreen },//PP_Selector = 4
-                                            {Color.Orange, Color.Orange, Color.Orange, Color.Orange, Color.Orange },                        //PP_Selector = -10/-11
-                                            {Color.IndianRed, Color.IndianRed, Color.IndianRed, Color.IndianRed, Color.IndianRed }                                        //PP_Selector = -100/-101
+            System.Drawing.Color[,] PP_sel_btn_colors = {//PP selector button colors depending on PP selector state
+                                            {System.Drawing.Color.LightGreen, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent },//PP_Selector = 0
+                                            {System.Drawing.Color.Transparent, System.Drawing.Color.LightGreen, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent },//PP_Selector = 1
+                                            {System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.LightGreen, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent },//PP_Selector = 2
+                                            {System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.LightGreen, System.Drawing.Color.Transparent },//PP_Selector = 3
+                                            {System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.LightGreen },//PP_Selector = 4
+                                            {System.Drawing.Color.Orange, System.Drawing.Color.Orange, System.Drawing.Color.Orange, System.Drawing.Color.Orange, System.Drawing.Color.Orange },                        //PP_Selector = -10/-11
+                                            {System.Drawing.Color.IndianRed, System.Drawing.Color.IndianRed, System.Drawing.Color.IndianRed, System.Drawing.Color.IndianRed, System.Drawing.Color.IndianRed }                                        //PP_Selector = -100/-101
             };
 
-            Color[,] LS_sel_btn_colors = {//LS selector button colors depending on LS selector state
-                                            {Color.Transparent, Color.Transparent, Color.Transparent }, //LS_Selector = 0
-                                            {Color.LightGreen, Color.Transparent, Color.Transparent },  //LS_Selector = 1
-                                            {Color.Transparent, Color.LightGreen, Color.Transparent },  //LS_Selector = 2
-                                            {Color.Transparent, Color.Transparent, Color.LightGreen },  //LS_Selector = 3
-                                            {Color.Orange, Color.Orange, Color.Orange },                //LS_Selector = -10/-11
-                                            {Color.IndianRed, Color.IndianRed, Color.IndianRed }                          //LS_Selector = -100/-101
+            System.Drawing.Color[,] LS_sel_btn_colors = {//LS selector button colors depending on LS selector state
+                                            {System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent }, //LS_Selector = 0
+                                            {System.Drawing.Color.LightGreen, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent },  //LS_Selector = 1
+                                            {System.Drawing.Color.Transparent, System.Drawing.Color.LightGreen, System.Drawing.Color.Transparent },  //LS_Selector = 2
+                                            {System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.LightGreen },  //LS_Selector = 3
+                                            {System.Drawing.Color.Orange, System.Drawing.Color.Orange, System.Drawing.Color.Orange },                //LS_Selector = -10/-11
+                                            {System.Drawing.Color.IndianRed, System.Drawing.Color.IndianRed, System.Drawing.Color.IndianRed }                          //LS_Selector = -100/-101
             };
 
-            Color[,] CP_sel_btn_colors = {//CP selector button colors depending on CP selector state
-                                            {Color.LightGreen, Color.Transparent, Color.Transparent, Color.Transparent },   //CP_Selector = 0
-                                            {Color.Transparent, Color.LightGreen, Color.Transparent, Color.Transparent },   //CP_Selector = 1
-                                            {Color.Transparent, Color.Transparent, Color.LightGreen, Color.Transparent },   //CP_Selector = 2
-                                            {Color.Transparent, Color.Transparent, Color.Transparent, Color.LightGreen },   //CP_Selector = 3
-                                            {Color.Orange, Color.Orange, Color.Orange, Color.Orange },                      //CP_Selector = -10/-11
-                                            {Color.IndianRed, Color.IndianRed, Color.IndianRed, Color.IndianRed }                                   //CP_Selector = -100/-101
+            System.Drawing.Color[,] CP_sel_btn_colors = {//CP selector button colors depending on CP selector state
+                                            {System.Drawing.Color.LightGreen, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent },   //CP_Selector = 0
+                                            {System.Drawing.Color.Transparent, System.Drawing.Color.LightGreen, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent },   //CP_Selector = 1
+                                            {System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.LightGreen, System.Drawing.Color.Transparent },   //CP_Selector = 2
+                                            {System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.LightGreen },   //CP_Selector = 3
+                                            {System.Drawing.Color.Orange, System.Drawing.Color.Orange, System.Drawing.Color.Orange, System.Drawing.Color.Orange },                      //CP_Selector = -10/-11
+                                            {System.Drawing.Color.IndianRed, System.Drawing.Color.IndianRed, System.Drawing.Color.IndianRed, System.Drawing.Color.IndianRed }                                   //CP_Selector = -100/-101
             };
 
-            Color[,] TP_sel_btn_colors = {//TP selector button colors depending on CP selector state
-                                            {Color.LightGreen, Color.Transparent, Color.Transparent, Color.Transparent },   //TP_Selector = 0
-                                            {Color.Transparent, Color.LightGreen, Color.Transparent, Color.Transparent },   //TP_Selector = 1
-                                            {Color.Transparent, Color.Transparent, Color.LightGreen, Color.Transparent },   //TP_Selector = 2
-                                            {Color.Orange, Color.Orange, Color.Orange, Color.Orange },                      //CP_Selector = -10/-11
-                                            {Color.IndianRed, Color.IndianRed, Color.IndianRed, Color.IndianRed }                                   //CP_Selector = -100/-101
+            System.Drawing.Color[,] TP_sel_btn_colors = {//TP selector button colors depending on CP selector state
+                                            {System.Drawing.Color.LightGreen, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent },   //TP_Selector = 0
+                                            {System.Drawing.Color.Transparent, System.Drawing.Color.LightGreen, System.Drawing.Color.Transparent, System.Drawing.Color.Transparent },   //TP_Selector = 1
+                                            {System.Drawing.Color.Transparent, System.Drawing.Color.Transparent, System.Drawing.Color.LightGreen, System.Drawing.Color.Transparent },   //TP_Selector = 2
+                                            {System.Drawing.Color.Orange, System.Drawing.Color.Orange, System.Drawing.Color.Orange, System.Drawing.Color.Orange },                      //CP_Selector = -10/-11
+                                            {System.Drawing.Color.IndianRed, System.Drawing.Color.IndianRed, System.Drawing.Color.IndianRed, System.Drawing.Color.IndianRed }                                   //CP_Selector = -100/-101
             };
 
             if (PP_Selector.STATE >= 0 && PP_Selector.STATE < 5)//Color array selector depending on PP selector state
@@ -5959,209 +5899,209 @@ namespace ArtiluxEOL
                 {
                     if (LOAD.STATE == 0)
                     {
-                        ctrl.BackColor = Color.LightBlue;
+                        ctrl.BackColor = System.Drawing.Color.LightBlue;
                     }
                     else if (LOAD.STATE == 1)
                     {
-                        ctrl.BackColor = Color.LightGreen;
+                        ctrl.BackColor = System.Drawing.Color.LightGreen;
                     }
                     else if (LOAD.STATE < 0)
                     {
-                        ctrl.BackColor = Color.IndianRed;
+                        ctrl.BackColor = System.Drawing.Color.IndianRed;
                     }
                     else
                     {
-                        ctrl.BackColor = Color.Orange;
+                        ctrl.BackColor = System.Drawing.Color.Orange;
                     }
                 }
                 else if (ctrl.Name == "chbox_ls_1")//SOURCE
                 {
                     if (SOURCE.STATE == 0)
                     {
-                        ctrl.BackColor = Color.LightBlue;
+                        ctrl.BackColor = System.Drawing.Color.LightBlue;
                     }
                     else if (SOURCE.STATE == 1)
                     {
-                        ctrl.BackColor = Color.LightGreen;
+                        ctrl.BackColor = System.Drawing.Color.LightGreen;
                     }
                     else if (SOURCE.STATE < 0)
                     {
-                        ctrl.BackColor = Color.IndianRed;
+                        ctrl.BackColor = System.Drawing.Color.IndianRed;
                     }
                     else
                     {
-                        ctrl.BackColor = Color.Orange;
+                        ctrl.BackColor = System.Drawing.Color.Orange;
                     }
                 }
                 else if (ctrl.Name == "chbox_ls_2")//ENABLE
                 {
                     if (LS_EN.STATE == 0)
                     {
-                        ctrl.BackColor = Color.LightBlue;
+                        ctrl.BackColor = System.Drawing.Color.LightBlue;
                     }
                     else if (LS_EN.STATE == 1)
                     {
-                        ctrl.BackColor = Color.LightGreen;
+                        ctrl.BackColor = System.Drawing.Color.LightGreen;
                     }
                     else if (LS_EN.STATE < 0)
                     {
-                        ctrl.BackColor = Color.IndianRed;
+                        ctrl.BackColor = System.Drawing.Color.IndianRed;
                     }
                     else
                     {
-                        ctrl.BackColor = Color.Orange;
+                        ctrl.BackColor = System.Drawing.Color.Orange;
                     }
                 }
                 else if (ctrl.Name == "chbox_ev_fault_0")//DIODE_SH
                 {
                     if (DIODE_SH.STATE == 0)
                     {
-                        ctrl.BackColor = Color.LightBlue;
+                        ctrl.BackColor = System.Drawing.Color.LightBlue;
                     }
                     else if (DIODE_SH.STATE == 1)
                     {
-                        ctrl.BackColor = Color.LightGreen;
+                        ctrl.BackColor = System.Drawing.Color.LightGreen;
                     }
                     else if (DIODE_SH.STATE < 0)
                     {
-                        ctrl.BackColor = Color.IndianRed;
+                        ctrl.BackColor = System.Drawing.Color.IndianRed;
                     }
                     else
                     {
-                        ctrl.BackColor = Color.Orange;
+                        ctrl.BackColor = System.Drawing.Color.Orange;
                     }
                 }
                 else if (ctrl.Name == "chbox_ev_fault_1")//PE_OP
                 {
                     if (PE_OP.STATE == 0)
                     {
-                        ctrl.BackColor = Color.LightBlue;
+                        ctrl.BackColor = System.Drawing.Color.LightBlue;
                     }
                     else if (PE_OP.STATE == 1)
                     {
-                        ctrl.BackColor = Color.LightGreen;
+                        ctrl.BackColor = System.Drawing.Color.LightGreen;
                     }
                     else if (PE_OP.STATE < 0)
                     {
-                        ctrl.BackColor = Color.IndianRed;
+                        ctrl.BackColor = System.Drawing.Color.IndianRed;
                     }
                     else
                     {
-                        ctrl.BackColor = Color.Orange;
+                        ctrl.BackColor = System.Drawing.Color.Orange;
                     }
                 }
                 else if (ctrl.Name == "chbox_ev_fault_2")//CP_SH
                 {
                     if (CP_SH.STATE == 0)
                     {
-                        ctrl.BackColor = Color.LightBlue;
+                        ctrl.BackColor = System.Drawing.Color.LightBlue;
                     }
                     else if (CP_SH.STATE == 1)
                     {
-                        ctrl.BackColor = Color.LightGreen;
+                        ctrl.BackColor = System.Drawing.Color.LightGreen;
                     }
                     else if (CP_SH.STATE < 0)
                     {
-                        ctrl.BackColor = Color.IndianRed;
+                        ctrl.BackColor = System.Drawing.Color.IndianRed;
                     }
                     else
                     {
-                        ctrl.BackColor = Color.Orange;
+                        ctrl.BackColor = System.Drawing.Color.Orange;
                     }
                 }
             }
 
             if (Spectroscope_Select.STATE == 0)
             {
-                rad_btn_spect_EVSE_sel_1.BackColor = Color.Transparent;
-                rad_btn_spect_EVSE_sel_2.BackColor = Color.Transparent;
-                rad_btn_spect_EVSE_sel_3.BackColor = Color.Transparent;
+                rad_btn_spect_EVSE_sel_1.BackColor = System.Drawing.Color.Transparent;
+                rad_btn_spect_EVSE_sel_2.BackColor = System.Drawing.Color.Transparent;
+                rad_btn_spect_EVSE_sel_3.BackColor = System.Drawing.Color.Transparent;
             }
             else if (Spectroscope_Select.STATE == 1)
             {
-                rad_btn_spect_EVSE_sel_1.BackColor = Color.LightGreen;
-                rad_btn_spect_EVSE_sel_2.BackColor = Color.Transparent;
-                rad_btn_spect_EVSE_sel_3.BackColor = Color.Transparent;
+                rad_btn_spect_EVSE_sel_1.BackColor = System.Drawing.Color.LightGreen;
+                rad_btn_spect_EVSE_sel_2.BackColor = System.Drawing.Color.Transparent;
+                rad_btn_spect_EVSE_sel_3.BackColor = System.Drawing.Color.Transparent;
             }
             else if (Spectroscope_Select.STATE == 2)
             {
-                rad_btn_spect_EVSE_sel_1.BackColor = Color.Transparent;
-                rad_btn_spect_EVSE_sel_2.BackColor = Color.LightGreen;
-                rad_btn_spect_EVSE_sel_3.BackColor = Color.Transparent;
+                rad_btn_spect_EVSE_sel_1.BackColor = System.Drawing.Color.Transparent;
+                rad_btn_spect_EVSE_sel_2.BackColor = System.Drawing.Color.LightGreen;
+                rad_btn_spect_EVSE_sel_3.BackColor = System.Drawing.Color.Transparent;
             }
             else if (Spectroscope_Select.STATE == 3)
             {
-                rad_btn_spect_EVSE_sel_1.BackColor = Color.Transparent;
-                rad_btn_spect_EVSE_sel_2.BackColor = Color.Transparent;
-                rad_btn_spect_EVSE_sel_3.BackColor = Color.LightGreen;
+                rad_btn_spect_EVSE_sel_1.BackColor = System.Drawing.Color.Transparent;
+                rad_btn_spect_EVSE_sel_2.BackColor = System.Drawing.Color.Transparent;
+                rad_btn_spect_EVSE_sel_3.BackColor = System.Drawing.Color.LightGreen;
             }
             else if (Spectroscope_Select.STATE == -100 || Spectroscope_Select.STATE == -101)
             {
-                rad_btn_spect_EVSE_sel_1.BackColor = Color.IndianRed;
-                rad_btn_spect_EVSE_sel_2.BackColor = Color.IndianRed;
-                rad_btn_spect_EVSE_sel_3.BackColor = Color.IndianRed;
+                rad_btn_spect_EVSE_sel_1.BackColor = System.Drawing.Color.IndianRed;
+                rad_btn_spect_EVSE_sel_2.BackColor = System.Drawing.Color.IndianRed;
+                rad_btn_spect_EVSE_sel_3.BackColor = System.Drawing.Color.IndianRed;
             }
             else
             {
-                rad_btn_spect_EVSE_sel_1.BackColor = Color.Orange;
-                rad_btn_spect_EVSE_sel_2.BackColor = Color.Orange;
-                rad_btn_spect_EVSE_sel_3.BackColor = Color.Orange;
+                rad_btn_spect_EVSE_sel_1.BackColor = System.Drawing.Color.Orange;
+                rad_btn_spect_EVSE_sel_2.BackColor = System.Drawing.Color.Orange;
+                rad_btn_spect_EVSE_sel_3.BackColor = System.Drawing.Color.Orange;
             }
 
             if (RCD_Select.STATE >= 0)
             {
                 label_RCD_current.Text = RCD_Select.STATE.ToString();
-                label_RCD_current.BackColor = Color.LightGreen;
+                label_RCD_current.BackColor = System.Drawing.Color.LightGreen;
             }
             else if (RCD_Select.STATE == -100 || RCD_Select.STATE == -101)
             {
                 label_RCD_current.Text = "-";
-                label_RCD_current.BackColor = Color.IndianRed;
+                label_RCD_current.BackColor = System.Drawing.Color.IndianRed;
             }
             else
             {
                 label_RCD_current.Text = "-";
-                label_RCD_current.BackColor = Color.Orange;
+                label_RCD_current.BackColor = System.Drawing.Color.Orange;
             }
 
             if (RCD_Phase.STATE >= 0)
             {
                 if (RCD_Phase.STATE == 1)
                 {
-                    radioButton_RCD_L1.BackColor = Color.LightGreen;
-                    radioButton_RCD_L2.BackColor = Color.Transparent;
-                    radioButton_RCD_L3.BackColor = Color.Transparent;
+                    radioButton_RCD_L1.BackColor = System.Drawing.Color.LightGreen;
+                    radioButton_RCD_L2.BackColor = System.Drawing.Color.Transparent;
+                    radioButton_RCD_L3.BackColor = System.Drawing.Color.Transparent;
                 }
                 else if (RCD_Phase.STATE == 2)
                 {
-                    radioButton_RCD_L1.BackColor = Color.Transparent;
-                    radioButton_RCD_L2.BackColor = Color.LightGreen;
-                    radioButton_RCD_L3.BackColor = Color.Transparent;
+                    radioButton_RCD_L1.BackColor = System.Drawing.Color.Transparent;
+                    radioButton_RCD_L2.BackColor = System.Drawing.Color.LightGreen;
+                    radioButton_RCD_L3.BackColor = System.Drawing.Color.Transparent;
                 }
                 else if (RCD_Phase.STATE == 3)
                 {
-                    radioButton_RCD_L1.BackColor = Color.Transparent;
-                    radioButton_RCD_L2.BackColor = Color.Transparent;
-                    radioButton_RCD_L3.BackColor = Color.LightGreen;
+                    radioButton_RCD_L1.BackColor = System.Drawing.Color.Transparent;
+                    radioButton_RCD_L2.BackColor = System.Drawing.Color.Transparent;
+                    radioButton_RCD_L3.BackColor = System.Drawing.Color.LightGreen;
                 }
                 else
                 {
-                    radioButton_RCD_L1.BackColor = Color.Transparent;
-                    radioButton_RCD_L2.BackColor = Color.Transparent;
-                    radioButton_RCD_L3.BackColor = Color.Transparent;
+                    radioButton_RCD_L1.BackColor = System.Drawing.Color.Transparent;
+                    radioButton_RCD_L2.BackColor = System.Drawing.Color.Transparent;
+                    radioButton_RCD_L3.BackColor = System.Drawing.Color.Transparent;
                 }
             }
             else if (RCD_Phase.STATE == -100 || RCD_Phase.STATE == -101)
             {
-                radioButton_RCD_L1.BackColor = Color.IndianRed;
-                radioButton_RCD_L2.BackColor = Color.IndianRed;
-                radioButton_RCD_L3.BackColor = Color.IndianRed;
+                radioButton_RCD_L1.BackColor = System.Drawing.Color.IndianRed;
+                radioButton_RCD_L2.BackColor = System.Drawing.Color.IndianRed;
+                radioButton_RCD_L3.BackColor = System.Drawing.Color.IndianRed;
             }
             else
             {
-                radioButton_RCD_L1.BackColor = Color.Orange;
-                radioButton_RCD_L2.BackColor = Color.Orange;
-                radioButton_RCD_L3.BackColor = Color.Orange;
+                radioButton_RCD_L1.BackColor = System.Drawing.Color.Orange;
+                radioButton_RCD_L2.BackColor = System.Drawing.Color.Orange;
+                radioButton_RCD_L3.BackColor = System.Drawing.Color.Orange;
             }
 
         }
@@ -6494,7 +6434,7 @@ namespace ArtiluxEOL
             Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], network_dev[DevType.GWINSTEK_HV_TESTER].Cmd);
             network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
 
-            show_msg("TEST STOP", Color.LightSalmon);
+            show_msg("TEST STOP", System.Drawing.Color.LightSalmon);
         }
 
         private void button6_Click(object sender, EventArgs e)
@@ -7082,5 +7022,527 @@ namespace ArtiluxEOL
         }
 
         #endregion
+
+        private void btn_report_directory_Click(object sender, EventArgs e)
+        {
+            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            {
+                tb_report_directory.Text = folderBrowserDialog1.SelectedPath;
+            }
+        }
+
+        public void Create_Report_JSON(string workerID, int slotNr, string prodName, string serNr, string batchNr, int batchSize, string macAddr)
+        {
+            string[] files = Directory.GetFiles(tb_report_directory.Text);
+
+            Regex regex = new Regex($@"^{serNr}_(\d+)$");
+
+            string fileWithHighestNumber = null;
+            int highestNumber = 0;
+            bool fileWithoutNumberFound = false;
+
+            foreach (string filePath in files)
+            {
+                string fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                Match match = regex.Match(fileName);
+                if (match.Success)
+                {
+                    int currentNumber = int.Parse(match.Groups[1].Value);
+
+                    if (currentNumber > highestNumber)
+                    {
+                        highestNumber = currentNumber;
+                        fileWithHighestNumber = fileName;
+                    }
+                }
+                else if (fileName == serNr)
+                {
+                    fileWithoutNumberFound = true;
+                }
+            }
+
+            if (highestNumber > 0) // Json file for this serial number already exists with an ending index (8614564_3 < ending index is 3)
+            {
+                int newEndingIndex = highestNumber + 1;
+                testReports[slotNr].Path = tb_report_directory.Text + "\\" + serNr + "_" + newEndingIndex.ToString(); // Create json named {serNr_4}
+            }
+            else if (fileWithoutNumberFound) // One json file for this serial number exists (8614564 < no ending index)
+            {
+                testReports[slotNr].Path = tb_report_directory.Text + "\\" + serNr + "_1"; // Create json named {serNr_1}
+            }
+            else // Json for this serial number does not exist
+            {
+                testReports[slotNr].Path = tb_report_directory.Text + "\\" + serNr; // Create json named {serNr}
+            }
+
+            testReports[slotNr].Data = new JSON_Entry_Report();
+
+            testReports[slotNr].Data.Date = DateTime.Now.ToString();
+            testReports[slotNr].Data.WorkerId = workerID;
+            testReports[slotNr].Data.TestSlot = slotNr;
+            testReports[slotNr].Data.ProductName = prodName;
+            testReports[slotNr].Data.SerialNumber = serNr;
+            testReports[slotNr].Data.BatchNumber = batchNr;
+            testReports[slotNr].Data.BatchSize = batchSize;
+            testReports[slotNr].Data.MacAddress = macAddr;
+            testReports[slotNr].Data.TestResult = false;
+
+            testReports[slotNr].Data.Tests = new List<JSON_Entry_Test>();
+
+            string generatedJson = JsonSerializer.Serialize(testReports[slotNr].Data, Json_Options);
+            File.WriteAllText(testReports[slotNr].Path, generatedJson);
+        }
+
+        public void Append_Report_JSON(int slotNr, JSON_Entry_Test apndTestEntry)
+        {
+            List<JSON_Entry_Test> testEntries = new List<JSON_Entry_Test>();
+
+            if (File.Exists(testReports[slotNr].Path))
+            {
+                string existingJson = File.ReadAllText(testReports[slotNr].Path);
+                JSON_Entry_Report openedJson = JsonSerializer.Deserialize<JSON_Entry_Report> (existingJson); // Deserialize test entry list
+                openedJson.Tests.Add(apndTestEntry);
+                testReports[slotNr].Data = openedJson; // Update JSON_Entry_Report
+
+                string updatedJson = JsonSerializer.Serialize(openedJson, Json_Options);
+                File.WriteAllText(testReports[slotNr].Path, updatedJson); // Write the updated JSON back to the file
+            }
+            else
+            {
+                System.Diagnostics.Debug.Print("Json file for slot " + slotNr + " does not exist");
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            JSON_Entry_Test newTest = new JSON_Entry_Test
+            {
+                TestName = "Power consumption from L1 when main relay OFF",
+                MeasuredValueUnit = "W",
+                MeasuredValueRangeMin = "3",
+                MeasuredValueRangeMax = "4",
+                MeasuredValue = "3.1",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "Power consumption from L1 when main relay OFF",
+                MeasuredValueUnit = "W",
+                MeasuredValueRangeMin = "3",
+                MeasuredValueRangeMax = "4",
+                MeasuredValue = "3.1",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "Power consumption from L1 when main relay ON",
+                MeasuredValueUnit = "W",
+                MeasuredValueRangeMin = "4.5",
+                MeasuredValueRangeMax = "5.5",
+                MeasuredValue = "5.1",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "Relay dielectric insulation strength test at 1500v AC IEC 61439-1:2021 10.9.1 and 10.9.2",
+                MeasuredValueUnit = "Mon",
+                MeasuredValueRangeMin = "1",
+                MeasuredValueRangeMax = "",
+                MeasuredValue = "3.2",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "IEC 61439-1:2021 11.9 DC @550v",
+                MeasuredValueUnit = "Mon",
+                MeasuredValueRangeMin = "1",
+                MeasuredValueRangeMax = "",
+                MeasuredValue = "1.6",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "IEC 61851-1:2017 communications, signal states A, B, C CP. Detecting relay state sequence using regenerative load unit IT8230-350-180",
+                MeasuredValueUnit = "",
+                MeasuredValueRangeMin = "FAIL",
+                MeasuredValueRangeMax = "PASS",
+                MeasuredValue = "PASS",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "IEC 61439-1:2021 10.5.2. Grounding resistance measure using Electrical Safety Tester GPT-9804",
+                MeasuredValueUnit = "ohm",
+                MeasuredValueRangeMin = "",
+                MeasuredValueRangeMax = "0.085",
+                MeasuredValue = "1",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "IEC 62955 Residual DC current up to 6ma test",
+                MeasuredValueUnit = "mA",
+                MeasuredValueRangeMin = "3",
+                MeasuredValueRangeMax = "6",
+                MeasuredValue = "5.5",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "Wi-Fi connect",
+                MeasuredValueUnit = "",
+                MeasuredValueRangeMin = "FAIL",
+                MeasuredValueRangeMax = "PASS",
+                MeasuredValue = "PASS",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "Wi-Fi data transfer",
+                MeasuredValueUnit = "MB/s",
+                MeasuredValueRangeMin = "1",
+                MeasuredValueRangeMax = "",
+                MeasuredValue = "2.2",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "GSM connect",
+                MeasuredValueUnit = "",
+                MeasuredValueRangeMin = "FAIL",
+                MeasuredValueRangeMax = "PASS",
+                MeasuredValue = "PASS",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "GSM data transfer",
+                MeasuredValueUnit = "kB/s",
+                MeasuredValueRangeMin = "50",
+                MeasuredValueRangeMax = "",
+                MeasuredValue = "153",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "RFid read range",
+                MeasuredValueUnit = "mm",
+                MeasuredValueRangeMin = "20",
+                MeasuredValueRangeMax = "120",
+                MeasuredValue = "78",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "Firmware version",
+                MeasuredValueUnit = "v",
+                MeasuredValueRangeMin = "1.2.1",
+                MeasuredValueRangeMax = "1.2.1",
+                MeasuredValue = "1.2.1",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "Mechanical charge socket locking mechanism test",
+                MeasuredValueUnit = "",
+                MeasuredValueRangeMin = "FAIL",
+                MeasuredValueRangeMax = "PASS",
+                MeasuredValue = "FAIL",
+                TestResult = false
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "Check for current and voltage readings and compare with regenerative load unit IT8230-350-180 output at 6A; +-5%",
+                MeasuredValueUnit = "A",
+                MeasuredValueRangeMin = "5.7",
+                MeasuredValueRangeMax = "6.3",
+                MeasuredValue = "6.15",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+
+            newTest = new JSON_Entry_Test
+            {
+                TestName = "Check for current and voltage readings and compare with regenerative load unit IT8230-350-180 output at 32A; +-5%",
+                MeasuredValueUnit = "A",
+                MeasuredValueRangeMin = "30.4",
+                MeasuredValueRangeMax = "33.6",
+                MeasuredValue = "32.25",
+                TestResult = true
+            };
+
+            Append_Report_JSON(0, newTest);
+        }
+
+        void Generate_Pdf(JSON_Entry_Report reportJson)
+        {
+            string pdfDir = tb_report_directory.Text + "\\PDF";
+
+            if (!Directory.Exists(pdfDir)) // Create PDF directory if it does not exist
+            {
+                Directory.CreateDirectory(pdfDir);
+            }
+
+            string[] files = Directory.GetFiles(pdfDir);
+            string serNr = reportJson.SerialNumber;
+            Regex regex = new Regex($@"^{serNr}_(\d+)$");
+
+            string fileWithHighestNumber = null;
+            int highestNumber = 0;
+            bool fileWithoutNumberFound = false;
+
+            foreach (string filePath in files)
+            {
+                string fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                Match match = regex.Match(fileName);
+                if (match.Success)
+                {
+                    int currentNumber = int.Parse(match.Groups[1].Value);
+
+                    if (currentNumber > highestNumber)
+                    {
+                        highestNumber = currentNumber;
+                        fileWithHighestNumber = fileName;
+                    }
+                }
+                else if (fileName == serNr)
+                {
+                    fileWithoutNumberFound = true;
+                }
+            }
+
+            string pdfFilePath = "";
+
+            if (highestNumber > 0) // Json file for this serial number already exists with an ending index (8614564_3 < ending index is 3)
+            {
+                int newEndingIndex = highestNumber + 1;
+                pdfFilePath = pdfDir + "\\" + serNr + "_" + newEndingIndex.ToString() + ".pdf"; // Create json named {serNr_4}
+            }
+            else if (fileWithoutNumberFound) // One json file for this serial number exists (8614564 < no ending index)
+            {
+                pdfFilePath = pdfDir + "\\" + serNr + "_1.pdf"; // Create json named {serNr_1}
+            }
+            else // Json for this serial number does not exist
+            {
+                pdfFilePath = pdfDir + "\\" + serNr + ".pdf"; // Create json named {serNr}
+            }
+
+            PdfWriter writer = new PdfWriter(pdfFilePath);
+            PdfDocument pdfDoc = new PdfDocument(writer);
+            Document document = new Document(pdfDoc);
+
+            string projectDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string logoImage = Path.Combine(projectDirectory, "Resources", "Artilux_logo.jpg"); // Get logo image from Resources folder
+
+            iText.Kernel.Font.PdfFont titleFont = iText.Kernel.Font.PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+            iText.Kernel.Font.PdfFont normalFont = iText.Kernel.Font.PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
+            DeviceRgb ArtiluxColor = new DeviceRgb(52, 83, 88);
+
+            document.Add(new Paragraph(reportJson.Date + "\nMAC: " + reportJson.MacAddress + "\nS/N: " + reportJson.SerialNumber).SetFont(normalFont).SetFontSize(10));
+            
+            document.Add(new Paragraph("Batch: " + reportJson.BatchNumber + "\nProduct: " + reportJson.ProductName + "\nTotal qty.: " + reportJson.BatchSize).SetFont(normalFont).SetFontSize(10).SetFixedPosition(200, 757, 200));
+
+            if (File.Exists(logoImage))
+            {
+                iText.Layout.Element.Image image = new iText.Layout.Element.Image(ImageDataFactory.Create(logoImage));
+                image.SetFixedPosition(450, 765);
+                image.ScaleToFit(100, 100);
+                document.Add(image);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Print("Image file not found.");
+            }
+
+            document.Add(new Paragraph("").SetFontSize(14));
+            document.Add(new Paragraph("EOL test report").SetFont(titleFont).SetFontSize(14).SetTextAlignment(TextAlignment.CENTER).SetFontColor(ArtiluxColor));
+            document.Add(new Paragraph("").SetFontSize(10));
+
+            Table table = new Table(4).UseAllAvailableWidth();
+            table.SetWidth(UnitValue.CreatePercentValue(100));
+
+            table.AddHeaderCell(new Cell().Add(new Paragraph("Test name").SetFont(normalFont).SetFontSize(10)).SetBackgroundColor(ColorConstants.LIGHT_GRAY));
+            table.AddHeaderCell(new Cell().Add(new Paragraph("Valid range").SetFont(normalFont).SetFontSize(10)).SetBackgroundColor(ColorConstants.LIGHT_GRAY));
+            table.AddHeaderCell(new Cell().Add(new Paragraph("Measured\nvalue").SetFont(normalFont).SetFontSize(10)).SetBackgroundColor(ColorConstants.LIGHT_GRAY));
+            table.AddHeaderCell(new Cell().Add(new Paragraph("Result").SetFont(normalFont).SetFontSize(10)).SetBackgroundColor(ColorConstants.LIGHT_GRAY));
+
+            int testEntries = reportJson.Tests.Count;
+            string formatedTestName = "";
+            string formatedValidRange = "";
+            string formatedMeasValue = "";
+            string rngMin = ""; // Valid min measured value
+            string rngMax = ""; // Valid max measured value
+            string measUnit = ""; // Masurement unit
+
+            for (int i = 0; i < testEntries; i++)
+            {
+                formatedTestName = WrapText(reportJson.Tests[i].TestName, 76); // Limit the ammount of chars in one line
+
+                rngMin = reportJson.Tests[i].MeasuredValueRangeMin;
+                rngMax = reportJson.Tests[i].MeasuredValueRangeMax;
+                measUnit = reportJson.Tests[i].MeasuredValueUnit;
+
+                // Create the min max field based on (not)given information
+                if (rngMin != "" && rngMax != "") // Min and max values are given
+                {
+                    if (rngMin == rngMax)
+                    {
+                        formatedValidRange = rngMin + measUnit;
+                    }
+                    else
+                    {
+                        formatedValidRange = rngMin + measUnit + " ... " + rngMax + measUnit;
+                    }
+                }
+                else if (rngMin != "" && rngMax == "")
+                {
+                    formatedValidRange = ">" + rngMin + measUnit; // Min value is given
+                }
+                else if (rngMin == "" && rngMax != "")
+                {
+                    formatedValidRange = "<" + rngMax + measUnit; // Max value is given
+                }
+                else
+                {
+                    formatedValidRange = "<?>";
+                }
+
+                formatedValidRange = WrapText(formatedValidRange, 20); // Limit the ammount of chars in one line
+
+                formatedMeasValue = reportJson.Tests[i].MeasuredValue + measUnit;
+
+                table.AddCell(new Cell().Add(new Paragraph(formatedTestName).SetFont(normalFont).SetFontSize(10)));
+                table.AddCell(new Cell().Add(new Paragraph(formatedValidRange).SetFont(normalFont).SetFontSize(10)));
+                table.AddCell(new Cell().Add(new Paragraph(formatedMeasValue).SetFont(normalFont).SetFontSize(10)));
+
+                if (reportJson.Tests[i].TestResult)
+                {
+                    table.AddCell(new Cell().Add(new Paragraph("PASS").SetFont(normalFont).SetFontSize(10)));
+                }
+                else
+                {
+                    table.AddCell(new Cell().Add(new Paragraph("FAIL").SetFont(normalFont).SetFontSize(10)));
+                }
+            }
+
+            document.Add(table);
+
+            Table resultTable = new Table(3).UseAllAvailableWidth();
+            resultTable.SetWidth(UnitValue.CreatePercentValue(100));
+
+            document.Add(new Paragraph("").SetFontSize(10));
+
+            resultTable.AddHeaderCell(new Cell().Add(new Paragraph("Final result").SetFont(normalFont).SetFontSize(10)).SetBackgroundColor(ColorConstants.LIGHT_GRAY).SetWidth(352));
+            resultTable.AddHeaderCell(new Cell().Add(new Paragraph("Tested in slot: " + (reportJson.TestSlot + 1) + "\nworker " + reportJson.WorkerId).SetFont(normalFont).SetFontSize(10)).SetBackgroundColor(ColorConstants.LIGHT_GRAY));
+
+            if (reportJson.TestResult)
+            {
+                resultTable.AddHeaderCell(new Cell().Add(new Paragraph("PASS").SetFont(normalFont).SetFontSize(10)).SetBackgroundColor(ColorConstants.LIGHT_GRAY).SetWidth(29));
+            }
+            else
+            {
+                resultTable.AddHeaderCell(new Cell().Add(new Paragraph("FAIL").SetFont(normalFont).SetFontSize(10)).SetBackgroundColor(ColorConstants.LIGHT_GRAY).SetWidth(29));
+            }
+
+            document.Add(resultTable);
+
+            document.Close();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            Generate_Pdf(testReports[0].Data);
+        }
+
+        public static string WrapText(string input, int maxLineLength)
+        {
+            // Formats a string by adding new line chars as not to exceed max line length
+
+            if (string.IsNullOrEmpty(input) || maxLineLength <= 0)
+            {
+                return input;
+            }
+
+            StringBuilder result = new StringBuilder();
+            string[] words = input.Split(' ');
+
+            int currentLineLength = 0;
+
+            foreach (string word in words)
+            {
+                if (currentLineLength + word.Length + 1 > maxLineLength)
+                {
+                    result.Append("\n");
+                    currentLineLength = 0;
+                }
+
+                if (currentLineLength > 0)
+                {
+                    result.Append(" ");
+                    currentLineLength++;
+                }
+
+                result.Append(word);
+                currentLineLength += word.Length;
+            }
+
+            return result.ToString();
+        }
+
+        private void tb_report_directory_TextChanged(object sender, EventArgs e)
+        {
+            if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
+
+            saveAppSetting(App_Setting.APP_SET_DIR_REPORT);
+        }
     }
 }

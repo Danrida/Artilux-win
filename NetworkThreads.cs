@@ -23,8 +23,6 @@ namespace ArtiluxEOL
     public partial class NetworkThreads : Component
     {
         UInt16 CMD_RETRANSMIT_L = 3;
-        UInt16 CMD_RETRANSMIT_H = 10;
-
         UInt16 PING_TMR_CNT_VALUE = 20;
 
         public long unixTimeMilliseconds;
