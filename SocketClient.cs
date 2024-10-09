@@ -1,4 +1,5 @@
 ﻿using Ion.Tools.Models.XmlDataExport;
+using iText.Layout.Element;
 using MonitorsTest.Models;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,6 @@ namespace ArtiluxEOL
 
         public long UnixTimeNow()
         {
-
             var timeSpan = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
             return (long)timeSpan.TotalSeconds;
         }
@@ -111,6 +111,7 @@ namespace ArtiluxEOL
                     {
                         Main.main.dbg_print(DbgType.NETWORK, "SOCKET_OPENED", Color.MediumSeaGreen);
                         Console.WriteLine($"SOCKET_OPENED:{0}");
+                        Console.WriteLine("Dev= " + dev);
                         return 0;
                     }
                     else
@@ -221,13 +222,13 @@ namespace ArtiluxEOL
                     var bytes = dev.client.ReceiveAsync(socketReceiveArgs);
 
                     net_dev.ReceiveRunning = true;
-
                 }
                 catch (Exception e)
                 {
                     Main.main.dbg_print(DbgType.NETWORK, "RECEIVE_FAIL", Color.LightCoral);
                     Console.WriteLine(e.ToString());
                     net_dev.SendReceiveState = NetDev_SendState.RECEIVE_FAIL;
+                    net_dev.ReceiveRunning = false;
                 }
             }
 
@@ -280,6 +281,7 @@ namespace ArtiluxEOL
                         net_dev.Resp += @response;
                     }
                     net_dev.RespPktCount++;
+
                     _ = ReceiveAsync(net_dev);
                     System.Diagnostics.Debug.Print("RX data no \\n char");
                 }
@@ -297,12 +299,10 @@ namespace ArtiluxEOL
                     //sendCompleted.WaitOne();
                 }
 
-
-                if (!dev.ReceiveRunning)// receiv nepaleistas, tai paleidziam
+                if (!dev.ReceiveRunning)
                 {
                     var result = ReceiveAsync(dev);
                 }
-
             }
 
             public static void start_receive(SocketDevList dev)

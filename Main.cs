@@ -3682,7 +3682,6 @@ namespace ArtiluxEOL
                     case NetDev_Tab.PRINTER:
                         break;
                 }
-
             }
         }
 
@@ -3727,7 +3726,6 @@ namespace ArtiluxEOL
         //  EVSE FAULT TEST SELECT RADIO BTN HANDLER
         void ev_fault_checbox_change(object sender, EventArgs e)//EVSE test lizdai, indijuojam busena
         {
-            var net_dev = network_dev[NetDev_Tab.MAIN_CONTROLLER];
             for (int a = 0; a < evse_fault_checkbox.Length; a++)
             {
                 bool state;
@@ -3780,7 +3778,6 @@ namespace ArtiluxEOL
 
         void ls_ctrl_checbox_change(object sender, EventArgs e)
         {
-            var net_dev = network_dev[NetDev_Tab.MAIN_CONTROLLER];
             for (int a = 0; a < ls_checkbox.Length; a++)
             {
                 bool state;
@@ -3859,7 +3856,6 @@ namespace ArtiluxEOL
         private void CheckRelayRadioBtn(object sender, EventArgs e)//indijuojam irangos busena
         {
             RadioButton rb = sender as RadioButton;
-            var net_dev = network_dev[NetDev_Tab.MAIN_CONTROLLER];
 
             if (rb != null)
             {
@@ -3878,13 +3874,11 @@ namespace ArtiluxEOL
                     }
                 }
             }
-
         }
 
         private void CheckPPSelRadioBtn(object sender, EventArgs e)//indijuojam irangos busena
         {
             RadioButton rb = sender as RadioButton;
-            var net_dev = network_dev[NetDev_Tab.MAIN_CONTROLLER];
 
             if (rb != null)
             {
@@ -3903,13 +3897,11 @@ namespace ArtiluxEOL
                     }
                 }
             }
-
         }
 
         private void CheckTPSelRadioBtn(object sender, EventArgs e)//indijuojam irangos busena
         {
             RadioButton rb = sender as RadioButton;
-            var net_dev = network_dev[NetDev_Tab.MAIN_CONTROLLER];
 
             if (rb != null)
             {
@@ -3928,7 +3920,6 @@ namespace ArtiluxEOL
                     }
                 }
             }
-
         }
 
         private void Checkboxes_lizdai_handler(object sender, EventArgs e)
@@ -3953,7 +3944,6 @@ namespace ArtiluxEOL
                             network_dev[a].Enable = state;
                             regUpdatePeriphery(a);
                         }
-
 
                         if (state)
                         {
@@ -3996,7 +3986,7 @@ namespace ArtiluxEOL
             network_dev.Add(dev);
             dev = new SocketDevList { Name = "BARCODE_3", TestMsg = "TEST?", client = null, Ip = "192.168.11.150", Port_0 = 11311, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
-            dev = new SocketDevList { Name = "PRINTER", TestMsg = "<ESC>!?", client = null, Ip = "192.168.11.39", Port_0 = 9100, Port_1 = 0, State = 0, Enable = true, Connected = false };
+            dev = new SocketDevList { Name = "PRINTER", TestMsg = "\x1B!S", client = null, Ip = "192.168.11.39", Port_0 = 9100, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
             dev = new SocketDevList { Name = "RFID_1", TestMsg = "", client = null, Ip = "", Port_0 = 0, Port_1 = 0, State = 0, Enable = true, Connected = false };
             network_dev.Add(dev);
@@ -4112,16 +4102,15 @@ namespace ArtiluxEOL
             NetworkDevConn.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(NetworkThreads.NetworkDevConn_RunWorkerCompleted);
             NetworkDevConn.RunWorkerAsync();
             NetworkDevConn.WorkerSupportsCancellation = true;
-            MainControllerTCP.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.MainControllerTCP_DoWork);
-            PrinterTCP.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.PrinterTCP_DoWork);
 
+            MainControllerTCP.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.MainControllerTCP_DoWork);
             HVgen.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.HVgen_DoWork);
             Specroscope.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.Specroscope_DoWork);
             Load.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.Load_DoWork);
-
             Barcode1.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.Barcode1_DoWork);
             Barcode2.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.Barcode2_DoWork);
             Barcode3.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.Barcode3_DoWork);
+            PrinterTCP.DoWork += new System.ComponentModel.DoWorkEventHandler(NetworkThreads.PrinterTCP_DoWork);
 
             init_done = true;
         }
@@ -4158,7 +4147,6 @@ namespace ArtiluxEOL
                             network_dev[i].Port_0 = port;
                             update = true;
                         }
-
                     }
                     else
                     {
@@ -5573,12 +5561,12 @@ namespace ArtiluxEOL
         {
             if ((NetworkThreads.unixTimeMilliseconds - TCP_Dev_State_Check_Timer) > TCP_Dev_State_Check_Delay)
             {
-                /*int a = 0;
+                int a = 0;
                 int ret = 1;
 
-                foreach (var dev in network_dev)//einam per dev lista, kurie enable ieskom tinkle, jei toki radom bandom jungtis
+                /*foreach (var dev in network_dev)//einam per dev lista, kurie enable ieskom tinkle, jei toki radom bandom jungtis
                 {
-                    if (dev.Enable && a < 7) //tikrinam tik jei enable, nuo 7 jau nebe tinklo devaisai - skip.
+                    if (dev.Enable && a < 8) //tikrinam tik jei enable, nuo 8 jau nebe tinklo devaisai - skip.
                     {
                         ret = Socket_.start_socket(network_dev[a], 0);
 
@@ -5595,10 +5583,10 @@ namespace ArtiluxEOL
                     }
 
                     a++;
-                }
+                }*/
 
                 update_all_device_ctrl_access();
-                TCP_Dev_State_Check_Timer = NetworkThreads.unixTimeMilliseconds;*/
+                TCP_Dev_State_Check_Timer = NetworkThreads.unixTimeMilliseconds;
 
             }
         }

@@ -211,7 +211,6 @@ namespace ArtiluxEOL
             bool connection_closed = false;
 
             var net_dev = Main.main.network_dev[DevType.PRINTER];
-            var main_func = Main.main;
 
             while (!connection_closed)
             {
@@ -234,7 +233,7 @@ namespace ArtiluxEOL
                         net_dev.NewResp = true;
                         net_dev.ReceiveRunning = false;
                         net_dev.SendReceiveState = NetDev_SendState.IDLE;
-                        Socket_.receive_socket(net_dev);
+                        //Socket_.receive_socket(net_dev);
                         break;
                     case NetDev_SendState.RECEIVE_FAIL:
                         System.Diagnostics.Debug.Print($"RECEIVE_FAIL:{0}");
@@ -336,6 +335,7 @@ namespace ArtiluxEOL
                         break;
                 }
 
+                net_dev.Resp = "";
             }
 
             if (Main.main.Label_Printer_Command.Length > 0) // If a string command exists for the printer send it
@@ -346,7 +346,7 @@ namespace ArtiluxEOL
                 Main.main.Label_Printer_Command = "";
                 Printer_Status_Poll_Delay_Couter = 0;
             }
-            else if(Printer_Status_Poll_Delay_Couter > 20) // Poll printer status some time after last command was sent
+            else if (Printer_Status_Poll_Delay_Couter > 20) // Poll printer status some time after last command was sent
             {
                 net_dev.Cmd = "\x1B!S";
                 Socket_.send_socket(net_dev, net_dev.Cmd);
@@ -382,7 +382,6 @@ namespace ArtiluxEOL
             bool connection_closed = false;
 
             var net_dev = Main.main.network_dev[DevType.MAIN_CONTROLLER];
-            var main_func = Main.main;
 
             while (!connection_closed)
             {
@@ -401,13 +400,13 @@ namespace ArtiluxEOL
                         net_dev.SendReceiveState = NetDev_SendState.IDLE;
                         System.Diagnostics.Debug.Print($"SEND_FAIL:{0}");
                         break;
-                     case NetDev_SendState.RECEIVE_WAIT:
-                         break;
+                    case NetDev_SendState.RECEIVE_WAIT:
+                        break;
                     case NetDev_SendState.RECEIVE_OK:
                         net_dev.NewResp = true;
                         net_dev.ReceiveRunning = false;
                         net_dev.SendReceiveState = NetDev_SendState.IDLE;
-                        Socket_.receive_socket(net_dev);
+                        //Socket_.receive_socket(net_dev);
                         //System.Diagnostics.Debug.Print($"MAIN_newCMD:{net_dev.Resp}");
                         //MAIN_Ctrl_handle();
                         break;
@@ -681,7 +680,6 @@ namespace ArtiluxEOL
                     Socket_.send_socket(net_dev, net_dev.Cmd);
                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
-
                 }
                 else
                 {
@@ -838,9 +836,7 @@ namespace ArtiluxEOL
         {
             int result = 0;
             bool connection_closed = false;
-            //int ptr = 0;
             var net_dev = Main.main.network_dev[DevType.ITECH_LOAD];
-            var main_func = Main.main;
 
             while (!connection_closed)
             {
@@ -3711,11 +3707,7 @@ namespace ArtiluxEOL
             int result = 0;
             int len = 0;
             bool connection_closed = false;
-            //int ptr = 0;
-
             var net_dev = Main.main.network_dev[DevType.ANALYSER_SIGLENT];
-
-            var main_func = Main.main;
 
             while (!connection_closed)
             {
@@ -5211,11 +5203,7 @@ namespace ArtiluxEOL
         {
             int result = 0;
             bool connection_closed = false;
-            //int ptr = 0;
-
             var net_dev = Main.main.network_dev[DevType.GWINSTEK_HV_TESTER];
-
-            var main_func = Main.main;
 
             while (!connection_closed)
             {
@@ -7336,11 +7324,7 @@ namespace ArtiluxEOL
         {
             int result = 0;
             bool connection_closed = false;
-            //int ptr = 0;
-
             var net_dev = Main.main.network_dev[DevType.BARCODE_2];
-
-            var main_func = Main.main;
 
             while (!connection_closed)
             {
