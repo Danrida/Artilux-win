@@ -52,7 +52,8 @@ using iText.Layout.Properties;
 using iText.IO.Font.Constants;
 using iText.Kernel.Colors;
 using iText.IO.Image;
-
+using System.Timers;
+using Org.BouncyCastle.Asn1.Cmp;
 
 namespace ArtiluxEOL
 {
@@ -122,7 +123,7 @@ namespace ArtiluxEOL
         public byte[] uart_data;
 
         //Metrel_bb Met_bbox_test = new Metrel_bb();
-        SocketClient Socket_ = new SocketClient();
+        //SocketClient Socket_ = new SocketClient();
         NetworkThreads NetworkThreads = new NetworkThreads();
 
         bool load_param_enable_edit = false;
@@ -228,7 +229,7 @@ namespace ArtiluxEOL
         public static Signal Work_Pos_Signal = new Signal();
         public static Signal Ping_Signal = new Signal();
 
-        public static object[] Main_Board_Controls = new object[] { PP_Selector, LS_EN, LOAD, SOURCE, LS_Selector, CP_Selector, DIODE_SH, PE_OP, CP_SH, TP_Selector, E_Stop_Signal, Test_Running_I, Test_Running_II, Test_Running_III, Work_Pos_Signal, Work_Place_Operational_I, Work_Place_Operational_II, Work_Place_Operational_III, Ping_Signal, Spectroscope_Select, RCD_Select, RCD_Phase };
+        public static object[] Main_Board_Controls = new object[] { PP_Selector, LS_EN, LOAD, SOURCE, LS_Selector, CP_Selector, DIODE_SH, PE_OP, CP_SH, TP_Selector, E_Stop_Signal, Test_Running_I, Test_Running_II, Test_Running_III, Work_Pos_Signal, Work_Place_Operational_I, Work_Place_Operational_II, Work_Place_Operational_III, Spectroscope_Select, RCD_Select, RCD_Phase, /* Ping_Signal always last */ Ping_Signal };
 
         #endregion
 
@@ -450,6 +451,8 @@ namespace ArtiluxEOL
         {
             System.Diagnostics.Debug.Print("==================== Program start ====================");
 
+            Load_Test_EVSE_ID = 1;//FOR TESTING
+
             //Assign component names (used to generate TCP commands)
             PP_Selector.NAME = "PP_SEL";
             LS_EN.NAME = "LS_EN";
@@ -498,10 +501,10 @@ namespace ArtiluxEOL
                 oscillo_form.comboBox_Channel.SelectedIndex = 0;
             }
             
-            Thread thread1 = new Thread(PicoThread); //Create Pocoscope thread
-            thread1.Start();
+            Thread picoThread = new Thread(PicoThread); // Create Pocoscope thread
+            picoThread.Start();
 
-            this.groupBox1.Controls.Add(cBoxWplace[0]); //Darbo vietos nr priskyrimas
+            this.groupBox1.Controls.Add(cBoxWplace[0]); // Darbo vietos nr priskyrimas
             this.groupBox1.Controls.Add(cBoxWplace[1]);
             this.groupBox1.Controls.Add(cBoxWplace[2]);
 
@@ -2624,6 +2627,9 @@ namespace ArtiluxEOL
 
             ip_texbox_show();//irenginiu IP adresu nustatymas
             load_dev_control();
+
+            //SocketClient deviceManager = new SocketClient();
+            //Task.Run(async () => await deviceManager.StartMonitoringAsync());
 
             devList.DevEvse = new DevEvse_struc[3];//label pointeris
 
@@ -5321,7 +5327,7 @@ namespace ArtiluxEOL
             //DataGridViewRow Row0 = (DataGridViewRow)dataGridView2.Rows[0].Clone();
             dataGrid_HV_result.Invoke((MethodInvoker)(() => dataGrid_HV_result.Rows.Insert(0)));
 
-            var dateTime3 = DateTimeOffset.FromUnixTimeSeconds(Socket_.UnixTimeNow()).LocalDateTime;
+            var dateTime3 = DateTimeOffset.FromUnixTimeSeconds(UnixTimeNow()).LocalDateTime;
             dataGrid_HV_result.Invoke((MethodInvoker)(() => dataGrid_HV_result.Rows[0].Cells[0].Value = dateTime3));
 
             if (String.Equals("PASS ", split_result[1]))//lyginam stringus, ar uzsetinom parametra
@@ -6412,14 +6418,14 @@ namespace ArtiluxEOL
         private void button5_Click_1(object sender, EventArgs e)
         {
             network_dev[DevType.GWINSTEK_HV_TESTER].Cmd = "MEAS?";
-            Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], network_dev[DevType.GWINSTEK_HV_TESTER].Cmd);
+            //Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], network_dev[DevType.GWINSTEK_HV_TESTER].Cmd);
             network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
         }
 
         private void btn_stop_Click(object sender, EventArgs e)
         {
             network_dev[DevType.GWINSTEK_HV_TESTER].Cmd = "FUNC:TEST OFF";
-            Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], network_dev[DevType.GWINSTEK_HV_TESTER].Cmd);
+            //Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], network_dev[DevType.GWINSTEK_HV_TESTER].Cmd);
             network_dev[DevType.GWINSTEK_HV_TESTER].SendReceiveState = NetDev_SendState.SEND_BEGIN;
 
             show_msg("TEST STOP", System.Drawing.Color.LightSalmon);
@@ -6460,12 +6466,12 @@ namespace ArtiluxEOL
 
         private void dataGrid_Barcode2_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            System.Diagnostics.Debug.Print($"e.RowIndex: = {e.RowIndex} e.ColumnIndex: = {e.ColumnIndex}");
+            /*System.Diagnostics.Debug.Print($"e.RowIndex: = {e.RowIndex} e.ColumnIndex: = {e.ColumnIndex}");
 
             network_dev[DevType.BARCODE_2].SubState = e.RowIndex + 1;//setinam state pagal paspausyta table btn
 
             NetworkThreads.Barcode2_handle_get_params();
-            evse2_params.Text = "---";
+            evse2_params.Text = "---";*/
         }
 
         private void dataGrid_Barcode1_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -7531,6 +7537,23 @@ namespace ArtiluxEOL
             if (Loading_Test_Parameters) { return; } // Current change was caused by loading registers, not user input- exit
 
             saveAppSetting(App_Setting.APP_SET_DIR_REPORT);
+        }
+
+        public long UnixTimeNow()
+        {
+            var timeSpan = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
+            return (long)timeSpan.TotalMilliseconds;
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            textBox1.Text = NetworkThreads.GetResponse(network_dev[DevType.PRINTER]);
+            textBox2.Text = network_dev[DevType.PRINTER].RxBuff;
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            textBox2.Text = "|" + network_dev[DevType.ITECH_LOAD].RxBuff + "|";
         }
     }
 }

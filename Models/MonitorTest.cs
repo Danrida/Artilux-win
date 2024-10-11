@@ -59,21 +59,15 @@ namespace MonitorsTest.Models
         public string Ip { get; set; }
         public int Port_0 { get; set; }
         public int Port_1 { get; set; }
-        public int SocketCount { get; set; }
         public int State { get; set; }
         public int SubState { get; set; }
-        public int StateBefore { get; set; }
         public bool ReceiveRunning { get; set; }
         public bool Enable { get; set; }
-        public bool Connected { get; set; }
-        public string Cmd { get; set; }
-        public string Resp { get; set; }
-        public int RespPktCount { get; set; }
+        public bool Connected { get; set; } // Use this to get device online status
+        public string Cmd { get; set; } // What is to be sent to the device ("" if nothing to send)
+        public string Resp { get; set; } // Last responce of the device
         public string TestParam { get; set; }
-        public bool NewResp { get; set; }
-        public int ReceiveWaitSec { get; set; }
-        public long TimeStamp { get; set; }
-        public bool NewSendData { get; set; }
+        public bool NewResp { get; set; } // New responce flag
         public int SendReceiveState { get; set; }
         public int CmdRetransmitCnt { get; set; }
         public int PingPktTmrCnt { get; set; }
@@ -81,6 +75,11 @@ namespace MonitorsTest.Models
         public int GetSetParamLeft { get; set; }
         public int TestType { get; set; }
         public string[] device_param { get; set; }
+        public TcpClient Client { get; set; }
+        public bool LastTransOK { get; set; } // Last TCP transaction was ok (if not handler will check TCP client status on the next pass)
+        public long LastRXTime { get; set; } // Last time data was received from TCP (for read timeout, uses Main.millis)
+        public string RxBuff { get; set; } // All received responces of this device, separated by \n, separation also made automaticly on receive timeout (using LastRXTime)
+        public bool WaitingForMoreData { get; set; } // Last received data did not end with \n, this flag is set until timeout
     }
 
     /*public static class TestType

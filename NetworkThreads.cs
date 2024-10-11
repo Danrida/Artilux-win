@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using static Ion.Sdk.Ici.Channel.BlackBox.Message;
+using static Ion.Sdk.Idi.AttachedResource;
 using static Ion.Tools.Models.XmlDataExport.Graph;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
@@ -22,6 +23,9 @@ namespace ArtiluxEOL
 {
     public partial class NetworkThreads : Component
     {
+        private const int MaxBufferSize = 200; // All data received from TCP is stored in a string separated by \n in each SocketDevList.RxBuff, this is max lenght
+        private const long TCP_RX_Timeout = 70; // ms, maximum ammount of time to wait for more data from TCP if last packet did not end with \n
+
         UInt16 CMD_RETRANSMIT_L = 3;
         UInt16 PING_TMR_CNT_VALUE = 20;
 
@@ -67,7 +71,7 @@ namespace ArtiluxEOL
             InitializeComponent();
         }
 
-        SocketClient Socket_ = new SocketClient();
+        //SocketClient Socket_ = new SocketClient();
 
         public DevList dev_list;
 
@@ -120,8 +124,18 @@ namespace ArtiluxEOL
 
         public object Connect_network_periphery(BackgroundWorker bw, int arg)//backraound task
         {
+            Main.main.MainControllerTCP.RunWorkerAsync();
+            Main.main.PrinterTCP.RunWorkerAsync();
+            Main.main.Load.RunWorkerAsync();
+            Main.main.Specroscope.RunWorkerAsync();
+            Main.main.HVgen.RunWorkerAsync();
+            Main.main.Barcode1.RunWorkerAsync();
+            Main.main.Barcode2.RunWorkerAsync();
+            Main.main.Barcode3.RunWorkerAsync();
+
+
             int result = 0;
-            int a = 0;
+            /*int a = 0;
             int ret = 1;
 
             System.Diagnostics.Debug.Print($"Connect_network_periphery:");
@@ -185,7 +199,7 @@ namespace ArtiluxEOL
             catch (Exception err)
             {
                 var x = err;
-            }
+            }*/
 
             return result;
         }
@@ -208,40 +222,21 @@ namespace ArtiluxEOL
         public object Printer_Socket_Thread(BackgroundWorker bw, int arg)
         {
             int result = 0;
-            bool connection_closed = false;
+            int handlerTimer = 0;
 
-            var net_dev = Main.main.network_dev[DevType.PRINTER];
-
-            while (!connection_closed)
+            while (true) // Thread loop
             {
-                switch (net_dev.SendReceiveState)
+                TCP_Device_Manager(Main.main.network_dev[DevType.PRINTER]);
+                handlerTimer++;
+
+                if (handlerTimer >= 10) // Every 100ms
                 {
-                    case NetDev_SendState.SEND_BEGIN:
-                        break;
-                    case NetDev_SendState.SEND_WAIT:
-                        break;
-                    case NetDev_SendState.SEND_OK:
-                        net_dev.SendReceiveState = NetDev_SendState.RECEIVE_WAIT;
-                        break;
-                    case NetDev_SendState.SEND_FAIL:
-                        net_dev.SendReceiveState = NetDev_SendState.IDLE;
-                        System.Diagnostics.Debug.Print($"SEND_FAIL:{0}");
-                        break;
-                    case NetDev_SendState.RECEIVE_WAIT:
-                        break;
-                    case NetDev_SendState.RECEIVE_OK:
-                        net_dev.NewResp = true;
-                        net_dev.ReceiveRunning = false;
-                        net_dev.SendReceiveState = NetDev_SendState.IDLE;
-                        //Socket_.receive_socket(net_dev);
-                        break;
-                    case NetDev_SendState.RECEIVE_FAIL:
-                        System.Diagnostics.Debug.Print($"RECEIVE_FAIL:{0}");
-                        break;
+                    handlerTimer = 0;
+                    Printer_Ctrl_handle();
                 }
-                Printer_Ctrl_handle();
-                Thread.Sleep(100);
+                Thread.Sleep(10);
             }
+            
             return result;
         }
 
@@ -253,9 +248,11 @@ namespace ArtiluxEOL
 
             if (net_dev.NewResp)
             {
-                net_dev.NewResp = false;//Reset new responce flag
+                string printerResponce = GetResponse(net_dev);
 
-                char[] statusChars = net_dev.Resp.Substring(1, 4).ToCharArray();
+                //System.Diagnostics.Debug.Print("Printer status: " + printerResponce);
+
+                char[] statusChars = printerResponce.Substring(1, 4).ToCharArray();
 
                 switch (statusChars[0]) // First status byte of the printer
                 {
@@ -335,21 +332,18 @@ namespace ArtiluxEOL
                         break;
                 }
 
-                net_dev.Resp = "";
             }
 
             if (Main.main.Label_Printer_Command.Length > 0) // If a string command exists for the printer send it
             {
                 System.Diagnostics.Debug.Print("Printer send");
                 net_dev.Cmd = Main.main.Label_Printer_Command;
-                Socket_.send_socket(net_dev, net_dev.Cmd);
                 Main.main.Label_Printer_Command = "";
                 Printer_Status_Poll_Delay_Couter = 0;
             }
             else if (Printer_Status_Poll_Delay_Couter > 20) // Poll printer status some time after last command was sent
             {
                 net_dev.Cmd = "\x1B!S";
-                Socket_.send_socket(net_dev, net_dev.Cmd);
             }
         }
 
@@ -358,18 +352,10 @@ namespace ArtiluxEOL
         #region MAIN_CONTROLLER
         public void MainControllerTCP_DoWork(object sender, DoWorkEventArgs e)
         {
-            // Do not access the form's BackgroundWorker reference directly.
-            // Instead, use the reference provided by the sender parameter.
             BackgroundWorker bw = sender as BackgroundWorker;
-
-            // Extract the argument.
-            //int arg = (int)e.Argument;
             int arg = 0;
-            // Start the time-consuming operation.
             e.Result = Main_Ctrl_Socket_Thread(bw, arg);
 
-            // If the operation was canceled by the user,
-            // set the DoWorkEventArgs.Cancel property to true.
             if (bw.CancellationPending)
             {
                 e.Cancel = true;
@@ -379,43 +365,20 @@ namespace ArtiluxEOL
         public object Main_Ctrl_Socket_Thread(BackgroundWorker bw, int arg)
         {
             int result = 0;
-            bool connection_closed = false;
+            int handlerTimer = 0;
 
-            var net_dev = Main.main.network_dev[DevType.MAIN_CONTROLLER];
-
-            while (!connection_closed)
+            while (true)
             {
-                switch (net_dev.SendReceiveState)
+                TCP_Device_Manager(Main.main.network_dev[DevType.MAIN_CONTROLLER]);
+
+                if (handlerTimer >= 10) // Every 100ms
                 {
-                    case NetDev_SendState.SEND_BEGIN:
-                        //string data = network_dev[DevType.GWINSTEK_HV_TESTER].Cmd;
-                        //Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], data);
-                        break;
-                    case NetDev_SendState.SEND_WAIT:
-                        break;
-                    case NetDev_SendState.SEND_OK:
-                        net_dev.SendReceiveState = NetDev_SendState.RECEIVE_WAIT;
-                        break;
-                    case NetDev_SendState.SEND_FAIL:
-                        net_dev.SendReceiveState = NetDev_SendState.IDLE;
-                        System.Diagnostics.Debug.Print($"SEND_FAIL:{0}");
-                        break;
-                    case NetDev_SendState.RECEIVE_WAIT:
-                        break;
-                    case NetDev_SendState.RECEIVE_OK:
-                        net_dev.NewResp = true;
-                        net_dev.ReceiveRunning = false;
-                        net_dev.SendReceiveState = NetDev_SendState.IDLE;
-                        //Socket_.receive_socket(net_dev);
-                        //System.Diagnostics.Debug.Print($"MAIN_newCMD:{net_dev.Resp}");
-                        //MAIN_Ctrl_handle();
-                        break;
-                    case NetDev_SendState.RECEIVE_FAIL:
-                        System.Diagnostics.Debug.Print($"RECEIVE_FAIL:{0}");
-                        break;
+                    handlerTimer = 0;
+                    MAIN_Ctrl_handle();
                 }
-                MAIN_Ctrl_handle();
-                Thread.Sleep(100);
+
+                handlerTimer++;
+                Thread.Sleep(10);
             }
             return result;
         }
@@ -431,16 +394,23 @@ namespace ArtiluxEOL
 
             if (net_dev.NewResp)//There is a new responce from the main board
             {
-                net_dev.NewResp = false;//Reset new responce flag
+                //net_dev.NewResp = false;//Reset new responce flag
 
-                if (net_dev.Resp.StartsWith("ESTOP"))
+                string controllerResp = GetResponse(net_dev);
+
+                if (!controllerResp.EndsWith("\n")) // Walk around, TO DO
+                {
+                    controllerResp += "\n";
+                }
+
+                if (controllerResp.StartsWith("ESTOP"))
                 {
                     Main.E_Stop_Signal.STATE = 1;
                     System.Diagnostics.Debug.Print("STOP");
                 }
                 else
                 {
-                    sepResps = net_dev.Resp.Split('\n');//Split the response
+                    sepResps = controllerResp.Split('\n');//Split the response
 
                     for (int j = 0; j < (sepResps.Length - 1); j++)
                     {
@@ -519,7 +489,7 @@ namespace ArtiluxEOL
 
                                 if (!int.TryParse(split[1], out respID))//Get responce id
                                 {
-                                    System.Diagnostics.Debug.Print($"Could not obtain responce id from responce: {net_dev.Resp}");
+                                    System.Diagnostics.Debug.Print($"Could not obtain responce id from responce: {controllerResp}");
                                 }
 
                                 if (split[0] == "OK")//Responce OK (comes from any command)
@@ -640,12 +610,12 @@ namespace ArtiluxEOL
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print($"Unhandled responce from main controller: {net_dev.Resp}");
+                                    System.Diagnostics.Debug.Print($"Unhandled responce from main controller: {controllerResp}");
                                 }
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print($"Bad response format: {net_dev.Resp}");
+                                System.Diagnostics.Debug.Print($"Bad response format: {controllerResp}");
                             }
                         }
                     }
@@ -662,7 +632,7 @@ namespace ArtiluxEOL
             }
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
-            unixTimeMilliseconds = now.ToUnixTimeMilliseconds();
+            unixTimeMilliseconds = now.ToUnixTimeMilliseconds();//TO DO - use global
 
             if ((unixTimeMilliseconds - Main_Controller_TCP_Handler_Timer) > Main_Controller_TCP_Poll_Rate)
             {
@@ -677,7 +647,6 @@ namespace ArtiluxEOL
 
                     net_dev.State = MainBoard_State.BUSY;
                     net_dev.Cmd = Main.E_Stop_Signal.COM_ID + ":" + Main.E_Stop_Signal.NAME + "?";//Is it still emergency stop state?
-                    Socket_.send_socket(net_dev, net_dev.Cmd);
                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
                 }
@@ -696,7 +665,6 @@ namespace ArtiluxEOL
                                     tmpRL.ATTEMPTS++;//Next attempt
                                     net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
                                     net_dev.Cmd = tmpRL.COM_ID + ":" + tmpRL.NAME + ":" + tmpRL.SET;//Generate TCP command (000:RLXX:1/0)
-                                    Socket_.send_socket(net_dev, net_dev.Cmd);
                                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
                                     System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
                                     break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
@@ -713,7 +681,6 @@ namespace ArtiluxEOL
                                     tmpRL.ATTEMPTS++;//Next attempt
                                     net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
                                     net_dev.Cmd = tmpRL.COM_ID + ":" + tmpRL.NAME + ":?";//Generate TCP command (000:RLXX:?)
-                                    Socket_.send_socket(net_dev, net_dev.Cmd);
                                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
                                     System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
                                     break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
@@ -735,7 +702,6 @@ namespace ArtiluxEOL
                                     tmpNmrc.ATTEMPTS++;//Next attempt
                                     net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
                                     net_dev.Cmd = tmpNmrc.COM_ID + ":" + tmpNmrc.NAME + ":" + tmpNmrc.SET;//Generate TCP command (000:XXXX:0/1/2/3...)
-                                    Socket_.send_socket(net_dev, net_dev.Cmd);
                                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
                                     System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
                                     break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
@@ -752,7 +718,6 @@ namespace ArtiluxEOL
                                     tmpNmrc.ATTEMPTS++;//Next attempt
                                     net_dev.State = MainBoard_State.BUSY;//Main controller is now busy (TCP communication)
                                     net_dev.Cmd = tmpNmrc.COM_ID + ":" + tmpNmrc.NAME + ":?";//Generate TCP command (000:XXXX:?)
-                                    Socket_.send_socket(net_dev, net_dev.Cmd);
                                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;//Main controller in send state
                                     System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
                                     break;//Exit loop, next command after Main_Controller_TCP_Poll_Rate
@@ -772,7 +737,6 @@ namespace ArtiluxEOL
                                 Main.main.Main_Board_Set_Command_ID(tmpSgnl);
                                 net_dev.State = MainBoard_State.BUSY;
                                 net_dev.Cmd = tmpSgnl.COM_ID + ":" + tmpSgnl.NAME + tmpSgnl.EXTRA;
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
 
                                 if (tmpSgnl != Main.Ping_Signal)//Do not show ping messages
@@ -805,7 +769,7 @@ namespace ArtiluxEOL
 
             net_dev.State = MainBoard_State.BUSY;
             net_dev.Cmd = "123:OSCT:" + pulseLength;
-            Socket_.send_socket(net_dev, net_dev.Cmd);
+            //Socket_.send_socket(net_dev, net_dev.Cmd);
             net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
             System.Diagnostics.Debug.Print($"Sending: {net_dev.Cmd}");
         }
@@ -814,18 +778,11 @@ namespace ArtiluxEOL
         #region LOAD_ITECH_HANDLER
         public void Load_DoWork(object sender, DoWorkEventArgs e)
         {
-            // Do not access the form's BackgroundWorker reference directly.
-            // Instead, use the reference provided by the sender parameter.
             BackgroundWorker bw = sender as BackgroundWorker;
 
-            // Extract the argument.
-            //int arg = (int)e.Argument;
             int arg = 0;
-            // Start the time-consuming operation.
             e.Result = Load_Socket_Thread(bw, arg);
 
-            // If the operation was canceled by the user,
-            // set the DoWorkEventArgs.Cancel property to true.
             if (bw.CancellationPending)
             {
                 e.Cancel = true;
@@ -835,20 +792,29 @@ namespace ArtiluxEOL
         public object Load_Socket_Thread(BackgroundWorker bw, int arg)
         {
             int result = 0;
-            bool connection_closed = false;
-            var net_dev = Main.main.network_dev[DevType.ITECH_LOAD];
+            int handlerTimer = 0;
 
-            while (!connection_closed)
+            while (true) // Thread loop
             {
-                //System.Diagnostics.Debug.Print($"HV_GEN_connected!!!:");
+                TCP_Device_Manager(Main.main.network_dev[DevType.ITECH_LOAD]);
+                handlerTimer++;
 
-                //connection_closed = network_dev[DevType.GWINSTEK_HV_TESTER].client.Poll(1000, SelectMode.SelectRead);
+                if (handlerTimer >= 10) // Every 100ms
+                {
+                    handlerTimer = 0;
+                    Load_Test_handler();
+                }
+                Thread.Sleep(10);
+            }
 
+            //bool connection_closed = false;
+            //var net_dev = Main.main.network_dev[DevType.ITECH_LOAD];
+
+            /*while (!connection_closed)
+            {
                 switch (net_dev.SendReceiveState)
                 {
                     case NetDev_SendState.SEND_BEGIN:
-                        //string data = network_dev[DevType.GWINSTEK_HV_TESTER].Cmd;
-                        //Socket_.send_socket(network_dev[DevType.GWINSTEK_HV_TESTER], data);
                         break;
                     case NetDev_SendState.SEND_WAIT:
                         break;
@@ -864,7 +830,6 @@ namespace ArtiluxEOL
                                 }
                                 break;
                             case NetDev_State.START_TEST:
-                                //network_dev[DevType.GWINSTEK_HV_TESTER].SubState++; 
                                 net_dev.SendReceiveState = NetDev_SendState.IDLE;
 
                                 break;
@@ -909,9 +874,13 @@ namespace ArtiluxEOL
                         System.Diagnostics.Debug.Print($"RECEIVE_FAIL:{0}");
                         break;
                 }
+
+
                 Load_Test_handler();
                 Thread.Sleep(100);
-            }
+            }*/
+
+
             return result;
         }
 
@@ -941,7 +910,7 @@ namespace ArtiluxEOL
                         net_dev.SubState = NetDev_Test.TEST_NONE;
                         net_dev.Cmd = "INP 0";// MANU:ACW:VOLT?
                         System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                        //Socket_.send_socket(net_dev, net_dev.Cmd);
                         net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                         load_state = false;
                         style.BackColor = Color.Silver;
@@ -952,7 +921,7 @@ namespace ArtiluxEOL
                 case NetDev_State.START_TEST:
                     net_dev.Cmd = "INP 1";// MANU:ACW:VOLT?
                     System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                    Socket_.send_socket(net_dev, net_dev.Cmd);
+                    //Socket_.send_socket(net_dev, net_dev.Cmd);
                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     load_state = true;
                     style.BackColor = Color.SpringGreen;
@@ -965,7 +934,7 @@ namespace ArtiluxEOL
                 case NetDev_State.SELECT_TEST:
                     net_dev.Cmd = "MANU:STEP " + net_dev.TestType;//test select komandos formavimas
                     System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                    Socket_.send_socket(net_dev, net_dev.Cmd);
+                    //Socket_.send_socket(net_dev, net_dev.Cmd);
                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     break;
                 case NetDev_State.GET_PARAM_ALL:
@@ -1024,14 +993,14 @@ namespace ArtiluxEOL
 
                     net_dev.Cmd = Itech_load_param_get_type[param_type_nr - 1] + "?";// MANU:ACW:VOLT?
                     System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                    Socket_.send_socket(net_dev, net_dev.Cmd);
+                    //Socket_.send_socket(net_dev, net_dev.Cmd);
                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     break;
                 case NetDev_State.SET_PARAM:
                     switch (net_dev.GetSetParamLeft)
                     {
                         case 3://siunciam kazkokio parametro cmd-set, pvz: CURR 5
-                            Socket_.send_socket(net_dev, net_dev.Cmd);
+                            //Socket_.send_socket(net_dev, net_dev.Cmd);
                             net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             break;
                         case 2://uzklausiam katik setinto parametro, pvz: CURR?
@@ -1041,7 +1010,7 @@ namespace ArtiluxEOL
                                 net_dev.Cmd = Regex.Replace(str, "[^A-Za-z:]", "");// ismetam skaicius Regex.Replace(dirty, "[^A-Za-z0-9 ]", "");
                                 net_dev.Cmd += @"?";// prilipdom i gala
 
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             }
                             else
@@ -1143,17 +1112,18 @@ namespace ArtiluxEOL
              */
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
-            unixTimeMilliseconds = now.ToUnixTimeMilliseconds();
+            unixTimeMilliseconds = now.ToUnixTimeMilliseconds();//TO DO - use global
 
             var net_dev = Main.main.network_dev[DevType.ITECH_LOAD];
+            var net_evse = Main.main.network_dev[DevType.BARCODE_1];
+            string loadResponce = "";
+            string evseResponce = "";
             bool respOK = false;
             string[] split;
             float[] volts = new float[3];
             float[] amps = new float[3];
             string[] split_scnd;
             bool stepPass = true;
-
-            var net_evse = Main.main.network_dev[DevType.BARCODE_1];
 
             if (Main.Load_Test_EVSE_ID == 1)
             {
@@ -1226,7 +1196,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         else if (Main.LS_EN.STATE < 0)
                         {
@@ -1266,20 +1236,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            loadResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("0"))
+                            if (loadResponce.StartsWith("0"))
                             {
                                 System.Diagnostics.Debug.Print("ITECH load turned off");
                                 respOK = true;
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -1287,15 +1257,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "INP OFF";
+                                net_dev.Cmd = "INP OFF\r\nINP?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "INP?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -1321,33 +1286,28 @@ namespace ArtiluxEOL
 
                             if (net_dev.NewResp)
                             {
-                                net_dev.NewResp = false;
+                                loadResponce = GetResponse(net_dev);
 
-                                if (net_dev.Resp.StartsWith("0"))
+                                if (loadResponce.StartsWith("0"))
                                 {
                                     System.Diagnostics.Debug.Print("ITECH load turned off (load test reset)");
                                     respOK = true;
                                     Main.Load_Test_Load_Possibly_ON = false;
                                     Main.Load_Test_One_Call = false;
-                                    net_dev.Resp = "";
+                                    loadResponce = "";
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                    System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                                 }
                             }
 
                             if (respOK == false)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "INP OFF";
+                                net_dev.Cmd = "INP OFF\r\nINP?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "INP?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Timer = unixTimeMilliseconds;
@@ -1368,20 +1328,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            loadResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("0"))
+                            if (loadResponce.StartsWith("0"))
                             {
                                 System.Diagnostics.Debug.Print("ITECH load turned off");
                                 respOK = true;
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -1389,15 +1349,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "INP OFF";
+                                net_dev.Cmd = "INP OFF\r\nINP?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "INP?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -1427,7 +1382,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         else if (Main.LS_EN.STATE < 0)
                         {
@@ -1474,7 +1429,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         else if (Main.TP_Selector.STATE <= -100)
                         {
@@ -1500,7 +1455,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         else if (Main.CP_Selector.STATE <= -100)
                         {
@@ -1522,7 +1477,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         break;
 
@@ -1538,7 +1493,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         else if (Main.CP_Selector.STATE <= -100)
                         {
@@ -1553,8 +1508,8 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
-                            split = net_dev.Resp.Split(',');
+                            loadResponce = GetResponse(net_dev);
+                            split = loadResponce.Split(',');
 
                             if (split.Length >= 3 && float.TryParse(split[0], out amps[0]) && float.TryParse(split[1], out amps[1]) && float.TryParse(split[2], out amps[2]) && amps[0] == 0 && amps[1] == 0 && amps[2] == 0)
                             {
@@ -1564,11 +1519,11 @@ namespace ArtiluxEOL
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -1576,15 +1531,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "CURR 0";
+                                net_dev.Cmd = "CURR 0\r\nCURR?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "CURR?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -1603,19 +1553,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
-                            if (net_dev.Resp.StartsWith("CC"))
+                            loadResponce = GetResponse(net_dev);
+
+                            if (loadResponce.StartsWith("CC"))
                             {
                                 System.Diagnostics.Debug.Print("ITECH load function set ok");
                                 respOK = true;
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -1623,15 +1574,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "FUNC CC";
+                                net_dev.Cmd = "FUNC CC\r\nFUNC?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "FUNC?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -1648,15 +1594,10 @@ namespace ArtiluxEOL
 
                         if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_evse.Resp = "";
+                            evseResponce = "";
 
-                            net_evse.Cmd = "ESA:1";
+                            net_evse.Cmd = "ESA:1\nEGM?";
                             System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
-
-                            net_evse.Cmd = "EGM?";
-                            System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
 
                             net_evse.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Load_Test_Cmd_Attempts++;
@@ -1679,12 +1620,12 @@ namespace ArtiluxEOL
                         {
                             stepPass = true;
                             respOK = false;
-                            net_evse.NewResp = false;
-                            split = net_evse.Resp.Split(';');
+                            evseResponce = GetResponse(net_evse);
+                            split = evseResponce.Split(';');
 
                             //EGM:1;U1:26;U2:16;U3:15;I1:0;I2:0;I3:0;P:0;E:488;F:49;T:36;
 
-                            if (split.Length == 12 && net_evse.Resp.StartsWith("EGM:1"))
+                            if (split.Length == 12 && evseResponce.StartsWith("EGM:1"))
                             {
                                 split_scnd = split[1].Split(':');
 
@@ -1713,17 +1654,17 @@ namespace ArtiluxEOL
                                         Main.Load_Test_State++;
                                         Main.Load_Test_One_Call = false;
                                         Main.Load_Test_Cmd_Attempts = 0;
-                                        net_evse.Resp = "";
+                                        evseResponce = "";
                                     }
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + net_evse.Resp);
+                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + evseResponce);
                                 }
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + net_evse.Resp);
+                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + evseResponce);
                             }
                         }
 
@@ -1750,7 +1691,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         else if (Main.LS_Selector.STATE <= -100)
                         {
@@ -1781,7 +1722,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         else if (Main.LS_EN.STATE < 0)
                         {
@@ -1796,20 +1737,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            loadResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("1"))
+                            if (loadResponce.StartsWith("1"))
                             {
                                 System.Diagnostics.Debug.Print("ITECH load turned on");
                                 respOK = true;
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -1817,15 +1758,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "INP ON";
+                                net_dev.Cmd = "INP ON\r\nINP?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "INP?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -1851,7 +1787,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         break;
 
@@ -1861,8 +1797,9 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
-                            split = net_dev.Resp.Split(',');
+                            loadResponce = GetResponse(net_dev);
+
+                            split = loadResponce.Split(',');
 
                             if (split.Length >= 3 && split[0].Length > 7 && split[1].Length > 7 && split[2].Length > 7 && float.TryParse(split[0], out volts[0]) && float.TryParse(split[1], out volts[1]) && float.TryParse(split[2], out volts[2]))
                             {
@@ -1872,11 +1809,11 @@ namespace ArtiluxEOL
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -1884,11 +1821,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
                                 net_dev.Cmd = "MEAS:VOLT?";//Measure voltage
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -1905,11 +1841,10 @@ namespace ArtiluxEOL
 
                         if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_evse.Resp = "";
+                            evseResponce = "";
 
                             net_evse.Cmd = "EGM?";
                             System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
 
                             net_evse.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Load_Test_Cmd_Attempts++;
@@ -1933,12 +1868,12 @@ namespace ArtiluxEOL
                         {
                             respOK = false;
                             stepPass = true;
-                            net_evse.NewResp = false;
-                            split = net_evse.Resp.Split(';');
+                            evseResponce = GetResponse(net_evse);
+                            split = evseResponce.Split(';');
 
                             //EGM:1;U1:26;U2:16;U3:15;I1:0;I2:0;I3:0;P:0;E:488;F:49;T:36;
 
-                            if (split.Length == 12 && net_evse.Resp.StartsWith("EGM:1"))
+                            if (split.Length == 12 && evseResponce.StartsWith("EGM:1"))
                             {
                                 split_scnd = split[1].Split(':');
 
@@ -1986,7 +1921,6 @@ namespace ArtiluxEOL
                                                     stepPass = false;
                                                 }
                                             }
-
                                         }
                                     }
                                 }
@@ -1998,7 +1932,7 @@ namespace ArtiluxEOL
                                         Main.Load_Test_State++;
                                         Main.Load_Test_One_Call = false;
                                         Main.Load_Test_Cmd_Attempts = 0;
-                                        net_evse.Resp = "";
+                                        evseResponce = "";
                                     }
                                     else
                                     {
@@ -2008,12 +1942,12 @@ namespace ArtiluxEOL
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + net_evse.Resp);
+                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + evseResponce);
                                 }
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + net_evse.Resp);
+                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + evseResponce);
                             }
                         }
 
@@ -2034,8 +1968,9 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
-                            split = net_dev.Resp.Split(',');
+                            loadResponce = GetResponse(net_dev);
+
+                            split = loadResponce.Split(',');
 
                             if (split.Length >= 3 && float.TryParse(split[0], out amps[0]) && float.TryParse(split[1], out amps[1]) && float.TryParse(split[2], out amps[2]) && amps[0] == 5 && amps[1] == 5 && amps[2] == 5)
                             {
@@ -2045,11 +1980,11 @@ namespace ArtiluxEOL
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -2057,15 +1992,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "CURR 5";
+                                net_dev.Cmd = "CURR 5\r\nCURR?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "CURR?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -2091,7 +2021,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         break;
 
@@ -2099,11 +2029,10 @@ namespace ArtiluxEOL
 
                         if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_evse.Resp = "";
+                            evseResponce = "";
 
                             net_evse.Cmd = "EGM?";
                             System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
 
                             net_evse.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Load_Test_Cmd_Attempts++;
@@ -2127,12 +2056,12 @@ namespace ArtiluxEOL
                         {
                             respOK = false;
                             stepPass = true;
-                            net_evse.NewResp = false;
-                            split = net_evse.Resp.Split(';');
+                            evseResponce = GetResponse(net_evse);
+                            split = evseResponce.Split(';');
 
                             //EGM:1;U1:26;U2:16;U3:15;I1:0;I2:0;I3:0;P:0;E:488;F:49;T:36;
 
-                            if (split.Length == 12 && net_evse.Resp.StartsWith("EGM:1"))
+                            if (split.Length == 12 && evseResponce.StartsWith("EGM:1"))
                             {
                                 split_scnd = split[1].Split(':');
 
@@ -2192,7 +2121,7 @@ namespace ArtiluxEOL
                                         Main.Load_Test_State++;
                                         Main.Load_Test_One_Call = false;
                                         Main.Load_Test_Cmd_Attempts = 0;
-                                        net_evse.Resp = "";
+                                        evseResponce = "";
                                     }
                                     else
                                     {
@@ -2202,12 +2131,12 @@ namespace ArtiluxEOL
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + net_evse.Resp);
+                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + evseResponce);
                                 }
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + net_evse.Resp);
+                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + evseResponce);
                             }
                         }
 
@@ -2233,7 +2162,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         break;
 
@@ -2241,11 +2170,10 @@ namespace ArtiluxEOL
 
                         if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_evse.Resp = "";
+                            evseResponce = "";
 
                             net_evse.Cmd = "EGM?";
                             System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
 
                             net_evse.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Load_Test_Cmd_Attempts++;
@@ -2269,12 +2197,12 @@ namespace ArtiluxEOL
                         {
                             respOK = false;
                             stepPass = true;
-                            net_evse.NewResp = false;
-                            split = net_evse.Resp.Split(';');
+                            evseResponce = GetResponse(net_evse);
+                            split = evseResponce.Split(';');
 
                             //EGM:1;U1:26;U2:16;U3:15;I1:0;I2:0;I3:0;P:0;E:488;F:49;T:36;
 
-                            if (split.Length == 12 && net_evse.Resp.StartsWith("EGM:1"))
+                            if (split.Length == 12 && evseResponce.StartsWith("EGM:1"))
                             {
                                 split_scnd = split[1].Split(':');
 
@@ -2334,7 +2262,7 @@ namespace ArtiluxEOL
                                         Main.Load_Test_State++;
                                         Main.Load_Test_One_Call = false;
                                         Main.Load_Test_Cmd_Attempts = 0;
-                                        net_evse.Resp = "";
+                                        evseResponce = "";
                                     }
                                     else
                                     {
@@ -2344,12 +2272,12 @@ namespace ArtiluxEOL
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + net_evse.Resp);
+                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + evseResponce);
                                 }
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + net_evse.Resp);
+                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + evseResponce);
                             }
                         }
 
@@ -2370,8 +2298,9 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
-                            split = net_dev.Resp.Split(',');
+                            loadResponce = GetResponse(net_dev);
+
+                            split = loadResponce.Split(',');
 
                             if (split.Length >= 3 && float.TryParse(split[0], out amps[0]) && float.TryParse(split[1], out amps[1]) && float.TryParse(split[2], out amps[2]) && amps[0] == 16 && amps[1] == 16 && amps[2] == 16)
                             {
@@ -2381,11 +2310,11 @@ namespace ArtiluxEOL
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -2393,15 +2322,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "CURR 16";
+                                net_dev.Cmd = "CURR 16\r\nCURR?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "CURR?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -2427,7 +2351,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         break;
 
@@ -2435,11 +2359,10 @@ namespace ArtiluxEOL
 
                         if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_evse.Resp = "";
+                            evseResponce = "";
 
                             net_evse.Cmd = "EGM?";
                             System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
 
                             net_evse.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Load_Test_Cmd_Attempts++;
@@ -2463,12 +2386,12 @@ namespace ArtiluxEOL
                         {
                             respOK = false;
                             stepPass = true;
-                            net_evse.NewResp = false;
-                            split = net_evse.Resp.Split(';');
+                            evseResponce = GetResponse(net_evse);
+                            split = evseResponce.Split(';');
 
                             //EGM:1;U1:26;U2:16;U3:15;I1:0;I2:0;I3:0;P:0;E:488;F:49;T:36;
 
-                            if (split.Length == 12 && net_evse.Resp.StartsWith("EGM:1"))
+                            if (split.Length == 12 && evseResponce.StartsWith("EGM:1"))
                             {
                                 split_scnd = split[1].Split(':');
 
@@ -2528,7 +2451,7 @@ namespace ArtiluxEOL
                                         Main.Load_Test_State++;
                                         Main.Load_Test_One_Call = false;
                                         Main.Load_Test_Cmd_Attempts = 0;
-                                        net_evse.Resp = "";
+                                        evseResponce = "";
                                     }
                                     else
                                     {
@@ -2538,12 +2461,12 @@ namespace ArtiluxEOL
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + net_evse.Resp);
+                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + evseResponce);
                                 }
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + net_evse.Resp);
+                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + evseResponce);
                             }
                         }
 
@@ -2569,7 +2492,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         break;
 
@@ -2577,11 +2500,10 @@ namespace ArtiluxEOL
 
                         if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_evse.Resp = "";
+                            evseResponce = "";
 
                             net_evse.Cmd = "EGM?";
                             System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
 
                             net_evse.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Load_Test_Cmd_Attempts++;
@@ -2605,12 +2527,12 @@ namespace ArtiluxEOL
                         {
                             respOK = false;
                             stepPass = true;
-                            net_evse.NewResp = false;
-                            split = net_evse.Resp.Split(';');
+                            evseResponce = GetResponse(net_evse);
+                            split = evseResponce.Split(';');
 
                             //EGM:1;U1:26;U2:16;U3:15;I1:0;I2:0;I3:0;P:0;E:488;F:49;T:36;
 
-                            if (split.Length == 12 && net_evse.Resp.StartsWith("EGM:1"))
+                            if (split.Length == 12 && evseResponce.StartsWith("EGM:1"))
                             {
                                 split_scnd = split[1].Split(':');
 
@@ -2670,7 +2592,7 @@ namespace ArtiluxEOL
                                         Main.Load_Test_State++;
                                         Main.Load_Test_One_Call = false;
                                         Main.Load_Test_Cmd_Attempts = 0;
-                                        net_evse.Resp = "";
+                                        evseResponce = "";
                                     }
                                     else
                                     {
@@ -2680,12 +2602,12 @@ namespace ArtiluxEOL
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + net_evse.Resp);
+                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + evseResponce);
                                 }
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + net_evse.Resp);
+                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + evseResponce);
                             }
                         }
 
@@ -2706,8 +2628,9 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
-                            split = net_dev.Resp.Split(',');
+                            loadResponce = GetResponse(net_dev);
+
+                            split = loadResponce.Split(',');
 
                             if (split.Length >= 3 && float.TryParse(split[0], out amps[0]) && float.TryParse(split[1], out amps[1]) && float.TryParse(split[2], out amps[2]) && amps[0] == 32 && amps[1] == 32 && amps[2] == 32)
                             {
@@ -2717,11 +2640,11 @@ namespace ArtiluxEOL
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -2729,15 +2652,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "CURR 32";
+                                net_dev.Cmd = "CURR 32\r\nCURR?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "CURR?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -2763,7 +2681,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         break;
 
@@ -2771,11 +2689,10 @@ namespace ArtiluxEOL
 
                         if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_evse.Resp = "";
+                            evseResponce = "";
 
                             net_evse.Cmd = "EGM?";
                             System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
 
                             net_evse.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Load_Test_Cmd_Attempts++;
@@ -2799,12 +2716,12 @@ namespace ArtiluxEOL
                         {
                             respOK = false;
                             stepPass = true;
-                            net_evse.NewResp = false;
-                            split = net_evse.Resp.Split(';');
+                            evseResponce = GetResponse(net_evse);
+                            split = evseResponce.Split(';');
 
                             //EGM:1;U1:26;U2:16;U3:15;I1:0;I2:0;I3:0;P:0;E:488;F:49;T:36;
 
-                            if (split.Length == 12 && net_evse.Resp.StartsWith("EGM:1"))
+                            if (split.Length == 12 && evseResponce.StartsWith("EGM:1"))
                             {
                                 split_scnd = split[1].Split(':');
 
@@ -2864,7 +2781,7 @@ namespace ArtiluxEOL
                                         Main.Load_Test_State++;
                                         Main.Load_Test_One_Call = false;
                                         Main.Load_Test_Cmd_Attempts = 0;
-                                        net_evse.Resp = "";
+                                        evseResponce = "";
                                     }
                                     else
                                     {
@@ -2874,12 +2791,12 @@ namespace ArtiluxEOL
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + net_evse.Resp);
+                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + evseResponce);
                                 }
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + net_evse.Resp);
+                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + evseResponce);
                             }
                         }
 
@@ -2905,7 +2822,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         break;
 
@@ -2913,11 +2830,10 @@ namespace ArtiluxEOL
 
                         if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_evse.Resp = "";
+                            evseResponce = "";
 
                             net_evse.Cmd = "EGM?";
                             System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
 
                             net_evse.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Load_Test_Cmd_Attempts++;
@@ -2941,12 +2857,12 @@ namespace ArtiluxEOL
                         {
                             respOK = false;
                             stepPass = true;
-                            net_evse.NewResp = false;
-                            split = net_evse.Resp.Split(';');
+                            evseResponce = GetResponse(net_evse);
+                            split = evseResponce.Split(';');
 
                             //EGM:1;U1:26;U2:16;U3:15;I1:0;I2:0;I3:0;P:0;E:488;F:49;T:36;
 
-                            if (split.Length == 12 && net_evse.Resp.StartsWith("EGM:1"))
+                            if (split.Length == 12 && evseResponce.StartsWith("EGM:1"))
                             {
                                 split_scnd = split[1].Split(':');
 
@@ -3006,7 +2922,7 @@ namespace ArtiluxEOL
                                         Main.Load_Test_State++;
                                         Main.Load_Test_One_Call = false;
                                         Main.Load_Test_Cmd_Attempts = 0;
-                                        net_evse.Resp = "";
+                                        evseResponce = "";
                                     }
                                     else
                                     {
@@ -3016,12 +2932,12 @@ namespace ArtiluxEOL
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + net_evse.Resp);
+                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + evseResponce);
                                 }
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + net_evse.Resp);
+                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + evseResponce);
                             }
                         }
 
@@ -3042,8 +2958,9 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
-                            split = net_dev.Resp.Split(',');
+                            loadResponce = GetResponse(net_dev);
+
+                            split = loadResponce.Split(',');
 
                             if (split.Length >= 3 && float.TryParse(split[0], out amps[0]) && float.TryParse(split[1], out amps[1]) && float.TryParse(split[2], out amps[2]) && amps[0] == 34 && amps[1] == 34 && amps[2] == 34)
                             {
@@ -3053,11 +2970,11 @@ namespace ArtiluxEOL
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -3065,15 +2982,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "CURR 34";
+                                net_dev.Cmd = "CURR 34\r\nCURR?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "CURR?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -3090,11 +3002,10 @@ namespace ArtiluxEOL
 
                         if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_evse.Resp = "";
+                            evseResponce = "";
 
                             net_evse.Cmd = "EGM?";
                             System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
 
                             net_evse.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Load_Test_Cmd_Attempts++;
@@ -3118,12 +3029,12 @@ namespace ArtiluxEOL
                         {
                             respOK = false;
                             stepPass = true;
-                            net_evse.NewResp = false;
-                            split = net_evse.Resp.Split(';');
+                            evseResponce = GetResponse(net_evse);
+                            split = evseResponce.Split(';');
 
                             //EGM:1;U1:26;U2:16;U3:15;I1:0;I2:0;I3:0;P:0;E:488;F:49;T:36;
 
-                            if (split.Length == 12 && net_evse.Resp.StartsWith("EGM:1"))
+                            if (split.Length == 12 && evseResponce.StartsWith("EGM:1"))
                             {
                                 split_scnd = split[1].Split(':');
 
@@ -3158,7 +3069,7 @@ namespace ArtiluxEOL
                                         Main.Load_Test_State++;
                                         Main.Load_Test_One_Call = false;
                                         Main.Load_Test_Cmd_Attempts = 0;
-                                        net_evse.Resp = "";
+                                        evseResponce = "";
 
                                         //System.Diagnostics.Debug.Print("All good- reset");
                                         //Main.Load_Test_State = -2;
@@ -3171,12 +3082,12 @@ namespace ArtiluxEOL
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + net_evse.Resp);
+                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + evseResponce);
                                 }
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + net_evse.Resp);
+                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + evseResponce);
                             }
                         }
 
@@ -3195,20 +3106,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            loadResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("0"))
+                            if (loadResponce.StartsWith("0"))
                             {
                                 System.Diagnostics.Debug.Print("ITECH load turned off");
                                 respOK = true;
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -3216,15 +3127,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "INP OFF";
+                                net_dev.Cmd = "INP OFF\r\nINP?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "INP?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -3245,8 +3151,9 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
-                            split = net_dev.Resp.Split(',');
+                            loadResponce = GetResponse(net_dev);
+
+                            split = loadResponce.Split(',');
 
                             if (split.Length >= 3 && float.TryParse(split[0], out amps[0]) && float.TryParse(split[1], out amps[1]) && float.TryParse(split[2], out amps[2]) && amps[0] == 22 && amps[1] == 22 && amps[2] == 22)
                             {
@@ -3256,11 +3163,11 @@ namespace ArtiluxEOL
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -3268,15 +3175,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "CURR 22";
+                                net_dev.Cmd = "CURR 22\r\nCURR?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "CURR?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -3301,7 +3203,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         else if (Main.PP_Selector.STATE <= -100)
                         {
@@ -3322,7 +3224,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         else if (Main.CP_Selector.STATE <= -100)
                         {
@@ -3343,7 +3245,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         else if (Main.CP_Selector.STATE <= -100)
                         {
@@ -3365,7 +3267,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         break;
 
@@ -3381,7 +3283,7 @@ namespace ArtiluxEOL
                             Main.Load_Test_State++;
                             Main.Load_Test_One_Call = false;
                             Main.Load_Test_Cmd_Attempts = 0;
-                            net_dev.Resp = "";
+                            loadResponce = "";
                         }
                         else if (Main.CP_Selector.STATE <= -100)
                         {
@@ -3394,15 +3296,10 @@ namespace ArtiluxEOL
 
                         if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_evse.Resp = "";
+                            evseResponce = "";
 
-                            net_evse.Cmd = "ESA:1";
+                            net_evse.Cmd = "ESA:1\nEGM?";
                             System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
-
-                            net_evse.Cmd = "EGM?";
-                            System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
 
                             net_evse.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Load_Test_Cmd_Attempts++;
@@ -3425,12 +3322,12 @@ namespace ArtiluxEOL
                         {
                             stepPass = true;
                             respOK = false;
-                            net_evse.NewResp = false;
-                            split = net_evse.Resp.Split(';');
+                            evseResponce = GetResponse(net_evse);
+                            split = evseResponce.Split(';');
 
                             //EGM:1;U1:26;U2:16;U3:15;I1:0;I2:0;I3:0;P:0;E:488;F:49;T:36;
 
-                            if (split.Length == 12 && net_evse.Resp.StartsWith("EGM:1"))
+                            if (split.Length == 12 && evseResponce.StartsWith("EGM:1"))
                             {
                                 split_scnd = split[1].Split(':');
 
@@ -3459,17 +3356,17 @@ namespace ArtiluxEOL
                                         Main.Load_Test_State++;
                                         Main.Load_Test_One_Call = false;
                                         Main.Load_Test_Cmd_Attempts = 0;
-                                        net_evse.Resp = "";
+                                        evseResponce = "";
                                     }
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + net_evse.Resp);
+                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + evseResponce);
                                 }
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + net_evse.Resp);
+                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + evseResponce);
                             }
                         }
 
@@ -3488,20 +3385,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            loadResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("1"))
+                            if (loadResponce.StartsWith("1"))
                             {
                                 System.Diagnostics.Debug.Print("ITECH load turned on");
                                 respOK = true;
                                 Main.Load_Test_State++;
                                 Main.Load_Test_One_Call = false;
                                 Main.Load_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                loadResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong ITECH load responce: " + loadResponce);
                             }
                         }
 
@@ -3509,15 +3406,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                loadResponce = "";
 
-                                net_dev.Cmd = "INP ON";
+                                net_dev.Cmd = "INP ON\r\nINP?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "INP?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Load_Test_Cmd_Attempts++;
@@ -3534,11 +3426,10 @@ namespace ArtiluxEOL
 
                         if (Main.Load_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_evse.Resp = "";
+                            evseResponce = "";
 
                             net_evse.Cmd = "EGM?";
                             System.Diagnostics.Debug.Print($"cmd: = {net_evse.Cmd}");
-                            Socket_.send_socket(net_evse, net_evse.Cmd);
 
                             net_evse.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Load_Test_Cmd_Attempts++;
@@ -3562,12 +3453,12 @@ namespace ArtiluxEOL
                         {
                             respOK = false;
                             stepPass = true;
-                            net_evse.NewResp = false;
-                            split = net_evse.Resp.Split(';');
+                            evseResponce = GetResponse(net_evse);
+                            split = evseResponce.Split(';');
 
                             //EGM:1;U1:26;U2:16;U3:15;I1:0;I2:0;I3:0;P:0;E:488;F:49;T:36;
 
-                            if (split.Length == 12 && net_evse.Resp.StartsWith("EGM:1"))
+                            if (split.Length == 12 && evseResponce.StartsWith("EGM:1"))
                             {
                                 split_scnd = split[1].Split(':');
 
@@ -3609,12 +3500,12 @@ namespace ArtiluxEOL
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + net_evse.Resp);
+                                    System.Diagnostics.Debug.Print("Could not parse EVSE responce: " + evseResponce);
                                 }
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + net_evse.Resp);
+                                System.Diagnostics.Debug.Print("Wrong EVSE responce: " + evseResponce);
                             }
                         }
 
@@ -3684,18 +3575,11 @@ namespace ArtiluxEOL
         #region SPECTROSCOPE
         public void Specroscope_DoWork(object sender, DoWorkEventArgs e)
         {
-            // Do not access the form's BackgroundWorker reference directly.
-            // Instead, use the reference provided by the sender parameter.
             BackgroundWorker bw = sender as BackgroundWorker;
 
-            // Extract the argument.
-            //int arg = (int)e.Argument;
             int arg = 0;
-            // Start the time-consuming operation.
             e.Result = Specroscope_Socket_Thread(bw, arg);
 
-            // If the operation was canceled by the user,
-            // set the DoWorkEventArgs.Cancel property to true.
             if (bw.CancellationPending)
             {
                 e.Cancel = true;
@@ -3705,7 +3589,24 @@ namespace ArtiluxEOL
         public object Specroscope_Socket_Thread(BackgroundWorker bw, int arg)
         {
             int result = 0;
-            int len = 0;
+            int handlerTimer = 0;
+
+            while (true)
+            {
+                TCP_Device_Manager(Main.main.network_dev[DevType.ANALYSER_SIGLENT]);
+
+                if (handlerTimer >= 10) // Every 100ms
+                {
+                    handlerTimer = 0;
+                    Spectroscope_Test_handler();
+                }
+
+                handlerTimer++;
+                Thread.Sleep(10);
+            }
+
+
+            /*int len = 0;
             bool connection_closed = false;
             var net_dev = Main.main.network_dev[DevType.ANALYSER_SIGLENT];
 
@@ -3815,7 +3716,7 @@ namespace ArtiluxEOL
 
                 Spectroscope_Test_handler();
                 Thread.Sleep(100);
-            }
+            }*/
             return result;
         }
 
@@ -3847,7 +3748,6 @@ namespace ArtiluxEOL
 
                         case NetDev_Test.GET_CHART_DATA:
                             net_dev.Cmd = "TRAC:DATA?";
-                            Socket_.send_socket(net_dev, net_dev.Cmd);
                             net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             break;
                         case NetDev_Test.PROCESS_CHART_DATA:
@@ -3869,7 +3769,6 @@ namespace ArtiluxEOL
                             else
                             {
                                 net_dev.Cmd = "MEAS?";//test select komandos formavimas
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
                             }
 
                             break;
@@ -3923,7 +3822,7 @@ namespace ArtiluxEOL
                     net_dev.Cmd = Siglent_cmd_type[param_type_nr - 1] + "?";// MANU:ACW:VOLT?
                     System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
                     Main.main.dbg_print(DbgType.SPECTRO, "cmd:" + net_dev.Cmd, Color.Orange);
-                    Socket_.send_socket(net_dev, net_dev.Cmd);
+                    //Socket_.send_socket(net_dev, net_dev.Cmd);
                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     break;
                 case NetDev_State.SET_PARAM:
@@ -4043,11 +3942,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "TRAC:MODE WRIT";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "TRAC:MODE?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4103,11 +4002,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "TRAC:MODE WRIT";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "TRAC:MODE?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4150,7 +4049,7 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "CALC:MARK1:X?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4171,7 +4070,7 @@ namespace ArtiluxEOL
 
                             net_dev.Cmd = "CALC:MARK1:MAX";
                             System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                            Socket_.send_socket(net_dev, net_dev.Cmd);
+                            //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                             net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4230,7 +4129,7 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "CALC:MARK1:X?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4273,11 +4172,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "FREQ:START " + Main.Spectroscope_Frequency_Start;
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "FREQ:START?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4320,11 +4219,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "FREQ:STOP " + Main.Spectroscope_Frequency_Stop;
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "FREQ:STOP?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4367,11 +4266,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "TRAC:MODE MAXH";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "TRAC:MODE?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4414,11 +4313,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "POW:ATT 15";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "POW:ATT?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4461,11 +4360,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "POW:GAIN ON";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "POW:GAIN?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4508,11 +4407,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "DET:TRAC POS";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "DET:TRAC?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4555,11 +4454,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "CALC:MARK:PEAK:SEAR:MODE MAX";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "CALC:MARK:PEAK:SEAR:MODE?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4602,11 +4501,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "CALC:MARK:PEAK:THR -70";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "CALC:MARK:PEAK:THR?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4649,11 +4548,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "CALC:MARK:PEAK:EXC 15";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "CALC:MARK:PEAK:EXC?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4696,11 +4595,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "CALC:LLIN:CONT:BEEP OFF";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "CALC:LLIN:CONT:BEEP?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4743,11 +4642,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "CALC:MARK:PEAK:TABL ON";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "CALC:MARK:PEAK:TABL?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4790,7 +4689,7 @@ namespace ArtiluxEOL
 
                             net_dev.Cmd = "TRAC:DATA?";
                             System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                            Socket_.send_socket(net_dev, net_dev.Cmd);
+                            //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                             net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4904,11 +4803,11 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "TRAC:MODE VIEW";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.Cmd = "TRAC:MODE?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4951,7 +4850,7 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "CALC:MARK1:X?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -4972,7 +4871,7 @@ namespace ArtiluxEOL
 
                             net_dev.Cmd = "CALC:MARK1:MAX";
                             System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                            Socket_.send_socket(net_dev, net_dev.Cmd);
+                            //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                             net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.Spectroscope_Test_Cmd_Attempts++;
@@ -5030,7 +4929,7 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "CALC:MARK1:X?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -5075,7 +4974,7 @@ namespace ArtiluxEOL
 
                         net_dev.Cmd = "CALC:MARK1:MAX:NEXT";
                         System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                        //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                         net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                         Main.Spectroscope_Marker_Move_Attempts++;
@@ -5148,7 +5047,7 @@ namespace ArtiluxEOL
 
                                 net_dev.Cmd = "CALC:MARK1:X?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.Spectroscope_Test_Cmd_Attempts++;
@@ -5181,18 +5080,11 @@ namespace ArtiluxEOL
         #region HVGEN_GW_INSTEK_HANDLER
         public void HVgen_DoWork(object sender, DoWorkEventArgs e)
         {
-            // Do not access the form's BackgroundWorker reference directly.
-            // Instead, use the reference provided by the sender parameter.
             BackgroundWorker bw = sender as BackgroundWorker;
 
-            // Extract the argument.
-            //int arg = (int)e.Argument;
             int arg = 0;
-            // Start the time-consuming operation.
             e.Result = HVgen_Socket_Thread(bw, arg);
 
-            // If the operation was canceled by the user,
-            // set the DoWorkEventArgs.Cancel property to true.
             if (bw.CancellationPending)
             {
                 e.Cancel = true;
@@ -5202,7 +5094,24 @@ namespace ArtiluxEOL
         public object HVgen_Socket_Thread(BackgroundWorker bw, int arg)
         {
             int result = 0;
-            bool connection_closed = false;
+            int handlerTimer = 0;
+
+            while (true)
+            {
+                TCP_Device_Manager(Main.main.network_dev[DevType.GWINSTEK_HV_TESTER]);
+
+                if (handlerTimer >= 10) // Every 100ms
+                {
+                    handlerTimer = 0;
+                    GW_HV_Test_handler();
+                }
+
+                handlerTimer++;
+                Thread.Sleep(10);
+            }
+
+
+            /*bool connection_closed = false;
             var net_dev = Main.main.network_dev[DevType.GWINSTEK_HV_TESTER];
 
             while (!connection_closed)
@@ -5255,7 +5164,7 @@ namespace ArtiluxEOL
                                         {
                                             System.Diagnostics.Debug.Print($"make_get_cmd:{net_dev.Cmd}");
                                         }
-                                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                                        //Socket_.send_socket(net_dev, net_dev.Cmd);
                                     }
                                 }
                                 break;
@@ -5299,7 +5208,7 @@ namespace ArtiluxEOL
 
                 GW_HV_Test_handler();
                 Thread.Sleep(100);
-            }
+            }*/
             return result;
         }
 
@@ -5351,7 +5260,7 @@ namespace ArtiluxEOL
                             {
                                 net_dev.TestParam = "00" + net_dev.TestType.ToString();//sita turim gauti kaip responsa
                                 net_dev.Cmd = "MANU:STEP " + net_dev.TestType;//test select komandos formavimas
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             }
                             break;
@@ -5376,7 +5285,7 @@ namespace ArtiluxEOL
                             {
                                 net_dev.TestParam = "ON";//sita turim gauti kaip responsa
                                 net_dev.Cmd = "TEST:RET ON";//Return ok pasibaigus testui
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
 
                             }
@@ -5402,7 +5311,7 @@ namespace ArtiluxEOL
                             {
                                 net_dev.TestParam = "OK";//sita turim gauti kaip responsa
                                 net_dev.Cmd = "FUNC:TEST ON";//test select komandos formavimas
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             }
                             break;
@@ -5418,7 +5327,7 @@ namespace ArtiluxEOL
                             else
                             {
                                 net_dev.Cmd = "MEAS?";//test select komandos formavimas
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
+                                //Socket_.send_socket(net_dev, net_dev.Cmd);
                             }
 
                             break;
@@ -5435,7 +5344,7 @@ namespace ArtiluxEOL
                 case NetDev_State.SELECT_TEST:
                     net_dev.Cmd = "MANU:STEP " + net_dev.TestType;//test select komandos formavimas
                     System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                    Socket_.send_socket(net_dev, net_dev.Cmd);
+                    //Socket_.send_socket(net_dev, net_dev.Cmd);
                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     break;
                 case NetDev_State.GET_PARAM_ALL:
@@ -5471,7 +5380,7 @@ namespace ArtiluxEOL
 
                     net_dev.Cmd = "MANU:" + Itech_hv_test_type[test_type] + ":" + Itech_hv_test_list[test_type, (param_type_nr - 1)] + "?";// MANU:ACW:VOLT?
                     System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                    Socket_.send_socket(net_dev, net_dev.Cmd);
+                    //Socket_.send_socket(net_dev, net_dev.Cmd);
                     net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     break;
                 case NetDev_State.SET_PARAM:
@@ -5486,7 +5395,6 @@ namespace ArtiluxEOL
 
         public void GW_HV_Test_handler()
         {
-
             /*
              * 192.168.15.12:12312
              *
@@ -5547,8 +5455,10 @@ namespace ArtiluxEOL
              *
              */
 
+            string hvResponce = "";
+
             DateTimeOffset now = DateTimeOffset.UtcNow;
-            unixTimeMilliseconds = now.ToUnixTimeMilliseconds();
+            unixTimeMilliseconds = now.ToUnixTimeMilliseconds();//TO DO - use global
 
             if (Main.HV_Test_Cancel)
             {
@@ -5585,20 +5495,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000"))
+                            if (hvResponce.StartsWith("000"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test number set to 0");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -5606,15 +5516,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:STEP 0";
+                                net_dev.Cmd = "MANU:STEP 0\r\nMANU:STEP?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:STEP?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -5633,20 +5538,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("1.000mA"))
+                            if (hvResponce.StartsWith("1.000mA"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW HI set to 1mA");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -5654,15 +5559,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:CHIS 1";
+                                net_dev.Cmd = "MANU:ACW:CHIS 1\r\nMANU:ACW:CHIS?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:CHIS?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -5681,20 +5581,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000uA"))
+                            if (hvResponce.StartsWith("000uA"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW LO set to 0mA");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -5702,15 +5602,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:CLOS 1";
+                                net_dev.Cmd = "MANU:ACW:CLOS 1\r\nMANU:ACW:CLOS?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:CLOS?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -5729,20 +5624,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("003."))
+                            if (hvResponce.StartsWith("003."))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW time set to 3s");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -5750,15 +5645,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:TTIM 3";
+                                net_dev.Cmd = "MANU:ACW:TTIM 3\r\nMANU:ACW:TTIM?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:TTIM?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -5777,20 +5667,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000.1 s"))
+                            if (hvResponce.StartsWith("000.1 s"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW ramp time set to 0.1s");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -5798,15 +5688,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:RTIM 0.1";
+                                net_dev.Cmd = "MANU:RTIM 0.1\r\nMANU:RTIM?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:RTIM?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -5825,20 +5710,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("ARC OFF"))
+                            if (hvResponce.StartsWith("ARC OFF"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW arc function set to OFF");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -5846,15 +5731,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:ARCF OFF";
+                                net_dev.Cmd = "MANU:ACW:ARCF OFF\r\nMANU:ACW:ARCF?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:ARCF?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -5873,20 +5753,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("1.000mA"))
+                            if (hvResponce.StartsWith("1.000mA"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW arc current set to 1mA");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -5894,15 +5774,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:ARCC 1";
+                                net_dev.Cmd = "MANU:ACW:ARCC 1\r\nMANU:ACW:ARCC?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:ARCC?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -5921,20 +5796,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("NORMAL"))
+                            if (hvResponce.StartsWith("NORMAL"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW arc speed set to NORMAL");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -5942,15 +5817,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:ARCS NORMAL";
+                                net_dev.Cmd = "MANU:ACW:ARCS NORMAL\r\nMANU:ACW:ARCS?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:ARCS?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -5969,20 +5839,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("50 Hz"))
+                            if (hvResponce.StartsWith("50 Hz"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW frequency set to 50Hz");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -5990,15 +5860,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:FREQ 50";
+                                net_dev.Cmd = "MANU:ACW:FREQ 50\r\nMANU:ACW:FREQ?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:FREQ?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6017,20 +5882,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000.0 s"))
+                            if (hvResponce.StartsWith("000.0 s"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW wait time set to 0s");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6038,15 +5903,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:WAIT 0";
+                                net_dev.Cmd = "MANU:ACW:WAIT 0\r\nMANU:ACW:WAIT?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:WAIT?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6065,20 +5925,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000.0 s"))
+                            if (hvResponce.StartsWith("000.0 s"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW ramp down time set to 0s");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6086,15 +5946,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:RAMP 0";
+                                net_dev.Cmd = "MANU:ACW:RAMP 0\r\nMANU:ACW:RAMP?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:RAMP?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6113,20 +5968,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("ON"))
+                            if (hvResponce.StartsWith("ON"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW ground mode set to ON");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6134,15 +5989,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:GROUNDMODE ON";
+                                net_dev.Cmd = "MANU:ACW:GROUNDMODE ON\r\nMANU:ACW:GROUNDMODE?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:GROUNDMODE?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6161,20 +6011,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("OFF"))
+                            if (hvResponce.StartsWith("OFF"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW max hold set to OFF");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6182,15 +6032,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:MAXH OFF";
+                                net_dev.Cmd = "MANU:ACW:MAXH OFF\r\nMANU:ACW:MAXH?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:MAXH?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6209,20 +6054,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000.5 s"))
+                            if (hvResponce.StartsWith("000.5 s"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW pass hold set to 0.5s");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6230,15 +6075,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:PASS 0.5";
+                                net_dev.Cmd = "MANU:ACW:PASS 0.5\r\nMANU:ACW:PASS?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:PASS?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6257,20 +6097,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000uA"))
+                            if (hvResponce.StartsWith("000uA"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW ref value set to 0mA");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6278,15 +6118,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:REF 0";
+                                net_dev.Cmd = "MANU:ACW:REF 0\r\nMANU:ACW:REF?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:REF?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6305,20 +6140,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000%"))
+                            if (hvResponce.StartsWith("000%"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW initial voltage set to 0%");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6326,15 +6161,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:ACW:INIT 0";
+                                net_dev.Cmd = "MANU:ACW:INIT 0\r\nMANU:ACW:INIT?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:ACW:INIT?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6353,20 +6183,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("ON"))
+                            if (hvResponce.StartsWith("ON"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test return enabled");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6374,11 +6204,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "TEST:RET?";
+                                net_dev.Cmd = "TEST:RET ON\r\nTEST:RET?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6411,7 +6240,7 @@ namespace ArtiluxEOL
                         Main.HV_Test_State++;
                         Main.HV_Test_One_Call = false;
                         Main.HV_Test_Cmd_Attempts = cmdAttStart;
-                        net_dev.Resp = "";
+                        hvResponce = "";
 
                         break;
 
@@ -6419,11 +6248,10 @@ namespace ArtiluxEOL
 
                         if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_dev.Resp = "";
+                            hvResponce = "";
 
                             net_dev.Cmd = "FUNC:TEST ON";
                             System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                            Socket_.send_socket(net_dev, net_dev.Cmd);
 
                             net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.HV_Test_Cmd_Attempts++;
@@ -6444,20 +6272,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("OK"))
+                            if (hvResponce.StartsWith("OK"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW finished");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6477,11 +6305,11 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("ACW"))
+                            if (hvResponce.StartsWith("ACW"))
                             {
-                                if (net_dev.Resp.StartsWith("ACW,PASS"))
+                                if (hvResponce.StartsWith("ACW,PASS"))
                                 {
                                     System.Diagnostics.Debug.Print("GW_HV test 000 ACW PASSED");
                                 }
@@ -6494,11 +6322,11 @@ namespace ArtiluxEOL
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6506,11 +6334,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
                                 net_dev.Cmd = "MEAS?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6529,20 +6356,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("TEST OFF"))
+                            if (hvResponce.StartsWith("TEST OFF"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 000 ACW stopped");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6550,15 +6377,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "FUNC:TEST OFF";
+                                net_dev.Cmd = "FUNC:TEST OFF\r\nFUNC:TEST?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "FUNC:TEST?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6579,20 +6401,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("001"))
+                            if (hvResponce.StartsWith("001"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test number set to 1");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6600,15 +6422,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:STEP 1";
+                                net_dev.Cmd = "MANU:STEP 1\r\nMANU:STEP?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:STEP?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6627,20 +6444,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("100.0m Ohm"))
+                            if (hvResponce.StartsWith("100.0m Ohm"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 001 GB HI set to 100mOhm");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6648,15 +6465,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:GB:RHIS 100";
+                                net_dev.Cmd = "MANU:GB:RHIS 100\r\nMANU:GB:RHIS?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:GB:RHIS?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6675,20 +6487,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000.0m Ohm"))
+                            if (hvResponce.StartsWith("000.0m Ohm"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 001 GB LO set to 0mOhm");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6696,15 +6508,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:GB:RLOS 0";
+                                net_dev.Cmd = "MANU:GB:RLOS 0\r\nMANU:GB:RLOS?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:GB:RLOS?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6723,20 +6530,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000.3 s"))
+                            if (hvResponce.StartsWith("000.3 s"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 001 GB test time set to 0.3s");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6744,15 +6551,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:GB:TTIM 0.3";
+                                net_dev.Cmd = "MANU:GB:TTIM 0.3\r\nMANU:GB:TTIM?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:GB:TTIM?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6771,20 +6573,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("60 Hz"))
+                            if (hvResponce.StartsWith("60 Hz"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 001 GB frequency set to 60Hz");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6792,15 +6594,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:GB:FREQ 60";
+                                net_dev.Cmd = "MANU:GB:FREQ 60\r\nMANU:GB:FREQ?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:GB:FREQ?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6819,20 +6616,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000.0 s"))
+                            if (hvResponce.StartsWith("000.0 s"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 001 GB contact set to 0s");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6840,15 +6637,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:GB:CONT 0";
+                                net_dev.Cmd = "MANU:GB:CONT 0\r\nMANU:GB:CONT?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:GB:CONT?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6867,20 +6659,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("OFF"))
+                            if (hvResponce.StartsWith("OFF"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 001 GB ground mode set to OFF");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6888,15 +6680,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:GB:GROUNDMODE OFF";
+                                net_dev.Cmd = "MANU:GB:GROUNDMODE OFF\r\nMANU:GB:GROUNDMODE?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:GB:GROUNDMODE?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6915,20 +6702,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("OFF"))
+                            if (hvResponce.StartsWith("OFF"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 001 GB max hold set to OFF");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6936,15 +6723,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:GB:MAXH OFF";
+                                net_dev.Cmd = "MANU:GB:MAXH OFF\r\nMANU:GB:MAXH?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:GB:MAXH?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -6963,20 +6745,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000.5 s"))
+                            if (hvResponce.StartsWith("000.5 s"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 001 GB pass hold set to 0.5s");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -6984,15 +6766,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:GB:PASS 0.5";
+                                net_dev.Cmd = "MANU:GB:PASS 0.5\r\nMANU:GB:PASS?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:GB:PASS?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -7011,20 +6788,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("000.0m Ohm"))
+                            if (hvResponce.StartsWith("000.0m Ohm"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 001 GB reference value set to 0mOhm");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -7032,15 +6809,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:GB:REF 0";
+                                net_dev.Cmd = "MANU:GB:REF 0\r\nMANU:GB:REF?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:GB:REF?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -7059,20 +6831,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("OFF"))
+                            if (hvResponce.StartsWith("OFF"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 001 GB zero check set to OFF");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -7080,15 +6852,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "MANU:GB:ZEROCHECK OFF";
+                                net_dev.Cmd = "MANU:GB:ZEROCHECK OFF\r\nMANU:GB:ZEROCHECK?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "MANU:GB:ZEROCHECK?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -7119,7 +6886,7 @@ namespace ArtiluxEOL
                         Main.HV_Test_State++;
                         Main.HV_Test_One_Call = false;
                         Main.HV_Test_Cmd_Attempts = cmdAttStart;
-                        net_dev.Resp = "";
+                        hvResponce = "";
 
                         break;
 
@@ -7127,11 +6894,10 @@ namespace ArtiluxEOL
 
                         if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                         {
-                            net_dev.Resp = "";
+                            hvResponce = "";
 
                             net_dev.Cmd = "FUNC:TEST ON";
                             System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                            Socket_.send_socket(net_dev, net_dev.Cmd);
 
                             net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                             Main.HV_Test_Cmd_Attempts++;
@@ -7152,20 +6918,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("OK"))
+                            if (hvResponce.StartsWith("OK"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 001 GB finished");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -7185,11 +6951,11 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("GB"))
+                            if (hvResponce.StartsWith("GB"))
                             {
-                                if (net_dev.Resp.StartsWith("GB ,PASS"))
+                                if (hvResponce.StartsWith("GB ,PASS"))
                                 {
                                     System.Diagnostics.Debug.Print("GW_HV test 001 GB PASSED");
                                 }
@@ -7202,11 +6968,11 @@ namespace ArtiluxEOL
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -7214,11 +6980,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
                                 net_dev.Cmd = "MEAS?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -7237,20 +7002,20 @@ namespace ArtiluxEOL
 
                         if (net_dev.NewResp)
                         {
-                            net_dev.NewResp = false;
+                            hvResponce = GetResponse(net_dev);
 
-                            if (net_dev.Resp.StartsWith("TEST OFF"))
+                            if (hvResponce.StartsWith("TEST OFF"))
                             {
                                 System.Diagnostics.Debug.Print("GW_HV test 001 GB stopped");
                                 respOK = true;
                                 Main.HV_Test_State++;
                                 Main.HV_Test_One_Call = false;
                                 Main.HV_Test_Cmd_Attempts = 0;
-                                net_dev.Resp = "";
+                                hvResponce = "";
                             }
                             else
                             {
-                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + net_dev.Resp);
+                                System.Diagnostics.Debug.Print("Wrong GW_HV responce: " + hvResponce);
                             }
                         }
 
@@ -7258,15 +7023,10 @@ namespace ArtiluxEOL
                         {
                             if (Main.HV_Test_Cmd_Attempts < Main.Max_TCP_Cmd_Attempts)
                             {
-                                net_dev.Resp = "";
+                                hvResponce = "";
 
-                                net_dev.Cmd = "FUNC:TEST OFF";
+                                net_dev.Cmd = "FUNC:TEST OFF\r\nFUNC:TEST?";
                                 System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
-
-                                net_dev.Cmd = "FUNC:TEST?";
-                                System.Diagnostics.Debug.Print($"cmd: = {net_dev.Cmd}");
-                                Socket_.send_socket(net_dev, net_dev.Cmd);
 
                                 net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                                 Main.HV_Test_Cmd_Attempts++;
@@ -7298,22 +7058,52 @@ namespace ArtiluxEOL
 
         #endregion
 
+        #region EVSE_1 control
+
+        internal void Barcode1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker bw = sender as BackgroundWorker;
+
+            int arg = 0;
+            e.Result = Barcode1_Socket_Thread(bw, arg);
+
+            if (bw.CancellationPending)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        public object Barcode1_Socket_Thread(BackgroundWorker bw, int arg)
+        {
+            int result = 0;
+            int handlerTimer = 0;
+
+            while (true) // Thread loop
+            {
+                TCP_Device_Manager(Main.main.network_dev[DevType.BARCODE_1]);
+                handlerTimer++;
+
+                if (handlerTimer >= 10) // Every 100ms
+                {
+                    handlerTimer = 0;
+                    //Barcode1_Handler();
+                }
+                Thread.Sleep(10);
+            }
+
+            return result;
+        }
+
+        #endregion
+
         #region EVSE_2 control
         internal void Barcode2_DoWork(object sender, DoWorkEventArgs e)
         {
-
-            // Do not access the form's BackgroundWorker reference directly.
-            // Instead, use the reference provided by the sender parameter.
             BackgroundWorker bw = sender as BackgroundWorker;
 
-            // Extract the argument.
-            //int arg = (int)e.Argument;
             int arg = 0;
-            // Start the time-consuming operation.
             e.Result = Barcode2_Socket_Thread(bw, arg);
 
-            // If the operation was canceled by the user,
-            // set the DoWorkEventArgs.Cancel property to true.
             if (bw.CancellationPending)
             {
                 e.Cancel = true;
@@ -7323,7 +7113,22 @@ namespace ArtiluxEOL
         public object Barcode2_Socket_Thread(BackgroundWorker bw, int arg)
         {
             int result = 0;
-            bool connection_closed = false;
+            int handlerTimer = 0;
+
+            while (true) // Thread loop
+            {
+                TCP_Device_Manager(Main.main.network_dev[DevType.BARCODE_2]);
+                handlerTimer++;
+
+                if (handlerTimer >= 10) // Every 100ms
+                {
+                    handlerTimer = 0;
+                    //Barcode2_Handler();
+                }
+                Thread.Sleep(10);
+            }
+
+            /*bool connection_closed = false;
             var net_dev = Main.main.network_dev[DevType.BARCODE_2];
 
             while (!connection_closed)
@@ -7347,7 +7152,7 @@ namespace ArtiluxEOL
                                 {
                                     net_dev.PingPktTmrCnt = 0;
                                     net_dev.Cmd = "IGP?";//test select komandos formavimas
-                                    Socket_.send_socket(net_dev, net_dev.Cmd);
+                                    //Socket_.send_socket(net_dev, net_dev.Cmd);
                                 }
                             }
 
@@ -7383,11 +7188,11 @@ namespace ArtiluxEOL
                 }
                 
                 Thread.Sleep(100);
-            }
+            }*/
             return result;
         }
 
-       public void Barcode2_handle_get_params()
+        public void Barcode2_handle_get_params()
         {
             var net_dev = Main.main.network_dev[DevType.BARCODE_2];
             int test_type = net_dev.TestType;
@@ -7510,7 +7315,7 @@ namespace ArtiluxEOL
                     else
                     {        
                         net_dev.Cmd = Evse_param_type[net_dev.SubState];//test select komandos formavimas
-                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                        //Socket_.send_socket(net_dev, net_dev.Cmd);
                         net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     }
                     break;
@@ -7519,7 +7324,7 @@ namespace ArtiluxEOL
                 
 
             }
-            Socket_.receive_socket(net_dev);
+            //Socket_.receive_socket(net_dev);
         }
 
         public void Evse2_conected_sub_state()
@@ -7577,7 +7382,7 @@ namespace ArtiluxEOL
                     else
                     {
                         net_dev.Cmd = Evse_param_type[net_dev.SubState];//test select komandos formavimas
-                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                        //Socket_.send_socket(net_dev, net_dev.Cmd);
                         net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     }
 
@@ -7589,9 +7394,9 @@ namespace ArtiluxEOL
                     }
                     else
                     {
-                        long timestamp_now = Socket_.UnixTimeNow();
+                        long timestamp_now = Main.main.UnixTimeNow();
                         net_dev.Cmd = Evse_param_type[net_dev.SubState] + Convert.ToString(timestamp_now) + ';' ;//test select komandos formavimas
-                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                        //Socket_.send_socket(net_dev, net_dev.Cmd);
                         net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     }
 
@@ -7607,7 +7412,7 @@ namespace ArtiluxEOL
                     else
                     {
                         net_dev.Cmd = Evse_param_type[net_dev.SubState];//test select komandos formavimas
-                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                        //Socket_.send_socket(net_dev, net_dev.Cmd);
                         net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     }
                     break;
@@ -7676,7 +7481,7 @@ namespace ArtiluxEOL
                     else
                     {
                         net_dev.Cmd = Evse_param_type[net_dev.SubState];//test select komandos formavimas
-                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                        //Socket_.send_socket(net_dev, net_dev.Cmd);
                         net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     }
                     break;
@@ -7691,7 +7496,7 @@ namespace ArtiluxEOL
                     else
                     {
                         net_dev.Cmd = Evse_param_type[net_dev.SubState] + "1;";//test select komandos formavimas
-                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                        //Socket_.send_socket(net_dev, net_dev.Cmd);
                         net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     }
                     break;
@@ -7760,7 +7565,7 @@ namespace ArtiluxEOL
                     else
                     {
                         net_dev.Cmd = Evse_param_type[net_dev.SubState];//test select komandos formavimas
-                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                        //Socket_.send_socket(net_dev, net_dev.Cmd);
                         net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     }
                     break;
@@ -7782,7 +7587,7 @@ namespace ArtiluxEOL
                     else
                     {
                         net_dev.Cmd = Evse_param_type[net_dev.SubState];//test select komandos formavimas
-                        Socket_.send_socket(net_dev, net_dev.Cmd);
+                        //Socket_.send_socket(net_dev, net_dev.Cmd);
                         net_dev.SendReceiveState = NetDev_SendState.SEND_BEGIN;
                     }
                     break;
@@ -7790,14 +7595,241 @@ namespace ArtiluxEOL
         }
         #endregion
 
-        internal void Barcode1_DoWork(object sender, DoWorkEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
+        #region EVSE_3 control
 
         internal void Barcode3_DoWork(object sender, DoWorkEventArgs e)
         {
-            throw new NotImplementedException();
+            BackgroundWorker bw = sender as BackgroundWorker;
+
+            int arg = 0;
+            e.Result = Barcode3_Socket_Thread(bw, arg);
+
+            if (bw.CancellationPending)
+            {
+                e.Cancel = true;
+            }
         }
+
+        public object Barcode3_Socket_Thread(BackgroundWorker bw, int arg)
+        {
+            int result = 0;
+            int handlerTimer = 0;
+
+            while (true) // Thread loop
+            {
+                TCP_Device_Manager(Main.main.network_dev[DevType.BARCODE_3]);
+                handlerTimer++;
+
+                if (handlerTimer >= 10) // Every 100ms
+                {
+                    handlerTimer = 0;
+                    //Barcode3_Handler();
+                }
+                Thread.Sleep(10);
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region TCP handling
+
+        void TCP_Device_Manager(SocketDevList tcpDevice)
+        {
+            if (!tcpDevice.Connected)
+            {
+                System.Diagnostics.Debug.Print("Connecting to: " + tcpDevice.Name);
+
+                // Clean up before creating new TCP client
+
+                if (tcpDevice.Client != null)
+                {
+                    tcpDevice.Client.Client.Shutdown(SocketShutdown.Both);
+                    tcpDevice.Client.GetStream().Close();
+                    tcpDevice.Client.GetStream().Dispose();
+                    tcpDevice.Client.Close();
+                    tcpDevice.Client.Dispose();
+                    tcpDevice.Client = null;
+                }
+
+                // Create new TCP client for this device
+                try
+                {
+                    tcpDevice.Client = new TcpClient(tcpDevice.Ip, tcpDevice.Port_0);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.Print("Failed to create TCP client for: " + tcpDevice.Name);
+                    tcpDevice.LastTransOK = false;
+                    return; // Device offline, nothing else to do
+                }
+
+                // Check client status
+                if (IsTcpClientConnected(tcpDevice.Client))
+                {
+                    tcpDevice.Connected = true;
+                    tcpDevice.LastTransOK = true;
+                    System.Diagnostics.Debug.Print(tcpDevice.Name + " is online");
+                }
+                else
+                {
+                    tcpDevice.Connected = false;
+                    tcpDevice.LastTransOK = false;
+                    System.Diagnostics.Debug.Print(tcpDevice.Name + " is offline");
+                    return; // Device offline, nothing else to do
+                }
+            }
+
+            if (!tcpDevice.LastTransOK) // Last TCP transaction was not ok, check client status
+            {
+                // Check client status
+                if (IsTcpClientConnected(tcpDevice.Client))
+                {
+                    tcpDevice.Connected = true;
+                    tcpDevice.LastTransOK = true;
+                }
+                else
+                {
+                    tcpDevice.Connected = false;
+                    tcpDevice.LastTransOK = false;
+                    return; // Device offline, nothing else to do
+                }
+            }
+
+            NetworkStream netStream = tcpDevice.Client.GetStream();
+
+            try // Receive data from TCP to accumulative buffer
+            {
+                if (netStream.DataAvailable)
+                {
+                    byte[] buffer = new byte[MaxBufferSize];
+                    int bytesRead = netStream.Read(buffer, 0, buffer.Length);
+                    tcpDevice.LastRXTime = Main.main.UnixTimeNow(); // Reset timeout timer
+
+                    if (bytesRead > 0)//TO DO check if bytesRead fits in MaxBufferSize
+                    {
+                        string chunk = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                        string toAppend = chunk.Replace("\r", ""); // Clean up before appending
+                        tcpDevice.RxBuff += toAppend;
+
+                        if (tcpDevice.RxBuff.Length > MaxBufferSize)
+                        {
+                            tcpDevice.RxBuff = tcpDevice.RxBuff.Substring(tcpDevice.RxBuff.Length - MaxBufferSize);
+                        }
+
+                        if (tcpDevice.RxBuff.EndsWith("\n")) // If no \n char at the end of buffer, waiting for more data/timeout
+                        {
+                            tcpDevice.WaitingForMoreData = false;
+                        }
+                        else
+                        {
+                            tcpDevice.WaitingForMoreData = true;
+                        }
+                    }
+                }
+                else if (tcpDevice.WaitingForMoreData) // Last received data did not end with \n, wait until timeout
+                {
+                    if ((Main.main.UnixTimeNow() - tcpDevice.LastRXTime) > TCP_RX_Timeout) // Check for receive timeout, append \n char to the tcpDevice.RxBuff
+                    {
+                        tcpDevice.RxBuff += "\n";
+                        tcpDevice.LastRXTime = Main.main.UnixTimeNow(); // Reset timeout timer
+                        tcpDevice.WaitingForMoreData = false; // Timed out, \n added to the end, not waiting any longer
+                        //System.Diagnostics.Debug.Print("RX timeout for: " + tcpDevice.Name);
+                    }
+                }
+            }
+            catch (IOException ex)
+            {
+                System.Diagnostics.Debug.Print("Read operation failed for: " + tcpDevice.Name);
+                tcpDevice.LastTransOK = false;
+                return;
+            }
+
+            if ((tcpDevice.Resp == "" || tcpDevice.Resp == null) && tcpDevice.RxBuff != null) // Feed the next responce from the accumulative buffer to SocketDevList.Resp if it is clear
+            {
+                int newlineIndex = tcpDevice.RxBuff.IndexOf('\n');
+
+                if (newlineIndex != -1) // Check if there's a newline in the buffer (which indicates a complete response)
+                {
+                    // Extract the response up to the newline character
+                    tcpDevice.Resp = tcpDevice.RxBuff.Substring(0, newlineIndex).Trim(); // Trim to remove extra whitespace/newline
+
+                    // Remove the extracted response and the newline character from rxBuff
+                    tcpDevice.RxBuff = tcpDevice.RxBuff.Substring(newlineIndex + 1);
+                    tcpDevice.NewResp = true;
+                    tcpDevice.SendReceiveState = NetDev_SendState.RECEIVE_OK;
+                }
+                else
+                {
+                    tcpDevice.Resp = "";
+                    tcpDevice.NewResp = false;
+                }
+            }
+
+            if (tcpDevice.Cmd != null && tcpDevice.Cmd != "") // Something needs to sent to this device
+            {
+                try
+                {
+                    tcpDevice.Cmd += "\r\n";
+                    byte[] commandBytes = Encoding.ASCII.GetBytes(tcpDevice.Cmd);
+                    netStream.Write(commandBytes, 0, commandBytes.Length);
+                    //System.Diagnostics.Debug.Print("Sending [" + tcpDevice.Cmd + "] to: " + tcpDevice.Name);
+                    tcpDevice.Cmd = ""; // Reset command after sending
+                    tcpDevice.SendReceiveState = NetDev_SendState.SEND_OK;
+                }
+                catch (Exception ex)
+                {
+                    tcpDevice.LastTransOK = false;
+                    tcpDevice.SendReceiveState = NetDev_SendState.SEND_FAIL;
+                    System.Diagnostics.Debug.Print("Failed to send to: " + tcpDevice.Name);
+                    return;
+                }
+            }
+        }
+
+        public string GetResponse(SocketDevList device)
+        {
+            string toRet = device.Resp;
+            device.Resp = "";
+            device.NewResp = false;
+            return toRet;
+        }
+
+        private bool IsTcpClientConnected(TcpClient client)
+        {
+            if (client == null) // Check for null before everything else
+            {
+                return false;
+            }
+
+            if (!client.Connected)
+            {
+                return false;
+            }
+
+            try
+            {
+                // Using Poll to check if the socket is still connected
+                NetworkStream netStream = client.GetStream();
+
+                if (client.Client.Poll(1000, SelectMode.SelectRead))
+                {
+                    byte[] buffer = new byte[1];
+                    if (netStream.Read(buffer, 0, 1) == 0)
+                    {
+                        return false; // Connection closed
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return false; // An exception indicates the connection is lost
+            }
+
+            return true; // Connection is valid
+        }
+
+        #endregion
     }
 }

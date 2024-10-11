@@ -22,21 +22,167 @@ using static Ion.Sdk.Idi.Value.Constraint;
 
 namespace ArtiluxEOL
 {
-    public partial class SocketClient : Form
+    public partial class SocketClient
     {
-        public static bool start_receive = false;
+        /*public static bool start_receive = false;
 
-        public SocketClient()
+        private const int SendTimeout = 5000; // 5 seconds
+        private const int ReceiveTimeout = 5000; // 5 seconds
+        private const int MonitorInterval = 5000; // 5 seconds
+
+        public async Task SendCommandAsync(SocketDevList device) // Send a command to the device with a timeout
         {
-            InitializeComponent();
+            if (!string.IsNullOrEmpty(device.Cmd))
+            {
+                try
+                {
+                    using (TcpClient client = new TcpClient())
+                    {
+                        // Connect with a timeout
+                        var connectTask = client.ConnectAsync(device.Ip, device.Port_0);
+                        if (await Task.WhenAny(connectTask, Task.Delay(SendTimeout)) == connectTask)
+                        {
+                            NetworkStream stream = client.GetStream();
+
+                            // Set the send and receive timeouts on the stream
+                            client.SendTimeout = SendTimeout;
+                            client.ReceiveTimeout = ReceiveTimeout;
+
+                            byte[] cmdBytes = Encoding.ASCII.GetBytes(device.Cmd);
+                            await stream.WriteAsync(cmdBytes, 0, cmdBytes.Length);
+
+                            // Ensure the command is flushed
+                            await stream.FlushAsync();
+
+                            device.Cmd = ""; // Clear the command after sending
+                        }
+                        else
+                        {
+                            throw new TimeoutException("Connection timed out while sending the command.");
+                        }
+                    }
+                }
+                catch (TimeoutException ex)
+                {
+                    Console.WriteLine($"Timeout sending command to {device.Ip}:{device.Port_0} - {ex.Message}");
+                    device.Connected = false; // Update connection state on timeout
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error sending command to {device.Ip}:{device.Port_0} - {ex.Message}");
+                    device.Connected = false; // Update connection state on error
+                }
+            }
         }
 
-        public long UnixTimeNow()
+        public async Task ReceiveResponseAsync(SocketDevList device) // Receive a response from the device with a timeout
         {
-            var timeSpan = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
-            return (long)timeSpan.TotalSeconds;
+            try
+            {
+                using (TcpClient client = new TcpClient())
+                {
+                    // Connect with a timeout
+                    var connectTask = client.ConnectAsync(device.Ip, device.Port_0);
+                    if (await Task.WhenAny(connectTask, Task.Delay(ReceiveTimeout)) == connectTask)
+                    {
+                        NetworkStream stream = client.GetStream();
+
+                        // Set timeouts for the stream
+                        client.SendTimeout = SendTimeout;
+                        client.ReceiveTimeout = ReceiveTimeout;
+
+                        byte[] buffer = new byte[1024];
+
+                        // Read with a timeout
+                        var readTask = stream.ReadAsync(buffer, 0, buffer.Length);
+                        if (await Task.WhenAny(readTask, Task.Delay(ReceiveTimeout)) == readTask)
+                        {
+                            int bytesRead = await readTask;
+                            if (bytesRead > 0)
+                            {
+                                device.Resp = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                                device.NewResp = true; // Set new response flag
+                            }
+                        }
+                        else
+                        {
+                            throw new TimeoutException("Receiving response timed out.");
+                        }
+                    }
+                    else
+                    {
+                        throw new TimeoutException("Connection timed out while receiving response.");
+                    }
+                }
+            }
+            catch (TimeoutException ex)
+            {
+                Console.WriteLine($"Timeout receiving response from {device.Ip}:{device.Port_0} - {ex.Message}");
+                device.Connected = false; // Update connection state on timeout
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error receiving response from {device.Ip}:{device.Port_0} - {ex.Message}");
+                device.Connected = false; // Update connection state on error
+            }
         }
 
+        public async Task StartMonitoringAsync() // This function will monitor devices continuously in the background
+        {
+            while (true)
+            {
+                // Perform the monitoring of devices
+                await MonitorDevicesAsync();
+
+                // Wait for a specified interval before running the next check
+                await Task.Delay(MonitorInterval);
+            }
+        }
+
+        public async Task<bool> PingDeviceAsync(string ipAddress) // Ping the device to check its connection state
+        {
+            try
+            {
+                Ping ping = new Ping();
+                PingReply reply = await ping.SendPingAsync(ipAddress, 1000); // 1 second timeout
+                return reply.Status == IPStatus.Success;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task MonitorDevicesAsync()
+        {
+            //System.Diagnostics.Debug.Print("Did a thing");
+
+            foreach (var device in Main.main.network_dev)
+            {
+                // Ping the device to check if it is connected
+                device.Connected = await PingDeviceAsync(device.Ip);
+
+                if (device.Connected)
+                {
+                    // If a command is present, send it
+                    //await SendCommandAsync(device);
+
+                    // If no new response has been received yet, try to receive it
+                    //if (!device.NewResp)
+                    //{
+                        //await ReceiveResponseAsync(device);
+                    //}
+
+                    //System.Diagnostics.Debug.Print(device.Name + " online");
+                }
+                else
+                {
+                    //System.Diagnostics.Debug.Print(device.Name + " offline");
+                }
+            }
+        }*/
+
+        /*
         public class ObjectState
         {
             public const int BufferSize = 256;
@@ -216,7 +362,23 @@ namespace ArtiluxEOL
                     state.socket = dev.client;
                     socketReceiveArgs = new SocketAsyncEventArgs();
                     socketReceiveArgs.SetBuffer(buffer, 0, buffer.Length);
-                    socketReceiveArgs.Completed += SocketReceiveArgs_Completed;
+
+                    switch (dev.Port_0)
+                    {
+                        default:
+                            socketReceiveArgs.Completed += SocketReceiveArgs_Completed;
+                            break;
+
+                        case 5566:
+                            socketReceiveArgs.Completed += Socket_RX_Completed_Main_Controller;
+                            break;
+
+                        case 9100:
+                            socketReceiveArgs.Completed += Socket_RX_Completed_Printer;
+                            break;
+                    }
+
+
                     socketReceiveArgs.UserToken = net_dev.Port_0;
 
                     var bytes = dev.client.ReceiveAsync(socketReceiveArgs);
@@ -229,6 +391,104 @@ namespace ArtiluxEOL
                     Console.WriteLine(e.ToString());
                     net_dev.SendReceiveState = NetDev_SendState.RECEIVE_FAIL;
                     net_dev.ReceiveRunning = false;
+                }
+            }
+
+            private static void Socket_RX_Completed_Main_Controller(object sender, SocketAsyncEventArgs e)
+            {
+                int netDevID = NetDev_Tab.MAIN_CONTROLLER;
+                int line_end = 0;
+
+                try
+                {
+                    int len = e.BytesTransferred;
+                    response = Encoding.UTF8.GetString(e.Buffer, 0, len);
+                    Main.main.dbg_print(DbgType.NETWORK, "RX:" + len + " <- " + Main.main.network_dev[netDevID].Name, Color.DimGray);
+                    line_end = Convert.ToInt16(response[len - 1]);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.Print("RX_FAULT: " + Main.main.network_dev[netDevID].Name);
+                }
+
+                if (line_end == 10)//ar turim gale enter
+                {
+                    if (Main.main.network_dev[netDevID].RespPktCount == 0)//jei turim visus duomenis pirmu siuntimu tai neapendinam
+                    {
+                        Main.main.network_dev[netDevID].Resp = response;
+                    }
+                    else
+                    {
+                        Main.main.network_dev[netDevID].Resp += @response;
+                    }
+                    Main.main.network_dev[netDevID].NewResp = true;
+                    Main.main.network_dev[netDevID].RespPktCount = 0;
+                    Main.main.network_dev[netDevID].ReceiveRunning = false;
+                    Main.main.network_dev[netDevID].SendReceiveState = NetDev_SendState.RECEIVE_OK;
+                }
+                else
+                {
+                    if (Main.main.network_dev[netDevID].RespPktCount == 0)//jei turim visus duomenis pirmu siuntimu tai neapendinam
+                    {
+                        Main.main.network_dev[netDevID].Resp = response;
+                    }
+                    else
+                    {
+                        Main.main.network_dev[netDevID].Resp += @response;
+                    }
+                    Main.main.network_dev[netDevID].RespPktCount++;
+
+                    _ = ReceiveAsync(Main.main.network_dev[netDevID]);
+                    System.Diagnostics.Debug.Print("RX data no \\n char");
+                }
+            }
+
+            private static void Socket_RX_Completed_Printer(object sender, SocketAsyncEventArgs e)
+            {
+                int netDevID = NetDev_Tab.PRINTER;
+                int line_end = 0;
+
+                try
+                {
+                    int len = e.BytesTransferred;
+                    response = Encoding.UTF8.GetString(e.Buffer, 0, len);
+                    Main.main.dbg_print(DbgType.NETWORK, "RX:" + len + " <- " + Main.main.network_dev[netDevID].Name, Color.DimGray);
+                    line_end = Convert.ToInt16(response[len - 1]);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.Print("RX_FAULT: " + Main.main.network_dev[netDevID].Name);
+                }
+
+                if (line_end == 10)//ar turim gale enter
+                {
+                    if (Main.main.network_dev[netDevID].RespPktCount == 0)//jei turim visus duomenis pirmu siuntimu tai neapendinam
+                    {
+                        Main.main.network_dev[netDevID].Resp = response;
+                    }
+                    else
+                    {
+                        Main.main.network_dev[netDevID].Resp += @response;
+                    }
+                    Main.main.network_dev[netDevID].NewResp = true;
+                    Main.main.network_dev[netDevID].RespPktCount = 0;
+                    Main.main.network_dev[netDevID].ReceiveRunning = false;
+                    Main.main.network_dev[netDevID].SendReceiveState = NetDev_SendState.RECEIVE_OK;
+                }
+                else
+                {
+                    if (Main.main.network_dev[netDevID].RespPktCount == 0)//jei turim visus duomenis pirmu siuntimu tai neapendinam
+                    {
+                        Main.main.network_dev[netDevID].Resp = response;
+                    }
+                    else
+                    {
+                        Main.main.network_dev[netDevID].Resp += @response;
+                    }
+                    Main.main.network_dev[netDevID].RespPktCount++;
+
+                    _ = ReceiveAsync(Main.main.network_dev[netDevID]);
+                    System.Diagnostics.Debug.Print("RX data no \\n char");
                 }
             }
 
@@ -294,7 +554,6 @@ namespace ArtiluxEOL
                 if (cmd.Length > 2)
                 {
                     dev.SendReceiveState = NetDev_SendState.SEND_WAIT;
-                    dev.NewSendData = false;
                     Send(dev, cmd + "\r\n");
                     //sendCompleted.WaitOne();
                 }
@@ -359,5 +618,7 @@ namespace ArtiluxEOL
         {
             AssyncSocketClient.start_receive(dev);
         }
+
+        */
     }
 }
